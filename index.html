@@ -18,17 +18,16 @@
         let savedVersion = null;
         try { savedVersion = localStorage.getItem('app_version'); } catch(e) {}
         if (savedVersion !== CURRENT_VERSION) {
-            console.log('🔄 نسخة جديدة مكتشفة! (' + savedVersion + ' → ' + CURRENT_VERSION + ')');
             try { localStorage.setItem('app_version', CURRENT_VERSION); } catch(e) {}
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
                     for (let registration of registrations) registration.unregister();
-                }).catch(function(err) { console.warn('SW unregister error:', err); });
+                }).catch(function(err) {});
             }
             if ('caches' in window) {
                 caches.keys().then(function(names) {
                     for (let name of names) caches.delete(name);
-                }).catch(function(err) { console.warn('Cache delete error:', err); });
+                }).catch(function(err) {});
             }
             if (savedVersion !== null) setTimeout(function() { window.location.reload(true); }, 800);
         }
@@ -84,7 +83,7 @@
                     const link = document.createElement('link');
                     link.rel = 'manifest'; link.href = manifestURL;
                     document.head.appendChild(link);
-                } catch (e) { console.warn('⚠️ Manifest generation failed:', e); }
+                } catch (e) {}
             });
     })();
     </script>
@@ -94,7 +93,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <!-- ⭐⭐⭐ مكتبة SheetJS لإنشاء ملفات Excel حقيقية ⭐⭐⭐ -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -638,7 +636,6 @@
                 <div class="bg-navy-900 p-4 rounded-xl border border-navy-700">
                     <div class="flex justify-between items-center mb-3">
                         <label class="text-slate-300 font-semibold"><i class="fa-solid fa-image text-gold-400 ml-1"></i> صورة المنتج (اختياري)</label>
-                        <span class="text-[10px] text-slate-500">تُحفظ في حسابك السحابي ☁️</span>
                     </div>
                     <div class="flex items-center gap-4">
                         <div id="prodImagePreview" class="w-24 h-24 rounded-xl bg-navy-800 border-2 border-dashed border-navy-600 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -847,8 +844,8 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' })
                 .then((registration) => {
-                    setInterval(() => { registration.update().catch(err => console.warn('SW update error:', err)); }, 60000);
-                }).catch((err) => { console.warn('⚠️ SW registration failed:', err); });
+                    setInterval(() => { registration.update().catch(err => {}); }, 60000);
+                }).catch((err) => {});
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) { refreshing = true; window.location.reload(); }
@@ -1059,10 +1056,15 @@
             else state = getFreshDefault();
         } catch(e) { state = getFreshDefault(); }
 
+        // ⭐⭐⭐ حل مشكلة بقاء السلة بعد التحديث - تأكد من أن السلة تبدأ فارغة دائماً ⭐⭐⭐
+        state.cart = [];
+
         const requiredKeys = ['subscription','adminClients','products','customers','expenses','invoices','cart','settings'];
         requiredKeys.forEach(k => {
             if (!state[k] || (k !== 'settings' && k !== 'subscription' && !Array.isArray(state[k]))) { state[k] = JSON.parse(JSON.stringify(defaultState[k])); }
         });
+        // ⭐ ضمان بقاء السلة فارغة بعد أي إعادة تهيئة ⭐
+        state.cart = [];
         if (!Array.isArray(state.notifications)) state.notifications = [];
         if (!state.subscription || typeof state.subscription !== 'object') state.subscription = JSON.parse(JSON.stringify(defaultState.subscription));
         if (!state.settings || typeof state.settings !== 'object') state.settings = JSON.parse(JSON.stringify(defaultState.settings));
@@ -1082,6 +1084,7 @@
         let monthlyChartInstance = null, expenseChartInstance = null, dashboardChartInstance = null, editingProductId = null;
         let currentPayDebtCustomerId = null;
         let editingClientId = null;
+        let costVisibleInInquiry = false; // ⭐ حالة إظهار سعر التكلفة في صفحة الاستفسار
 
         const NOTIFICATION_TYPES = {
             welcome: { icon: 'fa-hand-sparkles', color: 'text-blue-400 bg-blue-500/20', title: 'مرحباً بك' },
@@ -1209,7 +1212,9 @@
 
         function saveStateToCloud() {
             try {
+                // ⭐ تأكد من حفظ السلة فارغة دائماً على السحابة ⭐
                 const plainData = JSON.parse(JSON.stringify(state));
+                plainData.cart = []; // ⭐ لا نحفظ السلة أبداً على السحابة ⭐
                 const ref = getActiveRef();
                 return ref.set(plainData).then(() => {}).catch((error) => {});
             } catch(e) {}
@@ -1228,7 +1233,10 @@
                 const cloudData = normalizeCloudData(raw);
                 if (cloudData && typeof cloudData === 'object') {
                     state = cloudData;
+                    // ⭐⭐⭐ حل مشكلة بقاء السلة - دائماً نبدأ بسلة فارغة ⭐⭐⭐
+                    state.cart = [];
                     requiredKeys.forEach(k => { if (!state[k] || (k !== 'settings' && k !== 'subscription' && !Array.isArray(state[k]))) { state[k] = JSON.parse(JSON.stringify(defaultState[k])); } });
+                    state.cart = []; // ⭐ تأكيد إضافي ⭐
                     if (!Array.isArray(state.notifications)) state.notifications = [];
                     if (!state.subscription || typeof state.subscription !== 'object') state.subscription = JSON.parse(JSON.stringify(defaultState.subscription));
                     if (!state.settings || typeof state.settings !== 'object') state.settings = JSON.parse(JSON.stringify(defaultState.settings));
@@ -1248,20 +1256,23 @@
                 const cloudData = normalizeCloudData(raw);
                 if (cloudData && typeof cloudData === 'object') {
                     state = cloudData;
+                    // ⭐⭐⭐ حل مشكلة بقاء السلة - دائماً نبدأ بسلة فارغة ⭐⭐⭐
+                    state.cart = [];
                     state.adminClients = [];
                     if (!state.settings || typeof state.settings !== 'object') state.settings = JSON.parse(JSON.stringify(defaultState.settings));
                     if (!Array.isArray(state.products)) state.products = [];
                     if (!Array.isArray(state.customers)) state.customers = [];
                     if (!Array.isArray(state.expenses)) state.expenses = [];
                     if (!Array.isArray(state.invoices)) state.invoices = [];
-                    if (!Array.isArray(state.cart)) state.cart = [];
                     if (!Array.isArray(state.notifications)) state.notifications = [];
                     if (!state.productImages || typeof state.productImages !== 'object' || Array.isArray(state.productImages)) state.productImages = {};
+                    state.cart = []; // ⭐ تأكيد إضافي ⭐
                     try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
                     return true;
                 } else {
                     const initial = getFreshDefault();
                     initial.adminClients = [];
+                    initial.cart = [];
                     return db.ref('appData/clientData/' + encodedUsername).set(initial).then(() => false);
                 }
             }).catch((error) => { return false; });
@@ -1517,11 +1528,13 @@
             try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
             const mainRef = db.ref('appData/mainState');
             const dataToSave = JSON.parse(JSON.stringify(state));
+            dataToSave.cart = []; // ⭐ لا نحفظ السلة ⭐
             mainRef.set(dataToSave).then(() => {
                 if (!isEdit) {
                     const clientRef = db.ref('appData/clientData/' + encodedUsername);
                     const clientInitialState = getFreshDefault();
                     clientInitialState.adminClients = [];
+                    clientInitialState.cart = [];
                     clientInitialState.settings.storeName = store || 'متجري';
                     clientInitialState.settings.phone = phone || '';
                     clientInitialState.settings.address = city || '';
@@ -1634,6 +1647,8 @@
             document.getElementById('dashCurrentDate').innerText = todayDate;
             document.getElementById('dashLastUpdate').innerText = todayDate;
             updateSubscriptionUI();
+            // ⭐⭐⭐ حل مشكلة السلة: تصفير السلة عند بدء التطبيق ⭐⭐⭐
+            state.cart = [];
             renderAll();
             setTimeout(() => { try { generateAutoNotifications(); } catch(e) {} }, 800);
         }
@@ -1644,6 +1659,8 @@
                 const splashStatus = document.getElementById('splashStatus');
                 if (splashStatus) splashStatus.innerText = 'جاري الاتصال بالسحابة...';
                 try { await loadStateFromCloud(); } catch(e) {}
+                // ⭐ ضمان بقاء السلة فارغة ⭐
+                state.cart = [];
                 if (splashStatus) splashStatus.innerText = 'جاري تحميل النظام...';
                 if (splash) {
                     splash.style.opacity = '0';
@@ -1764,6 +1781,7 @@
                 const sub = state.subscription; const adminClients = state.adminClients;
                 state = getFreshDefault();
                 state.subscription = sub; state.adminClients = adminClients;
+                state.cart = [];
                 saveState(); renderAll(); showToast('تم إعادة الضبط', 'info');
             }
         }
@@ -1934,6 +1952,7 @@
         }
         function updateCartUI() {
             const container = document.getElementById('cartItems');
+            if (!container) return;
             container.innerHTML = '';
             if (state.cart.length === 0) container.innerHTML = '<p class="text-center text-slate-500 mt-10">السلة فارغة</p>';
             else {
@@ -1995,12 +2014,16 @@
             state.cart.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty -= item.qty; });
             const invoice = { id: `INV-${Date.now().toString().slice(-6)}`, date: new Date().toLocaleString('ar-EG'), type: 'Sales', items: [...state.cart], totalUSD: finalTotalUSD, profit: profit, totalCost: totalCost, itemsCount: totalItems, status: paymentMethod === 'دين' ? 'Pending' : 'Paid', isWholesale: state.settings.isWholesale, customerName, paymentMethod, discount: discountPercent };
             state.invoices.push(invoice);
+            // ⭐⭐⭐ حل مشكلة السلة: تفريغ السلة فوراً قبل الحفظ ⭐⭐⭐
+            state.cart = [];
+            // ⭐ إفراغ حقول السلة أيضاً ⭐
+            try {
+                document.getElementById('cartCustomerName').value = '';
+                document.getElementById('cartDiscountPercent').value = '';
+            } catch(e) {}
             saveState();
             showReceipt(invoice);
             showToast(`تم البيع - ${formatMoney(finalTotalUSD)}`, 'success');
-            state.cart = [];
-            document.getElementById('cartCustomerName').value = '';
-            document.getElementById('cartDiscountPercent').value = '';
             updateCartUI(); renderPOSProducts(); renderPosCategories(); renderCustomers();
             setTimeout(() => { try { checkStockNotifications(); } catch(e) {} }, 500);
         }
@@ -2212,10 +2235,6 @@
             showToast(`🗑️ تم حذف الفاتورة ${invoiceId} وإرجاع الكميات`, 'delete');
         }
 
-        // ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
-        // ⭐⭐⭐ دوال تصدير Excel الاحترافية باستخدام مكتبة SheetJS ⭐⭐⭐
-        // ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
-
         function saveExcelWorkbook(workbook, fileName) {
             try {
                 if (typeof XLSX === 'undefined') {
@@ -2240,45 +2259,22 @@
             worksheet['!views'].push({ RTL: true });
         }
 
-        // ⭐ تصدير سجل المبيعات كملف Excel احترافي منسق ⭐
         function exportSalesExcel() {
             if (typeof XLSX === 'undefined') { showToast('⚠️ مكتبة Excel غير محملة', 'warning'); return; }
             if (!Array.isArray(state.invoices) || state.invoices.length === 0) { showToast('⚠️ لا توجد بيانات للتصدير', 'warning'); return; }
-
-            // ترتيب الفواتير من الأحدث للأقدم
             const sortedInvoices = [...state.invoices].sort((a, b) => {
                 const idA = String(a.id || '');
                 const idB = String(b.id || '');
                 return idB.localeCompare(idA);
             });
-
-            // رؤوس الأعمدة (نفس ترتيب الصورة تماماً)
             const headers = [
-                'رقم الفاتورة',
-                'التاريخ',
-                'العميل',
-                'طريقة الدفع',
-                'نوع البيع',
-                'حالة الفاتورة',
-                'اسم المنتج',
-                'SKU',
-                'الباركود',
-                'الكمية',
-                'الوحدة',
-                'سعر الوحدة (دولار)',
-                'إجمالي الصنف (دولار)',
-                'تكلفة الوحدة (دولار)',
-                'إجمالي التكلفة (دولار)',
-                'ربح الصنف (دولار)',
-                'إجمالي الفاتورة (دولار)',
-                'الخصم (%)',
-                'ربح الفاتورة (دولار)',
-                'عدد القطع في الفاتورة'
+                'رقم الفاتورة','التاريخ','العميل','طريقة الدفع','نوع البيع','حالة الفاتورة',
+                'اسم المنتج','SKU','الباركود','الكمية','الوحدة','سعر الوحدة (دولار)',
+                'إجمالي الصنف (دولار)','تكلفة الوحدة (دولار)','إجمالي التكلفة (دولار)',
+                'ربح الصنف (دولار)','إجمالي الفاتورة (دولار)','الخصم (%)','ربح الفاتورة (دولار)','عدد القطع في الفاتورة'
             ];
-
             const rows = [];
             rows.push(headers);
-
             sortedInvoices.forEach(inv => {
                 const invoiceId = inv.id || '';
                 const invoiceDate = inv.date || '';
@@ -2290,7 +2286,6 @@
                 const discountPercent = parseFloat((inv.discount || 0));
                 const invoiceProfit = parseFloat((inv.profit || 0).toFixed(2));
                 const itemsCount = inv.itemsCount || 0;
-
                 if (Array.isArray(inv.items) && inv.items.length > 0) {
                     inv.items.forEach(item => {
                         const qty = parseFloat(item.qty || 0);
@@ -2300,26 +2295,10 @@
                         const itemCostTotal = parseFloat((cost * qty).toFixed(2));
                         const itemProfit = parseFloat((itemTotal - itemCostTotal).toFixed(2));
                         rows.push([
-                            invoiceId,
-                            invoiceDate,
-                            customerName,
-                            paymentMethod,
-                            saleType,
-                            status,
-                            item.name || '',
-                            item.sku || '',
-                            item.barcode || '',
-                            qty,
-                            item.unit || 'قطعة',
-                            price,
-                            itemTotal,
-                            cost,
-                            itemCostTotal,
-                            itemProfit,
-                            invoiceTotal,
-                            discountPercent,
-                            invoiceProfit,
-                            itemsCount
+                            invoiceId, invoiceDate, customerName, paymentMethod, saleType, status,
+                            item.name || '', item.sku || '', item.barcode || '', qty, item.unit || 'قطعة',
+                            price, itemTotal, cost, itemCostTotal, itemProfit,
+                            invoiceTotal, discountPercent, invoiceProfit, itemsCount
                         ]);
                     });
                 } else {
@@ -2330,17 +2309,9 @@
                     ]);
                 }
             });
-
-            // إنشاء ورقة العمل
             const worksheet = XLSX.utils.aoa_to_sheet(rows);
-
-            // ضبط عرض الأعمدة
             setColumnWidths(worksheet, [16, 22, 16, 12, 12, 16, 22, 14, 16, 8, 10, 14, 14, 14, 14, 14, 14, 10, 14, 14]);
-
-            // تفعيل اتجاه اليمين لليسار
             setRTLView(worksheet);
-
-            // إنشاء ورقة معلومات إضافية
             const infoData = [
                 ['تقرير سجل المبيعات'],
                 [''],
@@ -2355,26 +2326,19 @@
             const infoSheet = XLSX.utils.aoa_to_sheet(infoData);
             setColumnWidths(infoSheet, [30, 40]);
             setRTLView(infoSheet);
-
-            // إنشاء كتاب العمل
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'سجل المبيعات');
             XLSX.utils.book_append_sheet(workbook, infoSheet, 'معلومات التقرير');
-
-            // حفظ الملف
             const fileName = `sales_log_${new Date().toISOString().slice(0, 10)}.xlsx`;
             if (saveExcelWorkbook(workbook, fileName)) {
                 showToast('✅ تم تصدير سجل المبيعات بصيغة Excel', 'success');
             }
         }
 
-        // ⭐ تصدير جميع البيانات كملف Excel متعدد الأوراق ⭐
         function exportData() {
             if (typeof XLSX === 'undefined') { showToast('⚠️ مكتبة Excel غير محملة', 'warning'); return; }
             try {
                 const workbook = XLSX.utils.book_new();
-
-                // ⭐ ورقة 1: معلومات عامة ⭐
                 const infoData = [
                     ['تقرير شامل - ' + (state.settings.storeName || 'الحسن للمحاسبة')],
                     [''],
@@ -2403,22 +2367,14 @@
                 setRTLView(infoSheet);
                 XLSX.utils.book_append_sheet(workbook, infoSheet, 'معلومات عامة');
 
-                // ⭐ ورقة 2: المنتجات ⭐
                 if (state.products.length > 0) {
                     const productHeaders = ['#', 'اسم المنتج', 'SKU', 'الباركود', 'التصنيف', 'الكمية', 'الوحدة', 'الحد الأدنى', 'التكلفة ($)', 'سعر المفرد ($)', 'سعر الجملة ($)', 'قيمة المخزون بالتكلفة ($)', 'قيمة المخزون بالمفرد ($)', 'ملاحظات'];
                     const productRows = [productHeaders];
                     state.products.forEach((p, i) => {
                         productRows.push([
-                            i + 1,
-                            p.name || '',
-                            p.sku || '',
-                            p.barcode || '',
-                            p.category || '',
-                            parseFloat(p.qty || 0),
-                            p.unit || 'قطعة',
-                            parseFloat(p.minLimit || 10),
-                            parseFloat((p.cost || 0).toFixed(2)),
-                            parseFloat((p.retailPrice || 0).toFixed(2)),
+                            i + 1, p.name || '', p.sku || '', p.barcode || '', p.category || '',
+                            parseFloat(p.qty || 0), p.unit || 'قطعة', parseFloat(p.minLimit || 10),
+                            parseFloat((p.cost || 0).toFixed(2)), parseFloat((p.retailPrice || 0).toFixed(2)),
                             parseFloat((p.wholesalePrice || 0).toFixed(2)),
                             parseFloat(((p.cost || 0) * (p.qty || 0)).toFixed(2)),
                             parseFloat(((p.retailPrice || 0) * (p.qty || 0)).toFixed(2)),
@@ -2431,18 +2387,13 @@
                     XLSX.utils.book_append_sheet(workbook, productSheet, 'المنتجات');
                 }
 
-                // ⭐ ورقة 3: العملاء ⭐
                 if (state.customers.length > 0) {
                     const customerHeaders = ['#', 'اسم العميل', 'النوع', 'الهاتف', 'العنوان', 'حد الدين ($)', 'ملاحظات'];
                     const customerRows = [customerHeaders];
                     state.customers.forEach((c, i) => {
                         customerRows.push([
-                            i + 1,
-                            c.name || '',
-                            c.type === 'wholesale' ? 'جملة' : 'مفرد',
-                            c.phone || '',
-                            c.address || '',
-                            parseFloat((c.creditLimit || 0).toFixed(2)),
+                            i + 1, c.name || '', c.type === 'wholesale' ? 'جملة' : 'مفرد',
+                            c.phone || '', c.address || '', parseFloat((c.creditLimit || 0).toFixed(2)),
                             c.notes || ''
                         ]);
                     });
@@ -2452,19 +2403,14 @@
                     XLSX.utils.book_append_sheet(workbook, customerSheet, 'العملاء');
                 }
 
-                // ⭐ ورقة 4: المصروفات ⭐
                 if (state.expenses.length > 0) {
                     const expenseHeaders = ['#', 'التصنيف', 'الوصف', 'المبلغ ($)', 'التاريخ', 'طريقة الدفع', 'ملاحظات'];
                     const expenseRows = [expenseHeaders];
                     state.expenses.forEach((e, i) => {
                         expenseRows.push([
-                            i + 1,
-                            e.category || '',
-                            e.description || '',
-                            parseFloat((e.amount || 0).toFixed(2)),
-                            e.date || '',
-                            e.paymentMethod || 'نقدي',
-                            e.notes || ''
+                            i + 1, e.category || '', e.description || '',
+                            parseFloat((e.amount || 0).toFixed(2)), e.date || '',
+                            e.paymentMethod || 'نقدي', e.notes || ''
                         ]);
                     });
                     const expenseSheet = XLSX.utils.aoa_to_sheet(expenseRows);
@@ -2473,7 +2419,6 @@
                     XLSX.utils.book_append_sheet(workbook, expenseSheet, 'المصروفات');
                 }
 
-                // ⭐ ورقة 5: الفواتير (تفاصيل كاملة) ⭐
                 if (state.invoices.length > 0) {
                     const invoiceHeaders = ['#', 'رقم الفاتورة', 'التاريخ', 'العميل', 'طريقة الدفع', 'نوع البيع', 'حالة الفاتورة', 'اسم المنتج', 'SKU', 'الباركود', 'الكمية', 'الوحدة', 'سعر الوحدة ($)', 'إجمالي الصنف ($)', 'تكلفة الوحدة ($)', 'إجمالي التكلفة ($)', 'ربح الصنف ($)', 'إجمالي الفاتورة ($)', 'الخصم (%)', 'ربح الفاتورة ($)', 'عدد القطع'];
                     const invoiceRows = [invoiceHeaders];
@@ -2518,7 +2463,6 @@
                     XLSX.utils.book_append_sheet(workbook, invoiceSheet, 'سجل المبيعات');
                 }
 
-                // حفظ الملف
                 const fileName = `alhasan_full_backup_${new Date().toISOString().slice(0, 10)}.xlsx`;
                 if (saveExcelWorkbook(workbook, fileName)) {
                     showToast('✅ تم تصدير جميع البيانات بصيغة Excel', 'success');
@@ -2529,9 +2473,7 @@
             }
         }
 
-        // ⭐ دالة توافق للخلف (في حال استُدعيت الدالة القديمة) ⭐
         function exportSalesCSV() { exportSalesExcel(); }
-        // ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
 
         function renderCustomers(filter = '') {
             const container = document.getElementById('customersListContainer');
@@ -2662,6 +2604,15 @@
             if (ro) ro.innerText = new Intl.NumberFormat('en-US').format(state.settings.oldExchangeRate) + ' ل.س';
         }
 
+        // ⭐ دالة تبديل إظهار سعر التكلفة في صفحة الاستفسار ⭐
+        function toggleCostVisibility() {
+            costVisibleInInquiry = !costVisibleInInquiry;
+            const searchEl = document.getElementById('inquirySearch');
+            if (searchEl && searchEl.value.trim() !== '') {
+                renderInquirySearch(searchEl.value);
+            }
+        }
+
         function renderInquirySearch(filter = '') {
             const resultsContainer = document.getElementById('inquiryResults');
             const detailContainer = document.getElementById('inquiryProductDetail');
@@ -2705,7 +2656,37 @@
             const costOldSYP = costUSD * oldExchangeRate, retailOldSYP = retailUSD * oldExchangeRate, wholesaleOldSYP = wholesaleUSD * oldExchangeRate;
             const isLowStock = product.qty <= (product.minLimit || 10);
             const stockStatus = product.qty <= 0 ? { text: '❌ نفذ من المخزون', cls: 'text-red-400 bg-red-500/20 border-red-500/40' } : isLowStock ? { text: '⚠️ مخزون منخفض', cls: 'text-orange-400 bg-orange-500/20 border-orange-500/40' } : { text: '✅ متوفر', cls: 'text-emerald-400 bg-emerald-500/20 border-emerald-500/40' };
-            detailContainer.innerHTML = `<div class="bg-gradient-to-br from-navy-800 to-navy-900 rounded-3xl border-2 border-gold-500/40 shadow-2xl overflow-hidden"><div class="bg-gradient-to-r from-navy-900 to-navy-800 p-5 border-b border-gold-500/30"><div class="flex items-center justify-between flex-wrap gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center text-navy-900 text-xl shadow-lg"><i class="fa-solid fa-circle-info"></i></div><div><h3 class="text-gold-400 font-bold text-lg">تفاصيل المنتج</h3><p class="text-slate-400 text-xs">معلومات كاملة وأسعار</p></div></div><span class="px-4 py-2 rounded-xl border-2 text-sm font-bold ${stockStatus.cls}">${stockStatus.text}</span></div></div><div class="p-6"><div class="flex flex-col md:flex-row gap-6 items-center md:items-start"><div class="inquiry-image w-40 h-40 md:w-48 md:h-48 rounded-2xl bg-navy-900 border-2 border-navy-700 overflow-hidden flex-shrink-0 shadow-lg">${imageHtml}</div><div class="flex-1 w-full text-center md:text-right"><h2 class="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">${product.name}</h2>${product.category ? `<span class="inline-block px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-bold mb-3"><i class="fa-solid fa-tag"></i> ${product.category}</span>` : ''}<div class="grid grid-cols-2 gap-3 mt-4"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-barcode"></i> SKU</div><div class="text-white font-bold text-sm truncate" dir="ltr">${product.sku || '-'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-cube"></i> الوحدة</div><div class="text-white font-bold text-sm">${product.unit || 'قطعة'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-boxes-stacked"></i> الكمية المتوفرة</div><div class="${isLowStock ? 'text-orange-400' : 'text-emerald-400'} font-bold text-sm">${product.qty}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-triangle-exclamation"></i> حد أدنى</div><div class="text-white font-bold text-sm">${product.minLimit || 10}</div></div></div></div></div><div class="mt-6"><h4 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-dollar-sign text-gold-400"></i> الأسعار بالعملات الثلاث</h4><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-navy-900 rounded-2xl p-4 border-2 border-blue-500/30 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-tag"></i></div><span class="text-blue-400 font-bold text-sm">سعر التكلفة</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-white mb-3">${formatMoney(costUSD)}</div><div class="space-y-1.5 text-xs"><div class="text-emerald-400 font-bold">${formatSYPValue(costNewSYP)} ل.س جديدة</div><div class="text-slate-400 font-bold">${formatSYPValue(costOldSYP)} ل.س قديمة</div></div></div></div><div class="bg-navy-900 rounded-2xl p-4 border-2 border-gold-500/40 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center"><i class="fa-solid fa-store"></i></div><span class="text-gold-400 font-bold text-sm">سعر المفرد</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-gold-400 mb-3">${formatMoney(retailUSD)}</div><div class="space-y-1.5 text-xs"><div class="text-emerald-400 font-bold">${formatSYPValue(retailNewSYP)} ل.س جديدة</div><div class="text-slate-400 font-bold">${formatSYPValue(retailOldSYP)} ل.س قديمة</div></div></div></div><div class="bg-navy-900 rounded-2xl p-4 border-2 border-purple-500/30 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-truck-fast"></i></div><span class="text-purple-400 font-bold text-sm">سعر الجملة</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-purple-400 mb-3">${formatMoney(wholesaleUSD)}</div><div class="space-y-1.5 text-xs"><div class="text-emerald-400 font-bold">${formatSYPValue(wholesaleNewSYP)} ل.س جديدة</div><div class="text-slate-400 font-bold">${formatSYPValue(wholesaleOldSYP)} ل.س قديمة</div></div></div></div></div></div>${product.notes ? `<div class="mt-6 bg-navy-900 rounded-2xl p-4 border border-navy-700"><div class="text-slate-400 text-xs mb-2 flex items-center gap-2"><i class="fa-solid fa-note-sticky text-gold-400"></i> ملاحظات</div><p class="text-white text-sm leading-relaxed">${product.notes}</p></div>` : ''}${product.barcode ? `<div class="mt-6 bg-white rounded-2xl p-4 border-2 border-navy-700"><div class="text-center mb-3 text-gray-500 text-xs font-bold uppercase tracking-wider">الباركود</div><div class="flex items-center justify-center min-h-[100px] overflow-hidden"><svg id="inquiryBarcodeSvg" class="max-w-full"></svg></div><div class="text-center mt-3 text-gray-900 font-bold tracking-wider text-sm" dir="ltr">${product.barcode}</div></div>` : ''}<div class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-3">${product.barcode ? `<button onclick="copyInquiryBarcode('${product.barcode}')" class="bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-copy"></i> نسخ الباركود</button>` : ''}<button onclick="openScanner('inquirySearch')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-camera"></i> مسح آخر</button><button onclick="jumpToPosFromInquiry(${product.id})" class="col-span-2 md:col-span-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"><i class="fa-solid fa-cart-plus"></i> إضافة للسلة</button></div></div></div>`;
+
+            // ⭐⭐⭐ بطاقة سعر التكلفة مع زر العين لإظهار/إخفاء السعر ⭐⭐⭐
+            const costCardHtml = `
+                <div class="bg-navy-900 rounded-2xl p-4 border-2 border-blue-500/30 shadow-lg relative">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-tag"></i></div>
+                        <span class="text-blue-400 font-bold text-sm">سعر التكلفة</span>
+                        <button type="button" onclick="toggleCostVisibility()" class="mr-auto w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-colors" title="${costVisibleInInquiry ? 'إخفاء سعر التكلفة' : 'إظهار سعر التكلفة'}">
+                            <i class="fa-solid ${costVisibleInInquiry ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        ${costVisibleInInquiry ? `
+                            <div class="inquiry-price-value text-3xl font-bold text-white mb-3">${formatMoney(costUSD)}</div>
+                            <div class="space-y-1.5 text-xs">
+                                <div class="text-emerald-400 font-bold">${formatSYPValue(costNewSYP)} ل.س جديدة</div>
+                                <div class="text-slate-400 font-bold">${formatSYPValue(costOldSYP)} ل.س قديمة</div>
+                            </div>
+                        ` : `
+                            <div class="inquiry-price-value text-3xl font-bold text-slate-600 mb-3 tracking-widest">•••••</div>
+                            <div class="space-y-1.5 text-xs">
+                                <div class="text-slate-600 font-bold">••••• ل.س جديدة</div>
+                                <div class="text-slate-600 font-bold">••••• ل.س قديمة</div>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-3"><i class="fa-solid fa-lock"></i> اضغط على العين لإظهار السعر</p>
+                        `}
+                    </div>
+                </div>
+            `;
+
+            detailContainer.innerHTML = `<div class="bg-gradient-to-br from-navy-800 to-navy-900 rounded-3xl border-2 border-gold-500/40 shadow-2xl overflow-hidden"><div class="bg-gradient-to-r from-navy-900 to-navy-800 p-5 border-b border-gold-500/30"><div class="flex items-center justify-between flex-wrap gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center text-navy-900 text-xl shadow-lg"><i class="fa-solid fa-circle-info"></i></div><div><h3 class="text-gold-400 font-bold text-lg">تفاصيل المنتج</h3><p class="text-slate-400 text-xs">معلومات كاملة وأسعار</p></div></div><span class="px-4 py-2 rounded-xl border-2 text-sm font-bold ${stockStatus.cls}">${stockStatus.text}</span></div></div><div class="p-6"><div class="flex flex-col md:flex-row gap-6 items-center md:items-start"><div class="inquiry-image w-40 h-40 md:w-48 md:h-48 rounded-2xl bg-navy-900 border-2 border-navy-700 overflow-hidden flex-shrink-0 shadow-lg">${imageHtml}</div><div class="flex-1 w-full text-center md:text-right"><h2 class="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">${product.name}</h2>${product.category ? `<span class="inline-block px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-bold mb-3"><i class="fa-solid fa-tag"></i> ${product.category}</span>` : ''}<div class="grid grid-cols-2 gap-3 mt-4"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-barcode"></i> SKU</div><div class="text-white font-bold text-sm truncate" dir="ltr">${product.sku || '-'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-cube"></i> الوحدة</div><div class="text-white font-bold text-sm">${product.unit || 'قطعة'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-boxes-stacked"></i> الكمية المتوفرة</div><div class="${isLowStock ? 'text-orange-400' : 'text-emerald-400'} font-bold text-sm">${product.qty}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-triangle-exclamation"></i> حد أدنى</div><div class="text-white font-bold text-sm">${product.minLimit || 10}</div></div></div></div></div><div class="mt-6"><h4 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-dollar-sign text-gold-400"></i> الأسعار بالعملات الثلاث</h4><div class="grid grid-cols-1 md:grid-cols-3 gap-4">${costCardHtml}<div class="bg-navy-900 rounded-2xl p-4 border-2 border-gold-500/40 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center"><i class="fa-solid fa-store"></i></div><span class="text-gold-400 font-bold text-sm">سعر المفرد</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-gold-400 mb-3">${formatMoney(retailUSD)}</div><div class="space-y-1.5 text-xs"><div class="text-emerald-400 font-bold">${formatSYPValue(retailNewSYP)} ل.س جديدة</div><div class="text-slate-400 font-bold">${formatSYPValue(retailOldSYP)} ل.س قديمة</div></div></div></div><div class="bg-navy-900 rounded-2xl p-4 border-2 border-purple-500/30 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-truck-fast"></i></div><span class="text-purple-400 font-bold text-sm">سعر الجملة</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-purple-400 mb-3">${formatMoney(wholesaleUSD)}</div><div class="space-y-1.5 text-xs"><div class="text-emerald-400 font-bold">${formatSYPValue(wholesaleNewSYP)} ل.س جديدة</div><div class="text-slate-400 font-bold">${formatSYPValue(wholesaleOldSYP)} ل.س قديمة</div></div></div></div></div></div>${product.notes ? `<div class="mt-6 bg-navy-900 rounded-2xl p-4 border border-navy-700"><div class="text-slate-400 text-xs mb-2 flex items-center gap-2"><i class="fa-solid fa-note-sticky text-gold-400"></i> ملاحظات</div><p class="text-white text-sm leading-relaxed">${product.notes}</p></div>` : ''}${product.barcode ? `<div class="mt-6 bg-white rounded-2xl p-4 border-2 border-navy-700"><div class="text-center mb-3 text-gray-500 text-xs font-bold uppercase tracking-wider">الباركود</div><div class="flex items-center justify-center min-h-[100px] overflow-hidden"><svg id="inquiryBarcodeSvg" class="max-w-full"></svg></div><div class="text-center mt-3 text-gray-900 font-bold tracking-wider text-sm" dir="ltr">${product.barcode}</div></div>` : ''}<div class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-3">${product.barcode ? `<button onclick="copyInquiryBarcode('${product.barcode}')" class="bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-copy"></i> نسخ الباركود</button>` : ''}<button onclick="openScanner('inquirySearch')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-camera"></i> مسح آخر</button><button onclick="jumpToPosFromInquiry(${product.id})" class="col-span-2 md:col-span-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"><i class="fa-solid fa-cart-plus"></i> إضافة للسلة</button></div></div></div>`;
             try { if (typeof JsBarcode !== 'undefined' && product.barcode) { JsBarcode('#inquiryBarcodeSvg', product.barcode, { format: 'CODE128', textMargin: 2, fontOptions: 'bold', width: 2, height: 80, displayValue: false, margin: 8 }); } } catch(e) {}
         }
         function copyInquiryBarcode(barcode) {
@@ -2887,6 +2868,7 @@
                         if (!state.adminClients) state.adminClients = adminClients;
                         if (!Array.isArray(state.notifications)) state.notifications = [];
                         if (!state.productImages || typeof state.productImages !== 'object' || Array.isArray(state.productImages)) state.productImages = {};
+                        state.cart = [];
                         saveState(); renderAll();
                         showToast('تم الاستيراد', 'success');
                     }
@@ -3020,7 +3002,7 @@
             if (has(q, ['فاتوره', 'بيع', 'ابيع', 'نقطه'])) return '🧾 <b>إنشاء فاتورة بيع:</b>\nمن «نقطة البيع (POS)» اختر المنتجات ثم أتمم عملية البيع.';
             if (has(q, ['عميل', 'زبون'])) return '👥 <b>إضافة عميل:</b>\nمن «إدارة العملاء» اضغط إضافة عميل.';
             if (has(q, ['مصروف'])) return '💸 <b>تسجيل مصروف:</b>\nمن «المصروفات» اضغط إضافة مصروف.';
-            if (has(q, ['تصدير', 'اكسل', 'excel', 'xlsx'])) return '📊 <b>تصدير Excel:</b>\nمن «سجل المبيعات» اضغط زر «تصدير Excel» لتصدير جميع المبيعات، أو من القائمة الجانبية «تصدير البيانات» لتصدير جميع البيانات.';
+            if (has(q, ['تصدير', 'اكسل', 'excel', 'xlsx'])) return '📊 <b>تصدير Excel:</b>\nمن «سجل المبيعات» اضغط زر «تصدير Excel».';
             if (has(q, ['باركود', 'مسح'])) return '📷 <b>الباركود:</b>\nمن «استفسار عن منتج» اضغط «مسح الباركود».';
             if (has(q, ['صرف', 'دولار'])) return '💱 <b>تعديل سعر الصرف:</b>\nغيّره من الحقل أعلى الصفحة أو من «الإعدادات».';
             return null;
@@ -3031,7 +3013,7 @@
             if (!q) return 'اكتب سؤالك وسأحاول مساعدتك 😊';
             var st = S(), r = rate();
             if (has(q, ['ماذا تستطيع', 'شو بتعمل', 'مساعده', 'اوامر', 'ماذا يمكنك', 'شو بتقدر']) || q === 'help')
-                return '🤖 <b>أستطيع مساعدتك في:</b>\n• مبيعات وأرباح اليوم والإجمالي\n• المنتجات الناقصة في المخزون\n• سعر وكمية أي منتج\n• سعر الصرف والمصروفات\n• الديون والعملاء والاشتراك\n• شرح طريقة الاستخدام';
+                return '🤖 <b>أستطيع مساعدتك في:</b>\n• مبيعات وأرباح اليوم والإجمالي\n• المنتجات الناقصة\n• سعر وكمية أي منتج\n• سعر الصرف والمصروفات\n• الديون والعملاء والاشتراك';
             if (/^(مرحبا|اهلا|هلا|السلام|صباح|مساء|هاي|hi|hello)/.test(q))
                 return 'أهلاً وسهلاً بك 👋\nأنا مساعد «' + esc(st.settings.storeName || 'الحسن') + '».';
             if (/^(كيف|طريقه|ازاي|شلون|كيفيه)/.test(q) || has(q, ['كيف '])) { var h = howTo(q); if (h) return h; }
