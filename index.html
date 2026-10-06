@@ -67,10 +67,8 @@
     <link rel="shortcut icon" href="icon.png">
 
     <!-- ⭐⭐⭐ PWA Manifest - رابط خارجي + Fallback ديناميكي ⭐⭐⭐ -->
-    <!-- الرابط الأساسي: PWABuilder يقرأ هذا الملف مباشرة -->
     <link rel="manifest" href="manifest.json">
 
-    <!-- Fallback: إذا لم يوجد manifest.json، نولّد نسخة ديناميكية -->
     <script>
     (function generatePWAManifestFallback() {
         fetch('manifest.json', { method: 'HEAD' })
@@ -140,7 +138,6 @@
             });
     })();
     </script>
-    <!-- ⭐⭐⭐ نهاية إعداد PWA ⭐⭐⭐ -->
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -892,7 +889,7 @@
         </div>
     </div>
 
-    <!-- ⭐⭐⭐ PWA Service Worker - نسخة محسّنة ⭐⭐⭐ -->
+    <!-- ⭐⭐⭐ PWA Service Worker - ملف حقيقي (sw.js) ⭐⭐⭐ -->
     <script>
     (function registerPWAServiceWorker() {
         if (!('serviceWorker' in navigator)) {
@@ -900,100 +897,18 @@
             return;
         }
 
-        const swCode = `
-            const CACHE_NAME = 'al-hasan-v1';
-            const RUNTIME_CACHE = 'al-hasan-runtime-v1';
-            const PRECACHE_URLS = ['./', './index.html', './icon.png'];
-
-            self.addEventListener('install', (event) => {
-                console.log('🔧 SW: Installing...');
-                event.waitUntil(
-                    caches.open(CACHE_NAME)
-                        .then((cache) => cache.addAll(PRECACHE_URLS).catch(err => console.warn('⚠️ SW cache:', err)))
-                        .then(() => self.skipWaiting())
-                );
-            });
-
-            self.addEventListener('activate', (event) => {
-                console.log('✅ SW: Activated');
-                event.waitUntil(
-                    caches.keys().then((names) => Promise.all(
-                        names.map((name) => {
-                            if (name !== CACHE_NAME && name !== RUNTIME_CACHE) {
-                                console.log('🗑️ SW: Deleting old cache:', name);
-                                return caches.delete(name);
-                            }
-                        })
-                    )).then(() => self.clients.claim())
-                );
-            });
-
-            self.addEventListener('fetch', (event) => {
-                const { request } = event;
-                const url = new URL(request.url);
-                if (request.method !== 'GET') return;
-                if (url.protocol === 'chrome-extension:') return;
-                if (url.hostname.includes('firebaseio.com')) return;
-                if (url.hostname.includes('googleapis.com')) return;
-                if (url.hostname.includes('gstatic.com')) return;
-                if (url.hostname.includes('cloudflare.com')) return;
-                if (url.hostname.includes('jsdelivr.net')) return;
-                if (url.hostname.includes('unpkg.com')) return;
-                if (url.hostname.includes('tailwindcss.com')) return;
-
-                if (request.mode === 'navigate' || request.destination === 'document') {
-                    event.respondWith(
-                        fetch(request)
-                            .then((response) => {
-                                const clone = response.clone();
-                                caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, clone));
-                                return response;
-                            })
-                            .catch(() => caches.match(request).then(cached => cached || caches.match('./index.html')))
-                    );
-                    return;
-                }
-                if (request.destination === 'image') {
-                    event.respondWith(
-                        caches.match(request).then((cached) => {
-                            if (cached) return cached;
-                            return fetch(request).then((response) => {
-                                const clone = response.clone();
-                                caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, clone));
-                                return response;
-                            }).catch(() => cached);
-                        })
-                    );
-                    return;
-                }
-                event.respondWith(
-                    caches.match(request).then((cached) => {
-                        const fetchPromise = fetch(request).then((response) => {
-                            const clone = response.clone();
-                            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, clone));
-                            return response;
-                        }).catch(() => cached);
-                        return cached || fetchPromise;
-                    })
-                );
-            });
-
-            self.addEventListener('message', (event) => {
-                if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
-                if (event.data && event.data.type === 'CLEAR_CACHE') {
-                    caches.keys().then(names => names.forEach(name => caches.delete(name)));
-                }
-            });
-        `;
-
-        const swBlob = new Blob([swCode], { type: 'application/javascript' });
-        const swURL = URL.createObjectURL(swBlob);
-
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register(swURL, { scope: './' })
+            navigator.serviceWorker.register('./sw.js', { 
+                scope: './',
+                updateViaCache: 'none'
+            })
                 .then((registration) => {
                     console.log('✅ PWA SW registered:', registration.scope);
-                    setInterval(() => registration.update(), 60000);
+
+                    setInterval(() => {
+                        registration.update().catch(err => console.warn('SW update error:', err));
+                    }, 60000);
+
                     registration.addEventListener('updatefound', () => {
                         const newWorker = registration.installing;
                         if (!newWorker) return;
@@ -1005,10 +920,23 @@
                         });
                     });
                 })
-                .catch((err) => console.warn('⚠️ SW registration failed:', err));
+                .catch((err) => {
+                    console.warn('⚠️ SW registration failed:', err);
+                    console.warn('💡 تأكد من وجود ملف sw.js في نفس مجلد index.html');
+                });
+
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    console.log('🔄 SW Controller changed, reloading...');
+                    window.location.reload();
+                }
+            });
         });
     })();
     </script>
+    <!-- ⭐⭐⭐ نهاية PWA Service Worker ⭐⭐⭐ -->
 
     <script>
         const firebaseConfig = {
