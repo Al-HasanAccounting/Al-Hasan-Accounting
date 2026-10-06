@@ -158,7 +158,8 @@
             border-radius: 10px;
             padding: 8px 10px;
             margin-bottom: 10px;
-            max-height: 70px;
+            min-height: 62px;
+            max-height: 62px;
             overflow-y: auto;
         }
         .customer-notes-box .notes-label {
@@ -176,6 +177,10 @@
             white-space: pre-wrap;
             word-break: break-word;
         }
+        .customer-notes-box .notes-content.empty {
+            color: #64748b;
+            font-style: italic;
+        }
 
         /* ⭐ تنسيق الملاحظات في كروت المصروفات ⭐ */
         .expense-notes-box {
@@ -184,7 +189,8 @@
             border-radius: 10px;
             padding: 8px 10px;
             margin-bottom: 10px;
-            max-height: 70px;
+            min-height: 62px;
+            max-height: 62px;
             overflow-y: auto;
         }
         .expense-notes-box .notes-label {
@@ -201,6 +207,10 @@
             line-height: 1.4;
             white-space: pre-wrap;
             word-break: break-word;
+        }
+        .expense-notes-box .notes-content.empty {
+            color: #64748b;
+            font-style: italic;
         }
 
         @media (max-width: 1023px) {
@@ -248,14 +258,14 @@
             #inventoryListContainer > .product-card .action-btn i { font-size: 10px !important; }
             #inventoryListContainer > .product-card .unit-qty { font-size: 0.6rem !important; }
 
-            /* ⭐⭐⭐ تنسيق كروت المصروفات على الهاتف - تم تكبيرها قليلاً ⭐⭐⭐ */
+            /* ⭐⭐⭐ تنسيق كروت المصروفات على الهاتف ⭐⭐⭐ */
             #expensesListContainer > div {
                 padding: 12px !important;
                 border-radius: 14px !important;
                 gap: 5px !important;
                 overflow: hidden !important;
             }
-            #expensesListContainer > div > .absolute.top-4.left-4 { top: 8px !important; left: 8px !important; }
+            #expensesListContainer > div > .absolute.top-4.left-4 { top: 8px !important; left: 8px !important; gap: 4px !important; display: flex; }
             #expensesListContainer > div > .absolute.top-4.left-4 button {
                 width: 26px !important;
                 height: 26px !important;
@@ -265,7 +275,7 @@
             #expensesListContainer > div > .flex.items-center.gap-3 {
                 gap: 8px !important;
                 margin-bottom: 8px !important;
-                padding-left: 34px !important;
+                padding-left: 62px !important;
             }
             #expensesListContainer > div > .flex.items-center.gap-3 > div:first-child {
                 width: 40px !important;
@@ -313,8 +323,7 @@
                 border-radius: 6px !important;
                 white-space: nowrap !important;
             }
-            /* ملاحظات المصروفات على الهاتف */
-            #expensesListContainer .expense-notes-box { padding: 6px 8px !important; margin-bottom: 6px !important; max-height: 60px !important; border-radius: 8px !important; }
+            #expensesListContainer .expense-notes-box { padding: 6px 8px !important; margin-bottom: 6px !important; min-height: 55px !important; max-height: 55px !important; border-radius: 8px !important; }
             #expensesListContainer .expense-notes-box .notes-label { font-size: 9px !important; margin-bottom: 3px !important; }
             #expensesListContainer .expense-notes-box .notes-content { font-size: 10px !important; line-height: 1.3 !important; }
 
@@ -391,12 +400,10 @@
                 border-radius: 9px !important;
             }
             #customersListContainer button.w-full i { font-size: 0.75rem !important; }
-            /* ملاحظات العملاء على الهاتف */
-            #customersListContainer .customer-notes-box { padding: 6px 8px !important; margin-bottom: 6px !important; max-height: 60px !important; border-radius: 8px !important; }
+            #customersListContainer .customer-notes-box { padding: 6px 8px !important; margin-bottom: 6px !important; min-height: 55px !important; max-height: 55px !important; border-radius: 8px !important; }
             #customersListContainer .customer-notes-box .notes-label { font-size: 9px !important; margin-bottom: 3px !important; }
             #customersListContainer .customer-notes-box .notes-content { font-size: 10px !important; line-height: 1.3 !important; }
 
-            /* ⭐ تنسيق كروت العملاء على شاشات صغيرة جداً ⭐ */
             @media (max-width: 480px) {
                 #customersListContainer > div { padding: 8px !important; }
                 #customersListContainer > div > .flex.items-center.gap-3 > div:first-child { width: 36px !important; height: 36px !important; font-size: 14px !important; }
@@ -521,6 +528,7 @@
                     <p class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">النظام</p>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('settings', this)"><i class="fa-solid fa-gear w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">الإعدادات</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('aiAssistant', this)"><i class="fa-solid fa-robot w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">المساعد الذكي</span></div>
+                    <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('contactAdmin', this)"><i class="fa-brands fa-whatsapp w-5 text-center text-emerald-400"></i><span class="font-semibold text-sm">التواصل مع الإدارة</span></div>
                 </div>
             </nav>
             <div class="p-4 border-t border-navy-700 bg-navy-900/30 space-y-2">
@@ -531,7 +539,7 @@
             </div>
         </aside>
         <main class="flex-1 flex flex-col h-screen overflow-hidden bg-navy-900">
-            <div id="subscriptionBanner" class="hidden bg-red-500/20 border-b-2 border-red-500 text-red-400 text-center py-2 text-sm font-bold animate-pulse-red no-print">⚠️ <span id="subscriptionBannerText">انتهى اشتراكك!</span> — تواصل مع المزود: <span id="bannerProviderPhone" class="text-gold-400">-</span></div>
+            <div id="subscriptionBanner" class="hidden bg-red-500/20 border-b-2 border-red-500 text-red-400 text-center py-2 text-sm font-bold animate-pulse-red no-print">⚠️ <span id="subscriptionBannerText">انتهى اشتراكك!</span> — تواصل مع الإدارة: <span id="bannerProviderPhone" class="text-gold-400">-</span></div>
             <header class="h-16 bg-navy-800 border-b border-navy-700 flex items-center justify-between px-6 no-print shadow-md z-10">
                 <div class="flex items-center gap-3 min-w-0">
                     <button type="button" onclick="toggleMobileSidebar()" class="mobile-menu-btn w-10 h-10 rounded-lg bg-navy-900 border border-navy-700 text-slate-300 hover:text-gold-400 items-center justify-center flex-shrink-0" aria-label="القائمة"><i class="fa-solid fa-bars text-lg"></i></button>
@@ -758,6 +766,75 @@
                         </div>
                     </div>
                 </div>
+                <div id="contactAdmin" class="page">
+                    <div class="mb-6 flex items-center gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-white mb-1">التواصل مع الإدارة</h2>
+                            <p class="text-slate-400 text-sm">تواصل معنا عبر الواتساب لأي استفسار أو مساعدة</p>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-emerald-900/40 via-navy-800 to-navy-900 rounded-3xl border-2 border-emerald-500/40 shadow-2xl overflow-hidden">
+                        <div class="bg-gradient-to-r from-emerald-900/60 to-navy-800 p-6 border-b border-emerald-500/30">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg"><i class="fa-brands fa-whatsapp"></i></div>
+                                <div>
+                                    <h3 class="text-emerald-400 font-bold text-2xl">إدارة الحسن للمحاسبة</h3>
+                                    <p class="text-slate-400 text-sm mt-1">دعم فني وخدمة عملاء</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-5">
+                            <div class="bg-navy-900 rounded-2xl p-5 border border-navy-700">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-phone"></i></div>
+                                    <div>
+                                        <div class="text-slate-400 text-xs">رقم الواتساب</div>
+                                        <div class="text-white font-bold text-lg" dir="ltr">0982199738</div>
+                                    </div>
+                                </div>
+                                <p class="text-slate-300 text-sm leading-relaxed">يمكنك التواصل معنا لأي من الأسباب التالية:</p>
+                                <ul class="text-slate-300 text-sm mt-3 space-y-2">
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-emerald-400 mt-1"></i><span>تجديد الاشتراك أو الاستفسار عنه</span></li>
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-emerald-400 mt-1"></i><span>الدعم الفني والمساعدة في استخدام التطبيق</span></li>
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-emerald-400 mt-1"></i><span>الاستفسار عن الميزات والإضافات الجديدة</span></li>
+                                    <li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-emerald-400 mt-1"></i><span>الإبلاغ عن أي مشكلة أو اقتراح تحسين</span></li>
+                                </ul>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <a id="whatsappContactBtn" href="https://wa.me/963982199738?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%AA%D9%88%D8%A7%D8%B5%D9%84%20%D9%85%D8%B9%20%D8%A7%D9%84%D8%A5%D8%AF%D8%A7%D8%B1%D8%A9%20%D8%A8%D8%AE%D8%B5%D9%88%D8%B5%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%A7%D9%84%D8%AD%D8%B3%D9%86%20%D9%84%D9%84%D9%85%D8%AD%D8%A7%D8%B3%D8%A8%D8%A9" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg transition-all">
+                                    <i class="fa-brands fa-whatsapp text-2xl"></i> فتح محادثة واتساب
+                                </a>
+                                <button onclick="copyAdminPhone()" class="bg-navy-700 hover:bg-navy-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg transition-all border border-navy-600">
+                                    <i class="fa-solid fa-copy text-xl"></i> نسخ رقم الإدارة
+                                </button>
+                            </div>
+                            <div class="bg-navy-900 rounded-2xl p-5 border border-navy-700">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center"><i class="fa-solid fa-circle-info"></i></div>
+                                    <div class="text-white font-bold">معلومات عن التطبيق</div>
+                                </div>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex justify-between items-center py-2 border-b border-navy-700">
+                                        <span class="text-slate-400">اسم التطبيق</span>
+                                        <span class="text-white font-bold">الحسن للمحاسبة</span>
+                                    </div>
+                                    <div class="flex justify-between items-center py-2 border-b border-navy-700">
+                                        <span class="text-slate-400">الإصدار</span>
+                                        <span class="text-white font-bold">2.0.0</span>
+                                    </div>
+                                    <div class="flex justify-between items-center py-2 border-b border-navy-700">
+                                        <span class="text-slate-400">النوع</span>
+                                        <span class="text-white font-bold">نظام محاسبة متكامل</span>
+                                    </div>
+                                    <div class="flex justify-between items-center py-2">
+                                        <span class="text-slate-400">المميزات</span>
+                                        <span class="text-emerald-400 font-bold">مبيعات • مخزون • عملاء • تقارير</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="settings" class="page">
                     <div class="mb-8 flex items-center gap-4"><div><h2 class="text-3xl font-bold text-white mb-1">الإعدادات</h2><p class="text-slate-400 text-sm">إعدادات النظام</p></div></div>
                     <div class="bg-gradient-to-r from-navy-800 to-navy-700 p-6 rounded-2xl border-2 border-gold-500/40 shadow-xl mb-6">
@@ -911,7 +988,7 @@
 
     <div id="addCustomerModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-navy-800 p-6 rounded-2xl w-full max-w-md border border-navy-700 shadow-2xl">
-            <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-white">إضافة عميل جديد</h3><button onclick="closeModal('addCustomerModal'); resetCustomerModal();" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
+            <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-white" id="customerModalTitle">إضافة عميل جديد</h3><button onclick="closeModal('addCustomerModal'); resetCustomerModal();" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
             <div class="space-y-4">
                 <div><label class="block text-sm text-slate-300 mb-1">اسم العميل *</label><input type="text" id="custName" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                 <div class="grid grid-cols-2 gap-4">
@@ -922,12 +999,12 @@
                 <div><label class="block text-sm text-slate-300 mb-1">حد الدين ($)</label><input type="number" id="custCreditLimit" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" value="0"></div>
                 <div><label class="block text-sm text-slate-300 mb-1">ملاحظات</label><textarea id="custNotes" rows="2" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></textarea></div>
             </div>
-            <div class="flex gap-3 mt-6"><button onclick="closeModal('addCustomerModal'); resetCustomerModal();" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button><button onclick="addCustomer()" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-user-plus"></i> إضافة العميل</button></div>
+            <div class="flex gap-3 mt-6"><button onclick="closeModal('addCustomerModal'); resetCustomerModal();" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button><button onclick="addCustomer()" id="customerSubmitBtn" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-user-plus"></i> إضافة العميل</button></div>
         </div>
     </div>
     <div id="addExpenseModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-navy-800 p-6 rounded-2xl w-full max-w-md border border-navy-700 shadow-2xl">
-            <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-white">إضافة مصروف جديد</h3><button onclick="closeModal('addExpenseModal')" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
+            <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-white" id="expenseModalTitle">إضافة مصروف جديد</h3><button onclick="closeModal('addExpenseModal')" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
             <div class="space-y-4">
                 <div><label class="block text-sm text-slate-300 mb-1">الفئة *</label><select id="expCategory" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"><option value="إيجار">إيجار</option><option value="رواتب">رواتب</option><option value="كهرباء">كهرباء</option><option value="ماء">ماء</option><option value="إنترنت">إنترنت</option><option value="صيانة">صيانة</option><option value="تسويق">تسويق</option><option value="أخرى">أخرى</option></select></div>
                 <div><label class="block text-sm text-slate-300 mb-1">الوصف *</label><input type="text" id="expDescription" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="مثال: فاتورة كهرباء"></div>
@@ -938,7 +1015,7 @@
                 </div>
                 <div><label class="block text-sm text-slate-300 mb-1">ملاحظات</label><textarea id="expNotes" rows="2" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></textarea></div>
             </div>
-            <div class="flex gap-3 mt-6"><button onclick="closeModal('addExpenseModal')" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button><button onclick="addExpense()" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> حفظ المصروف</button></div>
+            <div class="flex gap-3 mt-6"><button onclick="closeModal('addExpenseModal')" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button><button onclick="addExpense()" id="expenseSubmitBtn" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> حفظ المصروف</button></div>
         </div>
     </div>
     <div id="scannerModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm">
@@ -1039,11 +1116,11 @@
         <div class="bg-navy-800 p-6 rounded-2xl w-full max-w-md border-2 border-gold-500 shadow-2xl">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 mx-auto mb-3 bg-gold-500 rounded-2xl flex items-center justify-center text-navy-900 text-3xl shadow-lg"><i class="fa-solid fa-shield-halved"></i></div>
-                <h3 class="text-2xl font-bold text-gold-400">دخول المزود</h3>
+                <h3 class="text-2xl font-bold text-gold-400">دخول الإدارة</h3>
                 <p class="text-slate-400 text-sm mt-1">لوحة إدارة المشتركين</p>
             </div>
             <div class="space-y-4">
-                <div><label class="block text-sm text-slate-300 mb-1">كلمة مرور المزود</label><input type="password" id="masterPassword" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none text-center" placeholder="أدخل كلمة مرور المزود" autocomplete="off"></div>
+                <div><label class="block text-sm text-slate-300 mb-1">كلمة مرور الإدارة</label><input type="password" id="masterPassword" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none text-center" placeholder="أدخل كلمة مرور الإدارة" autocomplete="off"></div>
                 <div id="masterLoginError" class="hidden bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm text-center"><i class="fa-solid fa-exclamation-circle"></i> كلمة المرور غير صحيحة</div>
                 <div class="flex gap-3">
                     <button onclick="closeModal('masterLoginModal')" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button>
@@ -1082,6 +1159,9 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        const ADMIN_WHATSAPP = '0982199738';
+        const ADMIN_WHATSAPP_INTERNATIONAL = '963982199738';
 
         function encodeKey(key) { if (!key) return 'unknown'; return key.replace(/[.#$\[\]\/@]/g, '_'); }
         function safeJsonParse(str, fallback) {
@@ -1185,6 +1265,14 @@
             return `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid fa-box text-slate-600 ${iconSize}"></i></div>`;
         }
 
+        function copyAdminPhone() {
+            navigator.clipboard.writeText(ADMIN_WHATSAPP).then(() => {
+                showToast('✅ تم نسخ رقم الإدارة: ' + ADMIN_WHATSAPP, 'success');
+            }).catch(() => {
+                prompt('انسخ رقم الإدارة:', ADMIN_WHATSAPP);
+            });
+        }
+
         let currentBarcodeForModal = '';
         let currentBarcodeNameForModal = '';
 
@@ -1257,7 +1345,7 @@
 
         const defaultState = {
             settings: { exchangeRate: 14500, oldExchangeRate: 1400000, wholesaleDiscount: 10, isWholesale: false, activePosCategory: 'all', storeName: "الحسن للمحاسبة", phone: "+963 11 000 0000", address: "سوريا - دمشق", taxRate: 0 },
-            subscription: { startDate: new Date().toISOString().slice(0, 10), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10), username: 'admin', password: 'admin123', providerPhone: '+963 11 000 0000' },
+            subscription: { startDate: new Date().toISOString().slice(0, 10), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10), username: 'admin', password: 'admin123', providerPhone: ADMIN_WHATSAPP },
             adminClients: [], products: [], customers: [], expenses: [], invoices: [], cart: [],
             productImages: {}, notifications: []
         };
@@ -1292,11 +1380,13 @@
         if (!state.subscription.password) state.subscription.password = 'admin123';
         if (!state.subscription.endDate) state.subscription.endDate = defaultState.subscription.endDate;
         if (!state.subscription.startDate) state.subscription.startDate = defaultState.subscription.startDate;
-        if (!state.subscription.providerPhone) state.subscription.providerPhone = '+963 11 000 0000';
+        if (!state.subscription.providerPhone) state.subscription.providerPhone = ADMIN_WHATSAPP;
 
         let monthlyChartInstance = null, expenseChartInstance = null, dashboardChartInstance = null, editingProductId = null;
         let currentPayDebtCustomerId = null;
         let editingClientId = null;
+        let editingExpenseId = null;
+        let editingCustomerId = null;
         let costVisibleInInquiry = false;
 
         const NOTIFICATION_TYPES = {
@@ -1406,8 +1496,8 @@
             if (state.subscription && state.subscription.endDate) {
                 const daysLeft = getDaysRemaining();
                 const endDate = state.subscription.endDate;
-                if (daysLeft <= 0) addNotification('subscription_expired', `⚠️ انتهى اشتراكك بتاريخ ${endDate}.`, { dedupeKey: 'sub_expired_' + endDate });
-                else if (daysLeft <= 7) addNotification('subscription_expiring', `⚠️ اشتراكك سينتهي خلال ${daysLeft} أيام.`, { dedupeKey: 'sub_expiring7_' + endDate });
+                if (daysLeft <= 0) addNotification('subscription_expired', `⚠️ انتهى اشتراكك بتاريخ ${endDate}. يرجى التواصل مع الإدارة على الرقم ${ADMIN_WHATSAPP} للتجديد.`, { dedupeKey: 'sub_expired_' + endDate });
+                else if (daysLeft <= 7) addNotification('subscription_expiring', `⚠️ اشتراكك سينتهي خلال ${daysLeft} أيام. تواصل مع الإدارة: ${ADMIN_WHATSAPP}`, { dedupeKey: 'sub_expiring7_' + endDate });
             }
             state.products.forEach(p => {
                 if (p.qty <= 0) addNotification('out_of_stock', `❌ المنتج "${p.name}" نفذ تماماً!`, { dedupeKey: 'out_' + p.id });
@@ -1453,6 +1543,7 @@
                     if (!state.settings || typeof state.settings !== 'object') state.settings = JSON.parse(JSON.stringify(defaultState.settings));
                     if (!Array.isArray(state.adminClients)) state.adminClients = [];
                     if (!state.productImages || typeof state.productImages !== 'object' || Array.isArray(state.productImages)) state.productImages = {};
+                    if (!state.subscription.providerPhone) state.subscription.providerPhone = ADMIN_WHATSAPP;
                     try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
                     return true;
                 } else {
@@ -1530,7 +1621,7 @@
                 const daysLeft = getClientDaysLeft(client.endDate);
                 if (daysLeft <= 0) {
                     errorBox.classList.remove('hidden');
-                    errorText.innerText = '⚠️ اشتراكك منتهي!';
+                    errorText.innerText = '⚠️ اشتراكك منتهي! تواصل مع الإدارة على الرقم ' + ADMIN_WHATSAPP;
                     showToast('❌ اشتراكك منتهي!', 'warning');
                     return;
                 }
@@ -1541,7 +1632,7 @@
                 sessionStorage.setItem('alhasan_client_db_key', encodedUsername);
                 sessionStorage.setItem('alhasan_client_id', client.id);
                 await loadClientData(encodedUsername);
-                state.subscription = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: state.subscription.providerPhone || '' };
+                state.subscription = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: state.subscription.providerPhone || ADMIN_WHATSAPP };
                 if (!state.settings.storeName || state.settings.storeName === 'الحسن للمحاسبة') {
                     state.settings.storeName = client.store || 'متجري';
                     state.settings.phone = client.phone || state.settings.phone;
@@ -1750,7 +1841,7 @@
                     clientInitialState.settings.address = city || '';
                     clientInitialState.settings.exchangeRate = state.settings.exchangeRate;
                     clientInitialState.settings.oldExchangeRate = state.settings.oldExchangeRate;
-                    clientInitialState.subscription = { startDate: startDate, endDate: endDate, username: username, password: password, providerPhone: state.subscription.providerPhone || '' };
+                    clientInitialState.subscription = { startDate: startDate, endDate: endDate, username: username, password: password, providerPhone: ADMIN_WHATSAPP };
                     clientRef.set(clientInitialState).then(() => { showToast(`✅ تم إضافة "${name}"`, 'success'); }).catch(err => { showToast(`✅ تم إضافة "${name}"`, 'warning'); });
                 } else showToast(`✅ تم تعديل "${name}"`, 'success');
                 closeModal('addClientModal');
@@ -1786,7 +1877,7 @@
         function copyClientCredentials(id) {
             const client = (state.adminClients || []).find(c => c.id === id);
             if (!client) return;
-            const text = `🔐 بيانات دخول نظام الحسن للمحاسبة\n\n🏪 المتجر: ${client.store}\n👤 العميل: ${client.name}\n👤 اسم المستخدم: ${client.username}\n🔑 كلمة المرور: ${client.password}\n📅 انتهاء الاشتراك: ${client.endDate}`;
+            const text = `🔐 بيانات دخول نظام الحسن للمحاسبة\n\n🏪 المتجر: ${client.store}\n👤 العميل: ${client.name}\n👤 اسم المستخدم: ${client.username}\n🔑 كلمة المرور: ${client.password}\n📅 انتهاء الاشتراك: ${client.endDate}\n\n📞 للتواصل مع الإدارة: ${ADMIN_WHATSAPP}`;
             navigator.clipboard.writeText(text).then(() => { showToast('✅ تم نسخ البيانات', 'success'); }).catch(() => { prompt('انسخ البيانات:', text); });
         }
         function isSubscriptionActive() {
@@ -1795,7 +1886,7 @@
             return new Date() <= endDate;
         }
         function checkSubscription() {
-            if (!isSubscriptionActive()) { showToast('⚠️ انتهى اشتراكك!', 'warning'); return false; }
+            if (!isSubscriptionActive()) { showToast('⚠️ انتهى اشتراكك! تواصل مع الإدارة على الرقم ' + ADMIN_WHATSAPP, 'warning'); return false; }
             return true;
         }
         function getDaysRemaining() {
@@ -1808,7 +1899,7 @@
             const active = isSubscriptionActive();
             const daysLeft = getDaysRemaining();
             const banner = document.getElementById('subscriptionBanner');
-            if (banner) { if (active) banner.classList.add('hidden'); else { banner.classList.remove('hidden'); document.getElementById('bannerProviderPhone').innerText = state.subscription.providerPhone || '-'; } }
+            if (banner) { if (active) banner.classList.add('hidden'); else { banner.classList.remove('hidden'); document.getElementById('bannerProviderPhone').innerText = ADMIN_WHATSAPP; } }
             const badge = document.getElementById('subscriptionBadge');
             if (badge) {
                 badge.classList.remove('hidden');
@@ -1831,7 +1922,7 @@
             }
             if (daysRem) {
                 if (active) { if (daysLeft <= 5) daysRem.innerHTML = `<span class="text-orange-400 font-bold">⚠️ متبقي ${daysLeft} يوم!</span>`; else daysRem.innerHTML = `<span class="text-emerald-400">متبقي ${daysLeft} يوم</span>`; }
-                else daysRem.innerHTML = `<span class="text-red-400 font-bold">⚠️ الاشتراك منتهي!</span>`;
+                else daysRem.innerHTML = `<span class="text-red-400 font-bold">⚠️ الاشتراك منتهي! تواصل مع الإدارة: ${ADMIN_WHATSAPP}</span>`;
             }
         }
         function startApp() {
@@ -1909,7 +2000,7 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             element.classList.add('active');
-            const titles = { dashboard: 'لوحة التحكم', pos: 'نقطة البيع', inventory: 'المنتجات والمخزون', invoices: 'سجل المبيعات', customers: 'إدارة العملاء', productInquiry: 'استفسار عن منتج', expenses: 'المصروفات', reports: 'التقارير المالية', settings: 'الإعدادات', aiAssistant: 'المساعد الذكي' };
+            const titles = { dashboard: 'لوحة التحكم', pos: 'نقطة البيع', inventory: 'المنتجات والمخزون', invoices: 'سجل المبيعات', customers: 'إدارة العملاء', productInquiry: 'استفسار عن منتج', expenses: 'المصروفات', reports: 'التقارير المالية', settings: 'الإعدادات', aiAssistant: 'المساعد الذكي', contactAdmin: 'التواصل مع الإدارة' };
             document.getElementById('page-title').innerText = titles[pageId];
             if (pageId === 'reports') renderReports();
             if (pageId === 'settings') {
@@ -2711,12 +2802,12 @@
                     const debt = c.creditLimit || 0;
                     const debtColor = debt <= 0 ? 'text-red-400' : (debt < 50 ? 'text-orange-400' : 'text-emerald-400');
                     const debtStatus = debt <= 0 ? 'نفذ ❌' : (debt < 50 ? 'قارب على النفاذ ⚠️' : 'متاح ✅');
-                    const notesHtml = c.notes && c.notes.trim() ? `
+                    const notesHtml = `
                         <div class="customer-notes-box">
                             <div class="notes-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</div>
-                            <div class="notes-content">${c.notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                            <div class="notes-content ${c.notes && c.notes.trim() ? '' : 'empty'}">${c.notes && c.notes.trim() ? c.notes.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'لم تُكتب ملاحظة'}</div>
                         </div>
-                    ` : '';
+                    `;
                     return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button><button onclick="editCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button></div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style="background: ${avatarColor}">${firstLetter}</div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-lg truncate">${c.name}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${typeClass}">${typeLabel}</span></div></div><div class="space-y-2 text-sm mb-4">${c.phone ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-phone text-slate-500 w-4 text-center"></i><span dir="ltr">${c.phone}</span></div>` : ''}${c.address ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-location-dot text-slate-500 w-4 text-center"></i><span class="truncate">${c.address}</span></div>` : ''}</div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المشتريات</div><div class="text-emerald-400 font-bold text-sm">${formatMoney(purchases)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">حد الدين</div><div class="${debtColor} font-bold text-sm">${formatMoney(debt)}</div></div></div><div class="flex justify-between items-center text-xs py-2 border-t border-navy-700 mb-3"><span class="text-slate-400">حالة حد الدين</span><span class="${debtColor} font-bold">${debtStatus}</span></div>${notesHtml}<button onclick="openPayDebtModal(${c.id})" class="w-full bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-gold-500/30"><i class="fa-solid fa-money-bill-wave"></i> تسديد دفعة</button></div>`;
                 }).join('');
             }
@@ -2725,45 +2816,41 @@
             if (!checkSubscription()) return;
             const name = document.getElementById('custName').value.trim();
             if (!name) { showToast('أدخل اسم العميل', 'warning'); return; }
-            state.customers.push({ id: Date.now(), name: name, type: document.getElementById('custType').value, phone: document.getElementById('custPhone').value.trim(), address: document.getElementById('custAddress').value.trim(), creditLimit: parseFloat(document.getElementById('custCreditLimit').value) || 0, notes: document.getElementById('custNotes').value.trim() });
+            const isEdit = !!editingCustomerId;
+            if (isEdit) {
+                const index = state.customers.findIndex(c => c.id === editingCustomerId);
+                if (index !== -1) {
+                    state.customers[index] = { id: editingCustomerId, name: name, type: document.getElementById('custType').value, phone: document.getElementById('custPhone').value.trim(), address: document.getElementById('custAddress').value.trim(), creditLimit: parseFloat(document.getElementById('custCreditLimit').value) || 0, notes: document.getElementById('custNotes').value.trim() };
+                }
+                showToast(`تم تعديل "${name}"`, 'edit');
+            } else {
+                state.customers.push({ id: Date.now(), name: name, type: document.getElementById('custType').value, phone: document.getElementById('custPhone').value.trim(), address: document.getElementById('custAddress').value.trim(), creditLimit: parseFloat(document.getElementById('custCreditLimit').value) || 0, notes: document.getElementById('custNotes').value.trim() });
+                showToast(`تم إضافة "${name}"`, 'success');
+            }
             closeModal('addCustomerModal'); saveState();
-            showToast(`تم إضافة "${name}"`, 'success');
             resetCustomerModal();
         }
         function editCustomer(id) {
             const customer = state.customers.find(c => c.id === id);
             if (!customer) return;
+            editingCustomerId = id;
             document.getElementById('custName').value = customer.name || '';
             document.getElementById('custType').value = customer.type || 'retail';
             document.getElementById('custPhone').value = customer.phone || '';
             document.getElementById('custAddress').value = customer.address || '';
             document.getElementById('custCreditLimit').value = customer.creditLimit || 0;
             document.getElementById('custNotes').value = customer.notes || '';
-            const modal = document.getElementById('addCustomerModal');
-            modal.querySelector('h3').innerText = 'تعديل بيانات العميل';
-            const submitBtn = modal.querySelector('button[onclick="addCustomer()"]');
-            submitBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
-            submitBtn.setAttribute('onclick', 'updateCustomer(' + id + ')');
+            document.getElementById('customerModalTitle').innerText = 'تعديل بيانات العميل';
+            document.getElementById('customerSubmitBtn').innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
             openModal('addCustomerModal');
         }
-        function updateCustomer(id) {
-            if (!checkSubscription()) return;
-            const name = document.getElementById('custName').value.trim();
-            if (!name) { showToast('أدخل اسم العميل', 'warning'); return; }
-            const index = state.customers.findIndex(c => c.id === id);
-            if (index !== -1) {
-                state.customers[index] = { id: id, name: name, type: document.getElementById('custType').value, phone: document.getElementById('custPhone').value.trim(), address: document.getElementById('custAddress').value.trim(), creditLimit: parseFloat(document.getElementById('custCreditLimit').value) || 0, notes: document.getElementById('custNotes').value.trim() };
-            }
-            closeModal('addCustomerModal'); saveState();
-            showToast(`تم تعديل "${name}"`, 'edit');
-            resetCustomerModal();
-        }
         function resetCustomerModal() {
+            editingCustomerId = null;
             const modal = document.getElementById('addCustomerModal');
             if (!modal) return;
-            modal.querySelector('h3').innerText = 'إضافة عميل جديد';
-            const submitBtn = modal.querySelector('button[onclick^="updateCustomer"]') || modal.querySelector('button[onclick="addCustomer()"]');
-            if (submitBtn) { submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> إضافة العميل'; submitBtn.setAttribute('onclick', 'addCustomer()'); }
+            document.getElementById('customerModalTitle').innerText = 'إضافة عميل جديد';
+            const submitBtn = document.getElementById('customerSubmitBtn');
+            if (submitBtn) { submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> إضافة العميل'; }
             document.getElementById('custName').value = '';
             document.getElementById('custType').value = 'retail';
             document.getElementById('custPhone').value = '';
@@ -2932,13 +3019,13 @@
                 container.className = 'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6';
                 container.innerHTML = filtered.map(e => {
                     const catInfo = categoryColors[e.category] || categoryColors['أخرى'];
-                    const notesHtml = e.notes && e.notes.trim() ? `
+                    const notesHtml = `
                         <div class="expense-notes-box">
                             <div class="notes-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</div>
-                            <div class="notes-content">${e.notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                            <div class="notes-content ${e.notes && e.notes.trim() ? '' : 'empty'}">${e.notes && e.notes.trim() ? e.notes.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'لم تُكتب ملاحظة'}</div>
                         </div>
-                    ` : '';
-                    return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4"><button onclick="deleteExpense(${e.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button></div><div class="flex items-center gap-3 mb-4 pl-12"><div class="w-14 h-14 rounded-2xl ${catInfo.bg} ${catInfo.text} flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid ${catInfo.icon}"></i></div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-base truncate">${e.description}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${catInfo.bg} ${catInfo.text}">${e.category}</span></div></div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المبلغ</div><div class="text-red-400 font-bold text-base">${formatMoney(e.amount)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">التاريخ</div><div class="text-white font-bold text-xs">${e.date}</div></div></div>${notesHtml}<div class="flex justify-between items-center text-xs py-2 border-t border-navy-700"><span class="text-slate-400">الدفع</span><span class="px-2 py-1 rounded-md ${e.paymentMethod === 'دين' ? 'bg-red-500/20 text-red-400' : e.paymentMethod === 'شام كاش' ? 'bg-purple-500/20 text-purple-400' : 'bg-emerald-500/20 text-emerald-400'} font-bold">${e.paymentMethod || 'نقدي'}</span></div></div>`;
+                    `;
+                    return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteExpense(${e.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button><button onclick="editExpense(${e.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button></div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl ${catInfo.bg} ${catInfo.text} flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid ${catInfo.icon}"></i></div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-base truncate">${e.description}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${catInfo.bg} ${catInfo.text}">${e.category}</span></div></div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المبلغ</div><div class="text-red-400 font-bold text-base">${formatMoney(e.amount)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">التاريخ</div><div class="text-white font-bold text-xs">${e.date}</div></div></div>${notesHtml}<div class="flex justify-between items-center text-xs py-2 border-t border-navy-700"><span class="text-slate-400">الدفع</span><span class="px-2 py-1 rounded-md ${e.paymentMethod === 'دين' ? 'bg-red-500/20 text-red-400' : e.paymentMethod === 'شام كاش' ? 'bg-purple-500/20 text-purple-400' : 'bg-emerald-500/20 text-emerald-400'} font-bold">${e.paymentMethod || 'نقدي'}</span></div></div>`;
                 }).join('');
             }
         }
@@ -2948,10 +3035,44 @@
             const amount = parseFloat(document.getElementById('expAmount').value);
             const date = document.getElementById('expDate').value;
             if (!description || isNaN(amount) || amount <= 0 || !date) { showToast('أدخل الحقول المطلوبة', 'warning'); return; }
-            state.expenses.push({ id: Date.now(), category: document.getElementById('expCategory').value, description, amount, date, paymentMethod: document.getElementById('expPaymentMethod').value, notes: document.getElementById('expNotes').value.trim() });
+            const isEdit = !!editingExpenseId;
+            if (isEdit) {
+                const index = state.expenses.findIndex(e => e.id === editingExpenseId);
+                if (index !== -1) {
+                    state.expenses[index] = { id: editingExpenseId, category: document.getElementById('expCategory').value, description, amount, date, paymentMethod: document.getElementById('expPaymentMethod').value, notes: document.getElementById('expNotes').value.trim() };
+                }
+                showToast(`تم تعديل "${description}"`, 'edit');
+            } else {
+                state.expenses.push({ id: Date.now(), category: document.getElementById('expCategory').value, description, amount, date, paymentMethod: document.getElementById('expPaymentMethod').value, notes: document.getElementById('expNotes').value.trim() });
+                showToast(`تم إضافة "${description}"`, 'success');
+            }
             closeModal('addExpenseModal'); saveState();
-            document.getElementById('expDescription').value = ''; document.getElementById('expAmount').value = ''; document.getElementById('expNotes').value = '';
-            showToast(`تم إضافة "${description}"`, 'success');
+            resetExpenseModal();
+        }
+        function editExpense(id) {
+            const expense = state.expenses.find(e => e.id === id);
+            if (!expense) return;
+            editingExpenseId = id;
+            document.getElementById('expCategory').value = expense.category || 'أخرى';
+            document.getElementById('expDescription').value = expense.description || '';
+            document.getElementById('expAmount').value = expense.amount || 0;
+            document.getElementById('expDate').value = expense.date || new Date().toISOString().slice(0, 10);
+            document.getElementById('expPaymentMethod').value = expense.paymentMethod || 'نقدي';
+            document.getElementById('expNotes').value = expense.notes || '';
+            document.getElementById('expenseModalTitle').innerText = 'تعديل المصروف';
+            document.getElementById('expenseSubmitBtn').innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
+            openModal('addExpenseModal');
+        }
+        function resetExpenseModal() {
+            editingExpenseId = null;
+            document.getElementById('expenseModalTitle').innerText = 'إضافة مصروف جديد';
+            document.getElementById('expenseSubmitBtn').innerHTML = '<i class="fa-solid fa-file-invoice-dollar"></i> حفظ المصروف';
+            document.getElementById('expCategory').value = 'أخرى';
+            document.getElementById('expDescription').value = '';
+            document.getElementById('expAmount').value = '';
+            document.getElementById('expDate').value = '';
+            document.getElementById('expPaymentMethod').value = 'نقدي';
+            document.getElementById('expNotes').value = '';
         }
         function deleteExpense(id) {
             if (!checkSubscription()) return;
@@ -3217,10 +3338,11 @@
             if (has(q, ['منتج', 'بضاعه', 'صنف'])) return '➕ <b>إضافة منتج:</b>\nاذهب إلى «المنتجات والمخزون» ثم اضغط زر الإضافة.';
             if (has(q, ['فاتوره', 'بيع', 'ابيع', 'نقطه'])) return '🧾 <b>إنشاء فاتورة بيع:</b>\nمن «نقطة البيع (POS)» اختر المنتجات ثم أتمم عملية البيع.';
             if (has(q, ['عميل', 'زبون'])) return '👥 <b>إضافة عميل:</b>\nمن «إدارة العملاء» اضغط إضافة عميل.';
-            if (has(q, ['مصروف'])) return '💸 <b>تسجيل مصروف:</b>\nمن «المصروفات» اضغط إضافة مصروف.';
+            if (has(q, ['مصروف'])) return '💸 <b>تسجيل مصروف:</b>\nمن «المصروفات» اضغط إضافة مصروف. يمكنك أيضاً تعديل أي مصروف بالضغط على أيقونة القلم.';
             if (has(q, ['تصدير', 'اكسل', 'excel', 'xlsx'])) return '📊 <b>تصدير Excel:</b>\nمن «سجل المبيعات» اضغط زر «تصدير Excel».';
             if (has(q, ['باركود', 'مسح'])) return '📷 <b>الباركود:</b>\nمن «استفسار عن منتج» اضغط «مسح الباركود».';
             if (has(q, ['صرف', 'دولار'])) return '💱 <b>تعديل سعر الصرف:</b>\nغيّره من الحقل أعلى الصفحة أو من «الإعدادات».';
+            if (has(q, ['اداره', 'تواصل', 'واتساب', 'whatsapp', 'دعم'])) return '📞 <b>التواصل مع الإدارة:</b>\nمن قسم «النظام» ← «التواصل مع الإدارة» ستجد زر واتساب مباشر على الرقم ' + ADMIN_WHATSAPP;
             return null;
         }
 
@@ -3229,10 +3351,11 @@
             if (!q) return 'اكتب سؤالك وسأحاول مساعدتك 😊';
             var st = S(), r = rate();
             if (has(q, ['ماذا تستطيع', 'شو بتعمل', 'مساعده', 'اوامر', 'ماذا يمكنك', 'شو بتقدر']) || q === 'help')
-                return '🤖 <b>أستطيع مساعدتك في:</b>\n• مبيعات وأرباح اليوم والإجمالي\n• المنتجات الناقصة\n• سعر وكمية أي منتج\n• سعر الصرف والمصروفات\n• الديون والعملاء والاشتراك';
+                return '🤖 <b>أستطيع مساعدتك في:</b>\n• مبيعات وأرباح اليوم والإجمالي\n• المنتجات الناقصة\n• سعر وكمية أي منتج\n• سعر الصرف والمصروفات\n• الديون والعملاء والاشتراك\n• التواصل مع الإدارة: ' + ADMIN_WHATSAPP;
             if (/^(مرحبا|اهلا|هلا|السلام|صباح|مساء|هاي|hi|hello)/.test(q))
                 return 'أهلاً وسهلاً بك 👋\nأنا مساعد «' + esc(st.settings.storeName || 'الحسن') + '».';
             if (/^(كيف|طريقه|ازاي|شلون|كيفيه)/.test(q) || has(q, ['كيف '])) { var h = howTo(q); if (h) return h; }
+            if (has(q, ['تواصل', 'اداره', 'واتساب', 'whatsapp', 'رقم الاداره', 'الدعم'])) return '📞 <b>التواصل مع الإدارة:</b>\nرقم الواتساب: <b dir="ltr">' + ADMIN_WHATSAPP + '</b>\nستجد زر التواصل المباشر في قسم «النظام» ← «التواصل مع الإدارة»';
             if (has(q, ['سعر الصرف', 'صرف الدولار', 'سعر الدولار', 'الدولار']))
                 return '💱 <b>سعر الصرف الحالي:</b>\nالليرة الجديدة: <b>' + new Intl.NumberFormat('en-US').format(st.settings.exchangeRate || 0) + '</b> ل.س\nالليرة القديمة: <b>' + new Intl.NumberFormat('en-US').format(st.settings.oldExchangeRate || 0) + '</b> ل.س';
             if (has(q, ['اليوم']) && has(q, ['ربح', 'ارباح'])) { var ti = todayInvoices(), tp = sum(ti, function (i) { return i.profit; }); return '💰 أرباح اليوم: <b>' + money(tp) + '</b>\nمن ' + ti.length + ' عملية بيع.'; }
@@ -3246,15 +3369,15 @@
             if (has(q, ['ربح', 'ارباح', 'صافي'])) { var tpAll = sum(st.invoices || [], function (i) { return i.profit; }), rv = sum(st.invoices || [], function (i) { return i.totalUSD; }); return '💰 <b>إجمالي الأرباح:</b> ' + money(tpAll) + '\nإجمالي الإيرادات: ' + money(rv); }
             if (has(q, ['ايرادات', 'مبيعات', 'اجمالي', 'الدخل', 'فواتير'])) { var rvAll = sum(st.invoices || [], function (i) { return i.totalUSD; }); return '📈 <b>إجمالي الإيرادات:</b> ' + money(rvAll) + '\nعدد الفواتير: <b>' + (st.invoices || []).length + '</b>'; }
             if (has(q, ['كم منتج', 'عدد المنتجات', 'عدد الاصناف'])) return '📦 عدد المنتجات: <b>' + (st.products || []).length + '</b>';
-            if (has(q, ['اشتراك', 'ينتهي', 'تجديد', 'صلاحيه'])) { var sub = st.subscription || {}; if (!sub.endDate) return 'لا تتوفر معلومات اشتراك.'; var days = Math.ceil((new Date(sub.endDate) - new Date()) / 864e5); return '👑 <b>الاشتراك:</b>\nينتهي في: <b>' + esc(sub.endDate) + '</b>\n' + (days >= 0 ? 'المتبقي: <b>' + days + '</b> يوم' : '<span class="text-red-400">الاشتراك منتهٍ</span>'); }
+            if (has(q, ['اشتراك', 'ينتهي', 'تجديد', 'صلاحيه'])) { var sub = st.subscription || {}; if (!sub.endDate) return 'لا تتوفر معلومات اشتراك.'; var days = Math.ceil((new Date(sub.endDate) - new Date()) / 864e5); return '👑 <b>الاشتراك:</b>\nينتهي في: <b>' + esc(sub.endDate) + '</b>\n' + (days >= 0 ? 'المتبقي: <b>' + days + '</b> يوم' : '<span class="text-red-400">الاشتراك منتهٍ - تواصل مع الإدارة: ' + ADMIN_WHATSAPP + '</span>'); }
             var found = findProducts(q);
             if (found.length) return found.map(productCard).join('\n\n');
             var h2 = howTo(q);
             if (h2) return h2;
-            return 'لم أفهم سؤالك تماماً 🤔\nجرّب أحد الأسئلة المقترحة أدناه.';
+            return 'لم أفهم سؤالك تماماً 🤔\nجرّب أحد الأسئلة المقترحة أدناه.\n📞 للتواصل مع الإدارة: ' + ADMIN_WHATSAPP;
         }
 
-        var CHIPS = ['كم مبيعات اليوم؟', 'أرباح اليوم', 'المنتجات الناقصة', 'سعر الصرف', 'الديون', 'مصروفات الشهر', 'الأكثر مبيعاً', 'كيف أضيف منتج؟'];
+        var CHIPS = ['كم مبيعات اليوم؟', 'أرباح اليوم', 'المنتجات الناقصة', 'سعر الصرف', 'الديون', 'مصروفات الشهر', 'الأكثر مبيعاً', 'رقم الإدارة'];
 
         function addMsg(html, who) {
             var box = document.getElementById('aiChatMessages');
@@ -3291,7 +3414,7 @@
             setTimeout(function () { addMsg(reply, 'bot'); }, 250);
         }
         function welcome() {
-            addMsg('أهلاً بك 👋 أنا مساعدك الذكي.\nأجيب عن مبيعاتك ومخزونك وأسعار منتجاتك وأشرح لك طريقة استخدام النظام.\nاختر سؤالاً من الأسفل أو اكتب سؤالك.', 'bot');
+            addMsg('أهلاً بك 👋 أنا مساعدك الذكي.\nأجيب عن مبيعاتك ومخزونك وأسعار منتجاتك وأشرح لك طريقة استخدام النظام.\n📞 للتواصل مع الإدارة: ' + ADMIN_WHATSAPP, 'bot');
         }
         window.aiAssistantOpen = function () {
             if (!started) { started = true; renderChips(); welcome(); }
