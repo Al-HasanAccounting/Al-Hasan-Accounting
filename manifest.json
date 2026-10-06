@@ -1,0 +1,40 @@
+{
+  "id": "/Al-Hasan-Accounting/?source=pwa",
+  "name": "الحسن للمحاسبة - نظام محاسبة متكامل",
+  "short_name": "الحسن",
+  "description": "نظام محاسبة متكامل للمبيعات والمخزون: إدارة المنتجات، الفواتير، العملاء، المصروفات، والتقارير المالية",
+  "start_url": "/Al-Hasan-Accounting/?source=pwa",
+  "scope": "/Al-Hasan-Accounting/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "orientation": "any",
+  "background_color": "#0a1120",
+  "theme_color": "#0a1120",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["business", "finance", "productivity", "shopping"],
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "/Al-Hasan-Accounting/icon-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
+    { "src": "/Al-Hasan-Accounting/icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+    { "src": "/Al-Hasan-Accounting/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "/Al-Hasan-Accounting/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "/Al-Hasan-Accounting/icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "/Al-Hasan-Accounting/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/Al-Hasan-Accounting/icon-256.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "/Al-Hasan-Accounting/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "/Al-Hasan-Accounting/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/Al-Hasan-Accounting/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/Al-Hasan-Accounting/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "/Al-Hasan-Accounting/screenshot-wide.png", "sizes": "1280x720", "type": "image/png", "form_factor": "wide", "label": "لوحة التحكم" },
+    { "src": "/Al-Hasan-Accounting/screenshot-narrow.png", "sizes": "720x1280", "type": "image/png", "form_factor": "narrow", "label": "نقطة البيع" }
+  ],
+  "shortcuts": [
+    { "name": "نقطة البيع", "short_name": "POS", "description": "افتح نقطة البيع مباشرة", "url": "/Al-Hasan-Accounting/?page=pos", "icons": [{ "src": "/Al-Hasan-Accounting/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "المنتجات", "short_name": "المنتجات", "description": "عرض المنتجات والمخزون", "url": "/Al-Hasan-Accounting/?page=inventory", "icons": [{ "src": "/Al-Hasan-Accounting/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "سجل المبيعات", "short_name": "المبيعات", "description": "عرض سجل المبيعات", "url": "/Al-Hasan-Accounting/?page=invoices", "icons": [{ "src": "/Al-Hasan-Accounting/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "التقارير", "short_name": "التقارير", "description": "عرض التقارير المالية", "url": "/Al-Hasan-Accounting/?page=reports", "icons": [{ "src": "/Al-Hasan-Accounting/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}
