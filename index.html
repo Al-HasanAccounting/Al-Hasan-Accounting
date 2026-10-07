@@ -400,16 +400,67 @@
             #customersListContainer .customer-notes-box .notes-label { font-size: 9px !important; margin-bottom: 3px !important; }
             #customersListContainer .customer-notes-box .notes-content { font-size: 10px !important; line-height: 1.3 !important; }
 
-            @media (max-width: 480px) {
-                #customersListContainer > div { padding: 8px !important; }
-                #customersListContainer > div > .flex.items-center.gap-3 > div:first-child { width: 36px !important; height: 36px !important; font-size: 14px !important; }
-                #customersListContainer h3.text-white { font-size: 0.75rem !important; }
-                #customersListContainer .space-y-2.text-sm > div { font-size: 0.6rem !important; }
-                #customersListContainer > div > .grid.grid-cols-2 > div > div:first-child { font-size: 0.5rem !important; }
-                #customersListContainer > div > .grid.grid-cols-2 > div > div:last-child { font-size: 0.65rem !important; }
-                #expensesListContainer > div { padding: 10px !important; }
-                #expensesListContainer h3.text-white { font-size: 0.75rem !important; }
-                #expensesListContainer > div > .grid.grid-cols-2 > div > div:last-child { font-size: 0.65rem !important; }
+            /* ⭐⭐⭐ تنسيق صفحة نقطة البيع على الجوال ⭐⭐⭐
+               الترتيب: رأس ثابت (العنوان + أزرار بيع + البحث + زر المسح) ← السلة ← التصنيفات ← المنتجات
+            */
+            #pos > .grid {
+                display: flex !important;
+                flex-direction: column !important;
+                height: auto !important;
+                gap: 10px !important;
+            }
+            /* العمود الأيسر (المنتجات): يظهر ثانياً بعد السلة */
+            #pos > .grid > .lg\:col-span-2 {
+                order: 2 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+                width: 100% !important;
+            }
+            /* عمود السلة: يظهر أولاً */
+            #pos > .grid > div:not(.lg\:col-span-2) {
+                order: 1 !important;
+                width: 100% !important;
+                height: auto !important;
+                max-height: none !important;
+            }
+            /* السلة: ارتفاع مناسب مع سكرول داخلي */
+            #pos > .grid > div:not(.lg\:col-span-2) > #cartItems {
+                max-height: 220px !important;
+                overflow-y: auto !important;
+            }
+            /* شبكة المنتجات: سكرول داخلي */
+            #pos > .grid > .lg\:col-span-2 .flex-1.overflow-y-auto {
+                max-height: 60vh !important;
+                min-height: 320px !important;
+            }
+
+            /* ⭐⭐⭐ تثبيت رأس نقطة البيع (Sticky) - العنوان + أزرار بيع + البحث + زر المسح ⭐⭐⭐ */
+            #pos > .grid > .lg\:col-span-2 > .flex.justify-between.items-end,
+            #pos > .grid > .lg\:col-span-2 > .flex.gap-2 {
+                position: sticky !important;
+                z-index: 30 !important;
+                background: #0a1120 !important;
+                padding-top: 8px !important;
+                padding-bottom: 8px !important;
+            }
+            /* الصف الأول: العنوان + أزرار بيع مفرد/جملة */
+            #pos > .grid > .lg\:col-span-2 > .flex.justify-between.items-end {
+                top: 0 !important;
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                border-radius: 12px 12px 0 0 !important;
+            }
+            /* الصف الثاني: البحث + زر المسح - يلتصق أسفل الصف الأول */
+            #pos > .grid > .lg\:col-span-2 > .flex.gap-2 {
+                top: 60px !important;
+                margin-top: 0 !important;
+                border-radius: 0 0 12px 12px !important;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.5) !important;
+            }
+            /* إزالة أي مسافة بين العنصرين */
+            #pos > .grid > .lg\:col-span-2 > .flex.justify-between.items-end + .flex.gap-2 {
+                margin-top: -10px !important;
             }
 
             #productInquiry .inquiry-title { font-size: 1.5rem !important; }
@@ -1165,38 +1216,39 @@
             const phoneIntl = ADMIN_WHATSAPP_INTERNATIONAL;
             const waUrl = 'https://wa.me/' + phoneIntl + '?text=' + message;
             const waAppUrl = 'whatsapp://send?phone=' + phoneIntl + '&text=' + message;
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            if (isMobile) {
-                // على الجوال: نحاول فتح التطبيق مباشرة ثم نعود إلى الرابط العادي
-                const startTime = Date.now();
-                let appOpened = false;
-                
-                const handleVisibility = () => {
-                    if (document.hidden) appOpened = true;
-                };
-                document.addEventListener('visibilitychange', handleVisibility, { once: true });
-                
-                // محاولة فتح تطبيق واتساب مباشرة
+            const intentUrl = 'intent://send?phone=' + phoneIntl + '&text=' + message + '#Intent;scheme=whatsapp;end';
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            const isAndroid = /android/i.test(ua);
+            const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
+            if (isAndroid) {
+                // ⭐ على أندرويد: نستخدم intent:// (الأكثر موثوقية على Chrome للأندرويد)
+                try {
+                    window.location.href = intentUrl;
+                } catch (e) {
+                    console.warn('intent:// failed:', e);
+                    window.location.href = waUrl;
+                }
+                // Fallback: إذا لم يفتح التطبيق خلال 1.2 ثانية نفتح wa.me
+                setTimeout(() => {
+                    if (!document.hidden) {
+                        window.location.href = waUrl;
+                    }
+                }, 1200);
+            } else if (isIOS) {
+                // ⭐ على iOS (آيفون): whatsapp:// يعمل بامتياز
                 try {
                     window.location.href = waAppUrl;
                 } catch (e) {
-                    console.warn('whatsapp:// failed:', e);
+                    window.location.href = waUrl;
                 }
-                
-                // بعد 1.5 ثانية، إذا لم يفتح التطبيق، نفتح wa.me
                 setTimeout(() => {
-                    document.removeEventListener('visibilitychange', handleVisibility);
-                    if (!appOpened && !document.hidden && (Date.now() - startTime) < 2500) {
-                        try {
-                            window.open(waUrl, '_blank');
-                        } catch (e) {
-                            window.location.href = waUrl;
-                        }
+                    if (!document.hidden) {
+                        window.location.href = waUrl;
                     }
-                }, 1500);
+                }, 1200);
             } else {
-                // على الكمبيوتر: نفتح wa.me مباشرة
+                // ⭐ على الكمبيوتر: wa.me مباشرة في تبويب جديد
                 try {
                     window.open(waUrl, '_blank', 'noopener,noreferrer');
                 } catch (e) {
