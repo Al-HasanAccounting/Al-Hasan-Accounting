@@ -522,7 +522,7 @@
                 </div>
                 <div>
                     <p class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">الإدارة</p>
-                    <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('customers', this)"><i class="fa-solid fa-users w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">إدارة العملاء</span></div>
+                    <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('customers', this)"><i class="fa-solid fa-file-invoice-dollar w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">فواتير الدَّين</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('productInquiry', this)"><i class="fa-solid fa-magnifying-glass-dollar w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">استفسار عن منتج</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('expenses', this)"><i class="fa-solid fa-wallet w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">المصروفات</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('reports', this)"><i class="fa-solid fa-chart-line w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">التقارير المالية</span></div>
@@ -628,8 +628,14 @@
                             <div class="p-4 border-b border-navy-700 space-y-3">
                                 <input type="text" id="cartCustomerName" placeholder="اسم الزبون (اختياري)" class="w-full bg-navy-900 border border-navy-700 rounded-xl p-3 text-white text-sm focus:border-gold-400 outline-none">
                                 <div class="grid grid-cols-2 gap-3">
-                                    <select id="cartPaymentMethod" class="bg-navy-900 border border-navy-700 rounded-xl p-3 text-white text-sm focus:border-gold-400 outline-none"><option value="نقدي">نقدي</option><option value="شام كاش">شام كاش</option><option value="دين">دين</option></select>
+                                    <select id="cartPaymentMethod" onchange="toggleDebtPanel()" class="bg-navy-900 border border-navy-700 rounded-xl p-3 text-white text-sm focus:border-gold-400 outline-none"><option value="نقدي">نقدي</option><option value="شام كاش">شام كاش</option><option value="دين">دين</option></select>
                                     <input type="number" id="cartDiscountPercent" placeholder="خصم %" class="w-full bg-navy-900 border border-navy-700 rounded-xl p-3 text-white text-sm focus:border-gold-400 outline-none text-center" oninput="updateCartTotals()">
+                                </div>
+                                <div id="cartDebtPanel" class="hidden space-y-3 bg-navy-900/60 border border-gold-500/30 rounded-xl p-3">
+                                    <div class="text-gold-400 text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> بيانات فاتورة الدَّين</div>
+                                    <input type="text" id="debtPhone" placeholder="رقم الهاتف" class="w-full bg-navy-900 border border-navy-700 rounded-xl p-3 text-white text-sm focus:border-gold-400 outline-none">
+                                    <input type="text" id="debtAddress" placeholder="الموقع / العنوان" class="w-full bg-navy-900 border border-navy-700 rounded-xl p-3 text-white text-sm focus:border-gold-400 outline-none">
+                                    <textarea id="debtNotes" rows="2" placeholder="ملاحظات" class="w-full bg-navy-900 border border-navy-700 rounded-xl p-3 text-white text-sm focus:border-gold-400 outline-none"></textarea>
                                 </div>
                             </div>
                             <div class="flex-1 overflow-y-auto p-4" id="cartItems"></div>
@@ -681,18 +687,17 @@
                 </div>
                 <div id="customers" class="page">
                     <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
-                        <div><h2 class="text-3xl font-bold text-white mb-1">إدارة العملاء</h2><p class="text-slate-400 text-sm">قاعدة البيانات</p></div>
-                        <button onclick="resetCustomerModal(); openModal('addCustomerModal')" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-plus"></i> إضافة عميل</button>
+                        <div><h2 class="text-3xl font-bold text-white mb-1">فواتير الدَّين</h2><p class="text-slate-400 text-sm">الفواتير المسجّلة بالدَّين من نقطة البيع</p></div>
                     </div>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي العملاء</h3><div class="text-2xl font-bold text-white" id="statTotalCustomers">0</div></div><div class="stat-card-icon bg-blue-500/10 text-blue-400"><i class="fa-solid fa-users"></i></div></div>
-                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">عملاء الجملة</h3><div class="text-2xl font-bold text-white" id="statWholesaleCustomers">0</div></div><div class="stat-card-icon bg-purple-500/10 text-purple-400"><i class="fa-solid fa-user-tie"></i></div></div>
-                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي المشتريات</h3><div class="text-2xl font-bold text-emerald-400" id="statTotalPurchases">$0.00</div></div><div class="stat-card-icon bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-chart-line"></i></div></div>
-                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي حد الدين</h3><div class="text-2xl font-bold text-red-400" id="statTotalCredit">$0.00</div></div><div class="stat-card-icon bg-red-500/10 text-red-400"><i class="fa-solid fa-hand-holding-dollar"></i></div></div>
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي الفواتير</h3><div class="text-2xl font-bold text-white" id="statTotalCustomers">0</div></div><div class="stat-card-icon bg-blue-500/10 text-blue-400"><i class="fa-solid fa-users"></i></div></div>
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">فواتير مفتوحة</h3><div class="text-2xl font-bold text-white" id="statWholesaleCustomers">0</div></div><div class="stat-card-icon bg-purple-500/10 text-purple-400"><i class="fa-solid fa-user-tie"></i></div></div>
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي قيمة الدَّين</h3><div class="text-2xl font-bold text-emerald-400" id="statTotalPurchases">$0.00</div></div><div class="stat-card-icon bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-chart-line"></i></div></div>
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">المتبقي للتحصيل</h3><div class="text-2xl font-bold text-red-400" id="statTotalCredit">$0.00</div></div><div class="stat-card-icon bg-red-500/10 text-red-400"><i class="fa-solid fa-hand-holding-dollar"></i></div></div>
                     </div>
                     <div class="flex flex-col md:flex-row gap-4 mb-6">
                         <div class="relative flex-1"><i class="fa-solid fa-search absolute right-4 top-3.5 text-slate-500"></i><input type="text" id="customerSearch" placeholder="ابحث..." class="w-full bg-navy-800 border border-navy-700 rounded-xl py-3 pr-12 pl-4 text-white focus:border-gold-400 outline-none" oninput="renderCustomers(this.value)"></div>
-                        <select id="customerTypeFilter" class="bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-white focus:border-gold-400 outline-none" onchange="renderCustomers()"><option value="all">كل العملاء</option><option value="retail">مفرد</option><option value="wholesale">جملة</option></select>
+                        <select id="customerTypeFilter" class="bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-white focus:border-gold-400 outline-none" onchange="renderCustomers()"><option value="all">كل الفواتير</option><option value="open">مفتوحة</option><option value="paid">مسدَّدة</option></select>
                     </div>
                     <div id="customersListContainer" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
                 </div>
@@ -1033,7 +1038,7 @@
             <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-gold-400"><i class="fa-solid fa-money-bill-wave"></i> تسديد دفعة</h3><button onclick="closeModal('payDebtModal')" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
             <div class="bg-navy-900 p-4 rounded-xl border border-navy-700 mb-4">
                 <div class="flex justify-between items-center mb-2"><span class="text-slate-400 text-sm">اسم العميل:</span><span class="text-white font-bold" id="payDebtCustomerName">-</span></div>
-                <div class="flex justify-between items-center"><span class="text-slate-400 text-sm">حد الدين الحالي:</span><span class="text-gold-400 font-bold" id="payDebtCurrentLimit">$0.00</span></div>
+                <div class="flex justify-between items-center"><span class="text-slate-400 text-sm">المتبقي من الدين:</span><span class="text-gold-400 font-bold" id="payDebtCurrentLimit">$0.00</span></div>
             </div>
             <div class="space-y-4">
                 <div><label class="block text-sm text-slate-300 mb-1">المبلغ المدفوع ($) *</label><input type="number" id="payDebtAmount" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none text-center text-2xl font-bold" placeholder="0.00" min="0.01" step="0.01"></div>
@@ -1418,7 +1423,7 @@
         const defaultState = {
             settings: { exchangeRate: 14500, oldExchangeRate: 1400000, wholesaleDiscount: 10, isWholesale: false, activePosCategory: 'all', storeName: "الحسن للمحاسبة", phone: "+963 11 000 0000", address: "سوريا - دمشق", taxRate: 0 },
             subscription: { startDate: new Date().toISOString().slice(0, 10), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10), username: 'admin', password: 'admin123', providerPhone: ADMIN_WHATSAPP },
-            adminClients: [], products: [], customers: [], expenses: [], invoices: [], cart: [],
+            adminClients: [], products: [], customers: [], debtInvoices: [], expenses: [], invoices: [], cart: [],
             productImages: {}, notifications: []
         };
         function getFreshDefault() { return JSON.parse(JSON.stringify(defaultState)); }
@@ -1433,7 +1438,7 @@
 
         state.cart = [];
 
-        const requiredKeys = ['subscription','adminClients','products','customers','expenses','invoices','cart','settings'];
+        const requiredKeys = ['subscription','adminClients','products','customers','debtInvoices','expenses','invoices','cart','settings'];
         requiredKeys.forEach(k => {
             if (!state[k] || (k !== 'settings' && k !== 'subscription' && !Array.isArray(state[k]))) { state[k] = JSON.parse(JSON.stringify(defaultState[k])); }
         });
@@ -1444,6 +1449,7 @@
         if (!Array.isArray(state.adminClients)) state.adminClients = [];
         if (!Array.isArray(state.products)) state.products = [];
         if (!Array.isArray(state.customers)) state.customers = [];
+        if (!Array.isArray(state.debtInvoices)) state.debtInvoices = [];
         if (!Array.isArray(state.expenses)) state.expenses = [];
         if (!Array.isArray(state.invoices)) state.invoices = [];
         if (!Array.isArray(state.cart)) state.cart = [];
@@ -1635,6 +1641,7 @@
                     if (!state.settings || typeof state.settings !== 'object') state.settings = JSON.parse(JSON.stringify(defaultState.settings));
                     if (!Array.isArray(state.products)) state.products = [];
                     if (!Array.isArray(state.customers)) state.customers = [];
+                    if (!Array.isArray(state.debtInvoices)) state.debtInvoices = [];
                     if (!Array.isArray(state.expenses)) state.expenses = [];
                     if (!Array.isArray(state.invoices)) state.invoices = [];
                     if (!Array.isArray(state.notifications)) state.notifications = [];
@@ -2072,7 +2079,7 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             element.classList.add('active');
-            const titles = { dashboard: 'لوحة التحكم', pos: 'نقطة البيع', inventory: 'المنتجات والمخزون', invoices: 'سجل المبيعات', customers: 'إدارة العملاء', productInquiry: 'استفسار عن منتج', expenses: 'المصروفات', reports: 'التقارير المالية', settings: 'الإعدادات', aiAssistant: 'المساعد الذكي', contactAdmin: 'التواصل مع الإدارة' };
+            const titles = { dashboard: 'لوحة التحكم', pos: 'نقطة البيع', inventory: 'المنتجات والمخزون', invoices: 'سجل المبيعات', customers: 'فواتير الدَّين', productInquiry: 'استفسار عن منتج', expenses: 'المصروفات', reports: 'التقارير المالية', settings: 'الإعدادات', aiAssistant: 'المساعد الذكي', contactAdmin: 'التواصل مع الإدارة' };
             document.getElementById('page-title').innerText = titles[pageId];
             if (pageId === 'reports') renderReports();
             if (pageId === 'settings') {
@@ -2160,7 +2167,7 @@
             if (!checkSubscription()) return;
             if (confirm('تحذير! حذف كل البيانات. متأكد؟')) {
                 const sub = state.subscription; const adminClients = state.adminClients;
-                state.products = []; state.invoices = []; state.customers = []; state.expenses = []; state.cart = [];
+                state.products = []; state.invoices = []; state.customers = []; state.debtInvoices = []; state.expenses = []; state.cart = [];
                 state.productImages = {};
                 state.subscription = sub; state.adminClients = adminClients;
                 saveState(); renderAll(); showToast('تم الحذف', 'delete');
@@ -2372,20 +2379,20 @@
             state.cart.forEach(item => { subtotal += item.price * item.qty; totalCost += (item.cost || 0) * item.qty; totalItems += item.qty; });
             const finalTotalUSD = subtotal - (subtotal * (discountPercent / 100));
             const profit = finalTotalUSD - totalCost;
-            let customer = null;
+            const debtData = {
+                phone: ((document.getElementById('debtPhone') || {}).value || '').trim(),
+                address: ((document.getElementById('debtAddress') || {}).value || '').trim(),
+                notes: ((document.getElementById('debtNotes') || {}).value || '').trim()
+            };
             if (paymentMethod === 'دين') {
-                if (customerName === 'زبون نقدي' || customerName === '') { showToast('⚠️ أدخل اسم العميل', 'warning'); return; }
-                customer = state.customers.find(c => c.name.trim() === customerName);
-                if (!customer) { showToast(`⚠️ العميل غير مسجل`, 'warning'); return; }
-                const availableCredit = customer.creditLimit || 0;
-                if (availableCredit <= 0) { showToast(`❌ حد الدين نفذ`, 'warning'); return; }
-                if (availableCredit < finalTotalUSD) { showToast(`⚠️ حد الدين غير كافٍ`, 'warning'); return; }
-                customer.creditLimit = availableCredit - finalTotalUSD;
+                if (customerName === 'زبون نقدي' || customerName === '') { showToast('⚠️ أدخل اسم العميل لفاتورة الدَّين', 'warning'); return; }
             }
             state.cart.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty -= item.qty; });
             const invoice = { id: `INV-${Date.now().toString().slice(-6)}`, date: new Date().toLocaleString('ar-EG'), type: 'Sales', items: [...state.cart], totalUSD: finalTotalUSD, profit: profit, totalCost: totalCost, itemsCount: totalItems, status: paymentMethod === 'دين' ? 'Pending' : 'Paid', isWholesale: state.settings.isWholesale, customerName, paymentMethod, discount: discountPercent };
             state.invoices.push(invoice);
+            if (paymentMethod === 'دين') createDebtInvoice(invoice, debtData);
             state.cart = [];
+            try { resetDebtPanel(); } catch(e) {}
             try {
                 document.getElementById('cartCustomerName').value = '';
                 document.getElementById('cartDiscountPercent').value = '';
@@ -2580,7 +2587,7 @@
                                `💰 الإجمالي: ${formatMoney(invoice.totalUSD)}\n` +
                                `👤 العميل: ${invoice.customerName || 'زبون نقدي'}\n` +
                                `📦 عدد الأصناف: ${(invoice.items || []).length}\n\n` +
-                               `سيتم:\n✅ إرجاع كميات المنتجات إلى المخزون\n✅ إرجاع حد الدين للعميل (إن كانت بالدين)\n\nهل أنت متأكد؟`;
+                               `سيتم:\n✅ إرجاع كميات المنتجات إلى المخزون\n✅ حذف فاتورة الدَّين المرتبطة (إن كانت بالدين)\n\nهل أنت متأكد؟`;
             if (!confirm(confirmMsg)) return;
             if (Array.isArray(invoice.items)) {
                 invoice.items.forEach(item => {
@@ -2588,7 +2595,9 @@
                     if (product) product.qty = (product.qty || 0) + (item.qty || 0);
                 });
             }
-            if (invoice.paymentMethod === 'دين' && invoice.customerName) {
+            const linkedDebt = (state.debtInvoices || []).some(d => d.invoiceId === invoice.id);
+            if (linkedDebt) state.debtInvoices = state.debtInvoices.filter(d => d.invoiceId !== invoice.id);
+            if (!linkedDebt && invoice.paymentMethod === 'دين' && invoice.customerName) {
                 const customer = state.customers.find(c => (c.name || '').trim() === (invoice.customerName || '').trim());
                 if (customer) {
                     customer.creditLimit = (customer.creditLimit || 0) + (invoice.totalUSD || 0);
@@ -2844,75 +2853,110 @@
 
         function exportSalesCSV() { exportSalesExcel(); }
 
+        function debtEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        function debtRound(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+        function toggleDebtPanel() {
+            const method = (document.getElementById('cartPaymentMethod') || {}).value;
+            const panel = document.getElementById('cartDebtPanel');
+            if (panel) panel.classList.toggle('hidden', method !== 'دين');
+            const nameEl = document.getElementById('cartCustomerName');
+            if (nameEl) nameEl.placeholder = method === 'دين' ? 'اسم الزبون (مطلوب للدَّين)' : 'اسم الزبون (اختياري)';
+        }
+        function resetDebtPanel() {
+            ['debtPhone', 'debtAddress', 'debtNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        }
+        function createDebtInvoice(invoice, data) {
+            if (!Array.isArray(state.debtInvoices)) state.debtInvoices = [];
+            let notes = `🧾 فاتورة رقم ${invoice.id}`;
+            if (data && data.notes) notes += `\n${data.notes}`;
+            state.debtInvoices.push({
+                id: Date.now(),
+                invoiceId: invoice.id,
+                name: invoice.customerName,
+                type: invoice.isWholesale ? 'wholesale' : 'retail',
+                phone: (data && data.phone) || '',
+                address: (data && data.address) || '',
+                notes: notes,
+                total: debtRound(invoice.totalUSD),
+                paid: 0,
+                remaining: debtRound(invoice.totalUSD),
+                status: 'open',
+                date: invoice.date
+            });
+        }
         function renderCustomers(filter = '') {
             const container = document.getElementById('customersListContainer');
-            const typeFilter = document.getElementById('customerTypeFilter').value;
-            let totalCustomers = state.customers.length;
-            let wholesaleCustomers = state.customers.filter(c => c.type === 'wholesale').length;
-            const customerPurchases = {};
-            state.invoices.forEach(inv => { const name = inv.customerName || 'زبون نقدي'; if (!customerPurchases[name]) customerPurchases[name] = 0; customerPurchases[name] += inv.totalUSD; });
-            let totalPurchasesAll = Object.values(customerPurchases).reduce((a, b) => a + b, 0);
-            let totalDebtRemaining = state.customers.reduce((sum, c) => sum + (c.creditLimit || 0), 0);
-            document.getElementById('statTotalCustomers').innerText = totalCustomers;
-            document.getElementById('statWholesaleCustomers').innerText = wholesaleCustomers;
-            document.getElementById('statTotalPurchases').innerText = formatMoney(totalPurchasesAll);
-            document.getElementById('statTotalCredit').innerText = formatMoney(totalDebtRemaining);
-            let filtered = state.customers.filter(c => c.name.includes(filter) || (c.phone && c.phone.includes(filter)));
-            if (typeFilter !== 'all') filtered = filtered.filter(c => c.type === typeFilter);
+            if (!container) return;
+            if (!Array.isArray(state.debtInvoices)) state.debtInvoices = [];
+            const statusFilter = document.getElementById('customerTypeFilter').value;
+            const all = state.debtInvoices;
+            const openList = all.filter(d => d.status !== 'paid');
+            document.getElementById('statTotalCustomers').innerText = all.length;
+            document.getElementById('statWholesaleCustomers').innerText = openList.length;
+            document.getElementById('statTotalPurchases').innerText = formatMoney(all.reduce((s, d) => s + (d.total || 0), 0));
+            document.getElementById('statTotalCredit').innerText = formatMoney(openList.reduce((s, d) => s + (d.remaining || 0), 0));
+            let filtered = all.filter(d => (d.name || '').includes(filter) || (d.phone || '').includes(filter) || (d.address || '').includes(filter));
+            if (statusFilter === 'open') filtered = filtered.filter(d => d.status !== 'paid');
+            else if (statusFilter === 'paid') filtered = filtered.filter(d => d.status === 'paid');
+            filtered = filtered.slice().sort((a, b) => ((a.status === 'paid') - (b.status === 'paid')) || (b.id - a.id));
             const avatarColors = ['linear-gradient(135deg, #8b5cf6, #6d28d9)','linear-gradient(135deg, #3b82f6, #1e40af)','linear-gradient(135deg, #10b981, #047857)','linear-gradient(135deg, #f59e0b, #b45309)','linear-gradient(135deg, #ec4899, #be185d)','linear-gradient(135deg, #06b6d4, #0e7490)'];
             if (filtered.length === 0) {
                 container.className = 'bg-navy-800 rounded-2xl border border-navy-700 overflow-hidden shadow-xl';
-                container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-slate-500"><i class="fa-solid fa-users-slash text-6xl mb-4 opacity-50"></i><p class="text-lg">لا يوجد عملاء</p></div>`;
+                container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-slate-500"><i class="fa-solid fa-file-invoice-dollar text-6xl mb-4 opacity-50"></i><p class="text-lg">لا توجد فواتير دَّين</p></div>`;
             } else {
                 container.className = 'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6';
                 container.innerHTML = filtered.map((c, index) => {
-                    const purchases = customerPurchases[c.name] || 0;
-                    const avatarColor = avatarColors[index % avatarColors.length];
+                    const isPaid = c.status === 'paid';
+                    const avatarColor = isPaid ? 'linear-gradient(135deg, #10b981, #047857)' : avatarColors[index % avatarColors.length];
                     const firstLetter = (c.name || '؟').trim().charAt(0);
                     const typeLabel = c.type === 'wholesale' ? 'جملة' : 'مفرد';
                     const typeClass = c.type === 'wholesale' ? 'bg-purple-500/20 text-purple-400' : 'bg-emerald-500/20 text-emerald-400';
-                    const debt = c.creditLimit || 0;
-                    const debtColor = debt <= 0 ? 'text-red-400' : (debt < 50 ? 'text-orange-400' : 'text-emerald-400');
-                    const debtStatus = debt <= 0 ? 'نفذ ❌' : (debt < 50 ? 'قارب على النفاذ ⚠️' : 'متاح ✅');
+                    const remaining = c.remaining || 0;
+                    const debtColor = isPaid ? 'text-emerald-400' : 'text-red-400';
+                    const debtStatus = isPaid ? 'تم التسديد ✅' : 'مفتوحة ⏳';
                     const notesHtml = `
                         <div class="customer-notes-box">
                             <div class="notes-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</div>
-                            <div class="notes-content ${c.notes && c.notes.trim() ? '' : 'empty'}">${c.notes && c.notes.trim() ? c.notes.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'لم تُكتب ملاحظة'}</div>
+                            <div class="notes-content ${c.notes && c.notes.trim() ? '' : 'empty'}">${c.notes && c.notes.trim() ? debtEsc(c.notes) : 'لم تُكتب ملاحظة'}</div>
                         </div>
                     `;
-                    return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button><button onclick="editCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button></div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style="background: ${avatarColor}">${firstLetter}</div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-lg truncate">${c.name}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${typeClass}">${typeLabel}</span></div></div><div class="space-y-2 text-sm mb-4">${c.phone ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-phone text-slate-500 w-4 text-center"></i><span dir="ltr">${c.phone}</span></div>` : ''}${c.address ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-location-dot text-slate-500 w-4 text-center"></i><span class="truncate">${c.address}</span></div>` : ''}</div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المشتريات</div><div class="text-emerald-400 font-bold text-sm">${formatMoney(purchases)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">حد الدين</div><div class="${debtColor} font-bold text-sm">${formatMoney(debt)}</div></div></div><div class="flex justify-between items-center text-xs py-2 border-t border-navy-700 mb-3"><span class="text-slate-400">حالة حد الدين</span><span class="${debtColor} font-bold">${debtStatus}</span></div>${notesHtml}<button onclick="openPayDebtModal(${c.id})" class="w-full bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-gold-500/30"><i class="fa-solid fa-money-bill-wave"></i> تسديد دفعة</button></div>`;
+                    const editBtn = isPaid ? '' : `<button onclick="editCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button>`;
+                    const actionBtn = isPaid
+                        ? `<button disabled class="w-full bg-emerald-500/10 text-emerald-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-emerald-500/30 cursor-not-allowed"><i class="fa-solid fa-circle-check"></i> تم التسديد</button>`
+                        : `<button onclick="openPayDebtModal(${c.id})" class="w-full bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-gold-500/30"><i class="fa-solid fa-money-bill-wave"></i> تسديد دفعة</button>`;
+                    return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button>${editBtn}</div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style="background: ${avatarColor}">${debtEsc(firstLetter)}</div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-lg truncate">${debtEsc(c.name)}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${typeClass}">${typeLabel}</span></div></div><div class="space-y-2 text-sm mb-4">${c.phone ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-phone text-slate-500 w-4 text-center"></i><span dir="ltr">${debtEsc(c.phone)}</span></div>` : ''}${c.address ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-location-dot text-slate-500 w-4 text-center"></i><span class="truncate">${debtEsc(c.address)}</span></div>` : ''}</div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">قيمة الفاتورة</div><div class="text-emerald-400 font-bold text-sm">${formatMoney(c.total || 0)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المتبقي</div><div class="${debtColor} font-bold text-sm">${formatMoney(remaining)}</div></div></div><div class="flex justify-between items-center text-xs py-2 border-t border-navy-700 mb-3"><span class="text-slate-400">حالة الدَّين</span><span class="${debtColor} font-bold">${debtStatus}</span></div>${notesHtml}${actionBtn}</div>`;
                 }).join('');
             }
         }
         function addCustomer() {
+            // في وضع فواتير الدَّين: هذه النافذة تُستخدم لتعديل بيانات الفاتورة فقط
             if (!checkSubscription()) return;
             const name = document.getElementById('custName').value.trim();
             if (!name) { showToast('أدخل اسم العميل', 'warning'); return; }
-            const isEdit = !!editingCustomerId;
-            if (isEdit) {
-                const index = state.customers.findIndex(c => c.id === editingCustomerId);
-                if (index !== -1) {
-                    state.customers[index] = { id: editingCustomerId, name: name, type: document.getElementById('custType').value, phone: document.getElementById('custPhone').value.trim(), address: document.getElementById('custAddress').value.trim(), creditLimit: parseFloat(document.getElementById('custCreditLimit').value) || 0, notes: document.getElementById('custNotes').value.trim() };
-                }
-                showToast(`تم تعديل "${name}"`, 'edit');
-            } else {
-                state.customers.push({ id: Date.now(), name: name, type: document.getElementById('custType').value, phone: document.getElementById('custPhone').value.trim(), address: document.getElementById('custAddress').value.trim(), creditLimit: parseFloat(document.getElementById('custCreditLimit').value) || 0, notes: document.getElementById('custNotes').value.trim() });
-                showToast(`تم إضافة "${name}"`, 'success');
-            }
+            const d = (state.debtInvoices || []).find(x => x.id === editingCustomerId);
+            if (!d) { closeModal('addCustomerModal'); resetCustomerModal(); return; }
+            d.name = name;
+            d.phone = document.getElementById('custPhone').value.trim();
+            d.address = document.getElementById('custAddress').value.trim();
+            d.notes = document.getElementById('custNotes').value.trim();
+            const inv = state.invoices.find(i => i.id === d.invoiceId);
+            if (inv) inv.customerName = name;
+            showToast(`تم تعديل "${name}"`, 'edit');
             closeModal('addCustomerModal'); saveState();
             resetCustomerModal();
         }
         function editCustomer(id) {
-            const customer = state.customers.find(c => c.id === id);
-            if (!customer) return;
+            const d = (state.debtInvoices || []).find(x => x.id === id);
+            if (!d) return;
+            if (d.status === 'paid') { showToast('الفاتورة مسدَّدة ومغلقة', 'warning'); return; }
             editingCustomerId = id;
-            document.getElementById('custName').value = customer.name || '';
-            document.getElementById('custType').value = customer.type || 'retail';
-            document.getElementById('custPhone').value = customer.phone || '';
-            document.getElementById('custAddress').value = customer.address || '';
-            document.getElementById('custCreditLimit').value = customer.creditLimit || 0;
-            document.getElementById('custNotes').value = customer.notes || '';
-            document.getElementById('customerModalTitle').innerText = 'تعديل بيانات العميل';
+            document.getElementById('custName').value = d.name || '';
+            document.getElementById('custPhone').value = d.phone || '';
+            document.getElementById('custAddress').value = d.address || '';
+            document.getElementById('custNotes').value = d.notes || '';
+            document.getElementById('custType').parentElement.style.display = 'none';
+            document.getElementById('custCreditLimit').parentElement.style.display = 'none';
+            document.getElementById('customerModalTitle').innerText = 'تعديل فاتورة الدَّين';
             document.getElementById('customerSubmitBtn').innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
             openModal('addCustomerModal');
         }
@@ -2920,28 +2964,31 @@
             editingCustomerId = null;
             const modal = document.getElementById('addCustomerModal');
             if (!modal) return;
-            document.getElementById('customerModalTitle').innerText = 'إضافة عميل جديد';
+            document.getElementById('customerModalTitle').innerText = 'تعديل فاتورة الدَّين';
             const submitBtn = document.getElementById('customerSubmitBtn');
-            if (submitBtn) { submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> إضافة العميل'; }
+            if (submitBtn) { submitBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات'; }
             document.getElementById('custName').value = '';
             document.getElementById('custType').value = 'retail';
             document.getElementById('custPhone').value = '';
             document.getElementById('custAddress').value = '';
             document.getElementById('custCreditLimit').value = '0';
             document.getElementById('custNotes').value = '';
+            document.getElementById('custType').parentElement.style.display = '';
+            document.getElementById('custCreditLimit').parentElement.style.display = '';
         }
         function deleteCustomer(id) {
             if (!checkSubscription()) return;
-            const customer = state.customers.find(c => c.id === id);
-            if (!customer) return;
-            if (confirm(`حذف العميل "${customer.name}"؟`)) { state.customers = state.customers.filter(c => c.id !== id); saveState(); showToast(`تم الحذف`, 'delete'); }
+            const d = (state.debtInvoices || []).find(x => x.id === id);
+            if (!d) return;
+            if (confirm(`حذف فاتورة الدَّين الخاصة بـ "${d.name}"؟`)) { state.debtInvoices = state.debtInvoices.filter(x => x.id !== id); saveState(); showToast(`تم الحذف`, 'delete'); }
         }
         function openPayDebtModal(id) {
-            const customer = state.customers.find(c => c.id === id);
-            if (!customer) return;
+            const d = (state.debtInvoices || []).find(x => x.id === id);
+            if (!d) return;
+            if (d.status === 'paid') { showToast('الفاتورة مسدَّدة ومغلقة', 'warning'); return; }
             currentPayDebtCustomerId = id;
-            document.getElementById('payDebtCustomerName').innerText = customer.name;
-            document.getElementById('payDebtCurrentLimit').innerText = formatMoney(customer.creditLimit || 0);
+            document.getElementById('payDebtCustomerName').innerText = d.name;
+            document.getElementById('payDebtCurrentLimit').innerText = formatMoney(d.remaining || 0);
             document.getElementById('payDebtAmount').value = '';
             document.getElementById('payDebtNote').value = '';
             openModal('payDebtModal');
@@ -2950,21 +2997,32 @@
         function confirmPayDebt() {
             if (!checkSubscription()) return;
             if (!currentPayDebtCustomerId) return;
-            const customer = state.customers.find(c => c.id === currentPayDebtCustomerId);
-            if (!customer) return;
-            const amount = parseFloat(document.getElementById('payDebtAmount').value);
+            const d = (state.debtInvoices || []).find(x => x.id === currentPayDebtCustomerId);
+            if (!d || d.status === 'paid') return;
+            const amount = debtRound(parseFloat(document.getElementById('payDebtAmount').value));
             const note = document.getElementById('payDebtNote').value.trim();
             if (isNaN(amount) || amount <= 0) { showToast('أدخل مبلغ صحيح', 'warning'); return; }
-            const oldLimit = customer.creditLimit || 0;
-            customer.creditLimit = oldLimit + amount;
+            const oldRemaining = debtRound(d.remaining);
+            if (amount > oldRemaining + 0.001) { showToast(`⚠️ المبلغ أكبر من المتبقي (${formatMoney(oldRemaining)})`, 'warning'); return; }
+            const newRemaining = debtRound(oldRemaining - amount);
+            d.paid = debtRound((d.paid || 0) + amount);
+            d.remaining = newRemaining < 0.005 ? 0 : newRemaining;
             const now = new Date();
             const dateStr = now.toLocaleDateString('ar-EG');
             const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-            let newNote = `💰 [${dateStr} - ${timeStr}] تسديد: ${formatMoney(amount)} (حد الدين: ${formatMoney(oldLimit)} ← ${formatMoney(customer.creditLimit)})`;
+            let newNote = `💰 [${dateStr} - ${timeStr}] تم تسديد دفعة ${formatMoney(amount)}`;
+            if (d.remaining > 0) newNote += ` — المتبقي: ${formatMoney(d.remaining)}`;
             if (note) newNote += `\n    📝 ${note}`;
-            customer.notes = customer.notes ? customer.notes + '\n\n' + newNote : newNote;
+            if (d.remaining === 0) {
+                d.status = 'paid';
+                d.paidDate = `${dateStr} - ${timeStr}`;
+                newNote += `\n✅ تم التسديد بالكامل`;
+                const inv = state.invoices.find(i => i.id === d.invoiceId);
+                if (inv) inv.status = 'Paid';
+            }
+            d.notes = d.notes ? d.notes + '\n\n' + newNote : newNote;
             closeModal('payDebtModal'); saveState();
-            showToast(`✅ تم استلام ${formatMoney(amount)}`, 'success');
+            showToast(d.status === 'paid' ? `✅ تم التسديد بالكامل` : `✅ تم استلام ${formatMoney(amount)}`, 'success');
             currentPayDebtCustomerId = null;
         }
 
