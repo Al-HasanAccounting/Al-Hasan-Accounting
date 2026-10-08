@@ -1034,10 +1034,10 @@
     <div id="receiptModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="bg-white text-black rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-navy-900 to-navy-800 p-4 text-center">
-                <div class="w-12 h-12 mx-auto mb-2 bg-gold-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-receipt text-navy-900 text-xl"></i></div>
-                <h2 id="receiptStoreName" class="text-xl font-bold text-gold-400 mb-1">اسم المتجر</h2>
-                <p class="text-slate-400 text-xs" id="receiptStoreInfo">فاتورة مبيعات</p>
-            </div>
+    <img id="receiptStoreLogo" src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Store Logo" class="w-16 h-16 mx-auto mb-2 rounded-xl shadow-lg object-contain border-2 border-gold-500/40 bg-navy-900 p-1">
+    <h2 id="receiptStoreName" class="text-xl font-bold text-gold-400 mb-1">اسم المتجر</h2>
+    <p class="text-slate-400 text-xs" id="receiptStoreInfo">فاتورة مبيعات</p>
+</div>
             <div class="p-5 border-b border-dashed border-gray-300 bg-gray-50">
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div><div class="text-gray-500 text-xs mb-1">رقم الفاتورة</div><div class="font-bold text-gray-900" id="receiptInvoiceId">-</div></div>
@@ -2551,18 +2551,26 @@
         }
         (function setupCleanPrint() {
             let savedTitle = null;
-            function beforePrintClean() {
-                try {
-                    const st = (typeof state !== 'undefined' && state && state.settings) ? state.settings : null;
-                    if (st) {
-                        const nameEl = document.getElementById('receiptStoreName');
-                        if (nameEl && st.storeName) nameEl.innerText = st.storeName;
-                        const phoneEl = document.getElementById('receiptStorePhone');
-                        if (phoneEl) phoneEl.innerText = st.phone || '';
-                    }
-                } catch (e) {}
-                if (savedTitle === null) { savedTitle = document.title; document.title = '\u200B'; }
+           function beforePrintClean() {
+    try {
+        const st = (typeof state !== 'undefined' && state && state.settings) ? state.settings : null;
+        if (st) {
+            const nameEl = document.getElementById('receiptStoreName');
+            if (nameEl && st.storeName) nameEl.innerText = st.storeName;
+            const phoneEl = document.getElementById('receiptStorePhone');
+            if (phoneEl) phoneEl.innerText = st.phone || '';
+            const logoEl = document.getElementById('receiptStoreLogo');
+            if (logoEl) {
+                if (st.storeLogo && typeof st.storeLogo === 'string' && st.storeLogo.length > 0) {
+                    logoEl.src = st.storeLogo;
+                } else {
+                    logoEl.src = 'icon.png';
+                }
             }
+        }
+    } catch (e) {}
+    if (savedTitle === null) { savedTitle = document.title; document.title = '\u200B'; }
+}
             function afterPrintClean() { if (savedTitle !== null) { document.title = savedTitle; savedTitle = null; } }
             window.addEventListener('beforeprint', beforePrintClean);
             window.addEventListener('afterprint', afterPrintClean);
@@ -2574,9 +2582,22 @@
         })();
 
         function showReceipt(invoice) {
-            document.getElementById('receiptStoreName').innerText = state.settings.storeName || 'متجري';
-            document.getElementById('receiptStoreInfo').innerText = 'فاتورة مبيعات';
-            document.getElementById('receiptStorePhone').innerText = state.settings.phone || '';
+    // اسم المتجر
+    document.getElementById('receiptStoreName').innerText = state.settings.storeName || 'متجري';
+    document.getElementById('receiptStoreInfo').innerText = 'فاتورة مبيعات';
+    document.getElementById('receiptStorePhone').innerText = state.settings.phone || '';
+    // شعار المتجر في أعلى الفاتورة
+    const receiptLogo = document.getElementById('receiptStoreLogo');
+    if (receiptLogo) {
+        const customLogo = state.settings.storeLogo;
+        if (customLogo && typeof customLogo === 'string' && customLogo.length > 0) {
+            receiptLogo.src = customLogo;
+            receiptLogo.onerror = function() { this.src = 'https://img.icons8.com/fluency/96/accounting.png'; };
+        } else {
+            receiptLogo.src = 'icon.png';
+            receiptLogo.onerror = function() { this.src = 'https://img.icons8.com/fluency/96/accounting.png'; };
+        }
+    }
             document.getElementById('receiptInvoiceId').innerText = invoice.id || '-';
             document.getElementById('receiptDate').innerText = invoice.date || '-';
             document.getElementById('receiptCustomer').innerText = invoice.customerName || 'زبون نقدي';
