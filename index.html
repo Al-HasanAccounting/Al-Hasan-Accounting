@@ -3251,10 +3251,21 @@
                 expenseChartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(categories), datasets: [{ data: Object.values(categories), backgroundColor: ['#facc15', '#10b981', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', usePointStyle: true, padding: 15 } } }, cutout: '60%' } });
             } catch(e) {}
         }
+
+        // ✅ إصلاح دالة التقارير: حساب جميع الفواتير + رسم بياني حقيقي للأداء الشهري
         function renderReports() {
             let totalRevenue = 0, totalCost = 0, totalProfit = 0;
-            state.invoices.forEach(inv => { totalRevenue += inv.totalUSD; totalCost += (inv.totalUSD - (inv.profit || 0)); totalProfit += (inv.profit || 0); });
-            let totalExpenses = state.expenses.reduce((sum, e) => sum + e.amount, 0);
+            // حساب الإيرادات والأرباح من جميع الفواتير (مع تجاهل القيم المفقودة)
+            state.invoices.forEach(inv => {
+                const invTotal = parseFloat(inv.totalUSD) || 0;
+                const invProfit = parseFloat(inv.profit) || 0;
+                const invCost = invTotal - invProfit;
+                totalRevenue += invTotal;
+                totalProfit += invProfit;
+                totalCost += invCost;
+            });
+            // حساب المصروفات
+            let totalExpenses = state.expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
             const netProfit = totalProfit - totalExpenses;
             const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
             document.getElementById('repTotalRevenue').innerText = formatMoney(totalRevenue);
@@ -3264,11 +3275,82 @@
             document.getElementById('repTotalExpenses').innerText = formatMoney(totalExpenses);
             document.getElementById('repExpensesCount').innerText = state.expenses.length;
             document.getElementById('repNetProfit').innerText = formatMoney(netProfit);
+
+            // ✅ رسم بياني حقيقي للأداء الشهري (آخر 6 أشهر)
             setTimeout(() => {
                 try {
                     const ctx = document.getElementById('monthlyPerformanceChart').getContext('2d');
                     if (monthlyChartInstance) monthlyChartInstance.destroy();
-                    monthlyChartInstance = new Chart(ctx, { type: 'bar', data: { labels: ['نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول'], datasets: [{ label: 'الإيرادات', data: [0,0,0,0,0,0], backgroundColor: '#10b981', borderRadius: 6, barPercentage: 0.6 }, { label: 'المصروفات', data: [0,0,0,0,0,0], backgroundColor: '#ef4444', borderRadius: 6, barPercentage: 0.6 }, { label: 'صافي الربح', data: [0,0,0,0,0,0], type: 'line', borderColor: '#facc15', backgroundColor: 'transparent', borderWidth: 3, pointRadius: 5, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', usePointStyle: true, padding: 20 } } }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8' } }, y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } } } } });
+                    const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                    const labels = [];
+                    const revenueData = [];
+                    const expenseData = [];
+                    const profitData = [];
+                    // آخر 6 أشهر                    for (let i = 5; i >= 0; i--) {
+                        const d = new Date();
+                        d.setMonth(d.getMonth() - i);
+                        const year = d.getFullYear();
+                        const month = d.getMonth(); // 0-11
+                        labels.push(monthNames[month] + ' ' + year);
+
+                        // حساب إيرادات وأرباح الشهر
+                        let monthRevenue = 0;
+                        let monthProfit = 0;
+                        state.invoices.forEach(inv => {
+                            if (!inv.date) return;
+                            // نحاول استخراج التاريخ من النص العربي
+                            // الصيغة المتوقعة: "dd/mm/yyyy, hh:mm:ss AM/PM" أو ما شابه
+                            // نستخدم طريقة مرنة: نبحث عن أرقام الشهر والسنة
+                            const dateStr = String(inv.date);
+                            // محاولة تحويل التاريخ العربي إلى Date
+                            let invDate = null;
+                            // نبحث عن نمط التاريخ dd/mm/yyyy
+                            const match = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+                            if (match) {
+                                const day = parseInt(match[1]);
+                                const m = parseInt(match[2]) - 1; // شهر
+                                let y = parseInt(match[3]);
+                                if (y < 100) y += 2000;
+                                invDate = new Date(y, m, day);
+                            }
+                            if (invDate && invDate.getFullYear() === year && invDate.getMonth() === month) {
+                                monthRevenue += parseFloat(inv.totalUSD) || 0;
+                                monthProfit += parseFloat(inv.profit) || 0;
+                            }
+                        });
+
+                        // حساب مصروفات الشهر
+                        let monthExpenses = 0;
+                        state.expenses.forEach(e => {
+                            if (!e.date) return;
+                            // تاريخ المصروفات بصيغة yyyy-mm-dd
+                            const parts = String(e.date).split('-');
+                            if (parts.length === 3) {
+                                const y = parseInt(parts[0]);
+                                const m = parseInt(parts[1]) - 1;
+                                if (y === year && m === month) {
+                                    monthExpenses += parseFloat(e.amount) || 0;
+                                }
+                            }
+                        });
+
+                        revenueData.push(monthRevenue);
+                        expenseData.push(monthExpenses);
+                        profitData.push(monthProfit - monthExpenses);
+                    }
+
+                    monthlyChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                { label: 'الإيرادات', data: revenueData, backgroundColor: '#10b981', borderRadius: 6, barPercentage: 0.6 },
+                                { label: 'المصروفات', data: expenseData, backgroundColor: '#ef4444', borderRadius: 6, barPercentage: 0.6 },
+                                { label: 'صافي الربح', data: profitData, type: 'line', borderColor: '#facc15', backgroundColor: 'transparent', borderWidth: 3, pointRadius: 5, tension: 0.4 }
+                            ]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', usePointStyle: true, padding: 20 } } }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8' } }, y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } } } }
+                    });
                 } catch(e) {}
             }, 100);
         }
