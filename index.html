@@ -657,18 +657,18 @@
                         </div>
                     </div>
                     <div class="bg-navy-800 p-4 rounded-2xl border border-navy-700 shadow-lg mb-6">
-                        <div class="flex flex-wrap items-center gap-2 mb-3">
-                            <span class="text-slate-400 text-sm font-bold"><i class="fa-solid fa-filter text-gold-400"></i> الفترة:</span>
-                            <button onclick="setReportFilter('24h')" id="repFilter24h" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300">آخر 24 ساعة</button>
-                            <button onclick="setReportFilter('7d')" id="repFilter7d" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300">آخر أسبوع</button>
-                            <button onclick="setReportFilter('30d')" id="repFilter30d" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300">آخر شهر</button>
-                            <button onclick="setReportFilter('6m')" id="repFilter6m" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300">آخر 6 أشهر</button>
-                            <button onclick="setReportFilter('custom')" id="repFilterCustom" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300"><i class="fa-solid fa-calendar-day"></i> يوم محدد</button>
-                        </div>
-                        <div id="reportCustomDateBox" class="hidden flex-wrap items-center gap-3 bg-navy-900 p-3 rounded-xl border border-gold-500/30">
-                            <label class="text-slate-300 text-sm">اختر التاريخ:</label>
-                            <input type="date" id="reportCustomDate" onchange="setReportFilter('custom', this.value)" class="bg-navy-800 border border-navy-600 rounded-lg p-2 text-white focus:border-gold-400 outline-none">
-                            <span id="reportFilterLabel" class="text-gold-400 text-sm font-bold"></span>
+                        <label class="block text-slate-400 text-sm font-bold mb-2"><i class="fa-solid fa-filter text-gold-400"></i> اختر الفترة:</label>
+                        <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+                            <select id="reportFilterSelect" onchange="onReportFilterChange()" class="flex-1 bg-navy-900 border border-navy-700 rounded-xl px-4 py-3 text-white focus:border-gold-400 outline-none font-bold">
+                                <option value="24h">آخر 24 ساعة</option>
+                                <option value="7d">آخر أسبوع</option>
+                                <option value="30d" selected>آخر شهر</option>
+                                <option value="6m">آخر 6 أشهر</option>
+                                <option value="custom">يوم محدد</option>
+                            </select>
+                            <div id="reportCustomDateWrap" class="hidden flex-col md:flex-row gap-2 items-stretch md:items-center">
+                                <input type="date" id="reportCustomDate" onchange="onReportCustomDateChange()" class="bg-navy-900 border border-gold-500/40 rounded-xl px-4 py-3 text-white focus:border-gold-400 outline-none">
+                            </div>
                         </div>
                         <div id="reportActiveRange" class="text-xs text-slate-400 mt-3"></div>
                     </div>
@@ -3141,23 +3141,33 @@
         let currentReportFilter = '30d';
         let currentReportDate = null;
 
-        function setReportFilter(type, customDate) {
-            currentReportFilter = type;
+        function onReportFilterChange() {
+            const sel = document.getElementById('reportFilterSelect');
+            const type = sel.value;
+            const customWrap = document.getElementById('reportCustomDateWrap');
             if (type === 'custom') {
-                const dateVal = customDate || document.getElementById('reportCustomDate').value;
-                if (!dateVal) { showToast('⚠️ اختر تاريخاً أولاً', 'warning'); return; }
-                currentReportDate = dateVal;
-                document.getElementById('reportCustomDateBox').classList.remove('hidden');
-                document.getElementById('reportCustomDateBox').classList.add('flex');
+                customWrap.classList.remove('hidden');
+                customWrap.classList.add('flex');
+                const dateInput = document.getElementById('reportCustomDate');
+                if (!dateInput.value) {
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    dateInput.value = `${yyyy}-${mm}-${dd}`;
+                }
+                currentReportDate = dateInput.value;
             } else {
-                document.getElementById('reportCustomDateBox').classList.add('hidden');
-                document.getElementById('reportCustomDateBox').classList.remove('flex');
+                customWrap.classList.add('hidden');
+                customWrap.classList.remove('flex');
             }
-            document.querySelectorAll('.report-filter-btn').forEach(btn => {
-                btn.className = 'report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300';
-            });
-            const activeBtn = document.getElementById('repFilter' + (type === '24h' ? '24h' : type === '7d' ? '7d' : type === '30d' ? '30d' : type === '6m' ? '6m' : 'Custom'));
-            if (activeBtn) activeBtn.className = 'report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-gold-500 text-navy-900 border border-gold-500';
+            currentReportFilter = type;
+            renderReports();
+        }
+
+        function onReportCustomDateChange() {
+            currentReportDate = document.getElementById('reportCustomDate').value;
+            currentReportFilter = 'custom';
             renderReports();
         }
 
@@ -3192,9 +3202,24 @@
             return { start, end, label };
         }
 
+        // ⭐ دالة محسّنة لتحليل التواريخ العربية (الأرقام العربية → لاتينية)
+        function toEnglishDigits(str) {
+            if (!str) return '';
+            const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
+            const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+            return String(str).split('').map(function(ch) {
+                const ai = arabicDigits.indexOf(ch);
+                if (ai !== -1) return String(ai);
+                const pi = persianDigits.indexOf(ch);
+                if (pi !== -1) return String(pi);
+                return ch;
+            }).join('');
+        }
+
         function parseInvoiceDate(dateStr) {
             if (!dateStr) return null;
-            const str = String(dateStr);
+            const str = toEnglishDigits(String(dateStr));
+            // نمط: dd/mm/yyyy أو dd-mm-yyyy
             const match = str.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
             if (!match) return null;
             const day = parseInt(match[1]);
@@ -3213,10 +3238,25 @@
             return new Date(year, month, day, hours, minutes, seconds);
         }
 
-        function filterByRange(items, dateField) {
+        function parseExpenseDate(dateStr) {
+            if (!dateStr) return null;
+            const str = toEnglishDigits(String(dateStr));
+            // تاريخ المصروفات بصيغة yyyy-mm-dd
+            const parts = str.split('-');
+            if (parts.length === 3) {
+                const y = parseInt(parts[0]);
+                const m = parseInt(parts[1]) - 1;
+                const d = parseInt(parts[2]);
+                if (!isNaN(y) && !isNaN(m) && !isNaN(d)) return new Date(y, m, d, 23, 59, 59);
+            }
+            // احتياط: نفس دالة الفواتير
+            return parseInvoiceDate(dateStr);
+        }
+
+        function filterByRange(items, dateField, parser) {
             const { start, end } = getReportDateRange();
             return items.filter(item => {
-                const d = parseInvoiceDate(item[dateField]);
+                const d = parser(item[dateField]);
                 if (!d) return false;
                 return d >= start && d <= end;
             });
@@ -3224,13 +3264,11 @@
 
         function renderReports() {
             const { label } = getReportDateRange();
-            const labelEl = document.getElementById('reportFilterLabel');
-            if (labelEl) labelEl.innerText = label;
             const rangeEl = document.getElementById('reportActiveRange');
             if (rangeEl) rangeEl.innerHTML = `<i class="fa-solid fa-circle-info text-gold-400"></i> يتم عرض البيانات للفترة: <span class="text-gold-400 font-bold">${label}</span>`;
 
-            const filteredInvoices = filterByRange(state.invoices, 'date');
-            const filteredExpenses = filterByRange(state.expenses, 'date');
+            const filteredInvoices = filterByRange(state.invoices, 'date', parseInvoiceDate);
+            const filteredExpenses = filterByRange(state.expenses, 'date', parseExpenseDate);
 
             let totalRevenue = 0, totalProfit = 0;
             filteredInvoices.forEach(inv => {
@@ -3274,12 +3312,9 @@
                         });
                         let monthExpenses = 0;
                         state.expenses.forEach(e => {
-                            if (!e.date) return;
-                            const parts = String(e.date).split('-');
-                            if (parts.length === 3) {
-                                const y = parseInt(parts[0]);
-                                const m = parseInt(parts[1]) - 1;
-                                if (y === year && m === month) monthExpenses += parseFloat(e.amount) || 0;
+                            const expDate = parseExpenseDate(e.date);
+                            if (expDate && expDate.getFullYear() === year && expDate.getMonth() === month) {
+                                monthExpenses += parseFloat(e.amount) || 0;
                             }
                         });
                         revenueData.push(monthRevenue);
@@ -3305,8 +3340,8 @@
         function exportReportsExcel() {
             if (typeof XLSX === 'undefined') { showToast('⚠️ مكتبة Excel غير محملة', 'warning'); return; }
             const { label, start, end } = getReportDateRange();
-            const filteredInvoices = filterByRange(state.invoices, 'date');
-            const filteredExpenses = filterByRange(state.expenses, 'date');
+            const filteredInvoices = filterByRange(state.invoices, 'date', parseInvoiceDate);
+            const filteredExpenses = filterByRange(state.expenses, 'date', parseExpenseDate);
 
             if (filteredInvoices.length === 0 && filteredExpenses.length === 0) {
                 showToast('⚠️ لا توجد بيانات في هذه الفترة', 'warning');
