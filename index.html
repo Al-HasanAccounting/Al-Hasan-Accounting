@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>الحسن للمحاسبة</title>
+    <title>الحسن للمحاسبة | نظام سحابي متكامل</title>
 
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
@@ -145,12 +145,10 @@
         @media print {
             body * { visibility: hidden; }
             #receiptModal, #receiptModal * { visibility: visible; }
-            #receiptModal { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; background: white !important; padding: 0 !important; display: block !important; backdrop-filter: none !important; }
+            #receiptModal { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; background: white !important; padding: 12mm 10mm !important; display: block !important; backdrop-filter: none !important; box-sizing: border-box !important; }
             #receiptModal > div { max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
             .no-print, #receiptModal .no-print { display: none !important; }
             aside, header, .sidebar, .nav-item { display: none !important; }
-            #receiptModal { padding: 12mm 14mm !important; box-sizing: border-box !important; }
-            #receiptModal > div { margin: 0 auto !important; }
         }
         * { -webkit-tap-highlight-color: transparent; }
         .mobile-menu-btn { display: none !important; }
@@ -1717,7 +1715,6 @@
                 sessionStorage.setItem('alhasan_client_username', username);
                 sessionStorage.setItem('alhasan_client_db_key', encodedUsername);
                 sessionStorage.setItem('alhasan_client_id', client.id);
-                sessionStorage.setItem('alhasan_client_store', client.store || '');
                 await loadClientData(encodedUsername);
                 state.subscription = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: state.subscription.providerPhone || ADMIN_WHATSAPP };
                 if (!state.settings.storeName || state.settings.storeName === 'الحسن للمحاسبة') {
@@ -1744,7 +1741,7 @@
                 sessionStorage.removeItem('alhasan_user_type');
                 sessionStorage.removeItem('alhasan_client_username');
                 sessionStorage.removeItem('alhasan_client_db_key');
-                sessionStorage.removeItem('alhasan_client_id'); sessionStorage.removeItem('alhasan_client_store');
+                sessionStorage.removeItem('alhasan_client_id');
                 sessionStorage.removeItem('alhasan_master_logged_in');
                 location.reload();
             }
@@ -1777,7 +1774,7 @@
                 sessionStorage.removeItem('alhasan_user_type');
                 sessionStorage.removeItem('alhasan_client_username');
                 sessionStorage.removeItem('alhasan_client_db_key');
-                sessionStorage.removeItem('alhasan_client_id'); sessionStorage.removeItem('alhasan_client_store');
+                sessionStorage.removeItem('alhasan_client_id');
                 sessionStorage.removeItem('alhasan_logged_in');
                 sessionStorage.setItem('alhasan_master_logged_in', 'true');
                 closeModal('masterLoginModal');
@@ -2411,21 +2408,35 @@
             updateCartUI(); renderPOSProducts(); renderPosCategories(); renderCustomers();
             setTimeout(() => { try { checkStockNotifications(); } catch(e) {} }, 500);
         }
-        function getRegisteredStoreName() {
-            try {
-                const id = sessionStorage.getItem('alhasan_client_id');
-                const c = (Array.isArray(state.adminClients) ? state.adminClients : []).find(x => String(x.id) === String(id));
-                if (c && c.store) return c.store;
-                const s = sessionStorage.getItem('alhasan_client_store');
-                if (s) return s;
-            } catch (e) {}
-            return (state.settings && state.settings.storeName) || 'متجري';
-        }
-        let __titleBackup = null;
-        window.addEventListener('beforeprint', () => { __titleBackup = document.title; document.title = getRegisteredStoreName(); });
-        window.addEventListener('afterprint', () => { if (__titleBackup !== null) { document.title = __titleBackup; __titleBackup = null; } });
+        // 🖨️ طباعة نظيفة: اسم المتجر من الإعدادات + إخفاء عنوان الصفحة (والرابط يُخفى عبر @page)
+        (function setupCleanPrint() {
+            let savedTitle = null;
+            function beforePrintClean() {
+                try {
+                    const st = (typeof state !== 'undefined' && state && state.settings) ? state.settings : null;
+                    if (st) {
+                        const nameEl = document.getElementById('receiptStoreName');
+                        if (nameEl && st.storeName) nameEl.innerText = st.storeName;
+                        const phoneEl = document.getElementById('receiptStorePhone');
+                        if (phoneEl) phoneEl.innerText = st.phone || '';
+                    }
+                } catch (e) {}
+                if (savedTitle === null) { savedTitle = document.title; document.title = '\u200B'; }
+            }
+            function afterPrintClean() {
+                if (savedTitle !== null) { document.title = savedTitle; savedTitle = null; }
+            }
+            window.addEventListener('beforeprint', beforePrintClean);
+            window.addEventListener('afterprint', afterPrintClean);
+            if (window.matchMedia) {
+                const mq = window.matchMedia('print');
+                const h = (e) => { if (e.matches) beforePrintClean(); else afterPrintClean(); };
+                if (mq.addEventListener) mq.addEventListener('change', h); else if (mq.addListener) mq.addListener(h);
+            }
+        })();
+
         function showReceipt(invoice) {
-            document.getElementById('receiptStoreName').innerText = getRegisteredStoreName();
+            document.getElementById('receiptStoreName').innerText = state.settings.storeName || 'متجري';
             document.getElementById('receiptStoreInfo').innerText = 'فاتورة مبيعات';
             document.getElementById('receiptStorePhone').innerText = state.settings.phone || '';
             document.getElementById('receiptInvoiceId').innerText = invoice.id || '-';
@@ -2714,7 +2725,7 @@
             const infoData = [
                 ['تقرير سجل المبيعات'],
                 [''],
-                ['اسم المتجر', getRegisteredStoreName() || '-'],
+                ['اسم المتجر', state.settings.storeName || '-'],
                 ['تاريخ التقرير', new Date().toLocaleString('ar-EG')],
                 ['عدد الفواتير', sortedInvoices.length],
                 ['إجمالي المبيعات (دولار)', parseFloat(sortedInvoices.reduce((s, i) => s + (i.totalUSD || 0), 0).toFixed(2))],
@@ -2739,9 +2750,9 @@
             try {
                 const workbook = XLSX.utils.book_new();
                 const infoData = [
-                    ['تقرير شامل - ' + getRegisteredStoreName()],
+                    ['تقرير شامل - ' + (state.settings.storeName || 'الحسن للمحاسبة')],
                     [''],
-                    ['اسم المتجر', getRegisteredStoreName() || '-'],
+                    ['اسم المتجر', state.settings.storeName || '-'],
                     ['رقم الهاتف', state.settings.phone || '-'],
                     ['العنوان', state.settings.address || '-'],
                     ['تاريخ التقرير', new Date().toLocaleString('ar-EG')],
