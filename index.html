@@ -244,7 +244,6 @@
             #pos > .grid { height: auto !important; gap: 10px !important; }
             #pos .flex-1.overflow-y-auto { max-height: 45vh !important; }
             #cartItems { max-height: 250px !important; }
-            /* ترتيب نقطة البيع على الجوال: العنوان ← البحث ← السلة ← التصنيفات ← المنتجات */
             #pos > .grid > .pos-left-col { display: contents !important; }
             #pos .pos-head { order: 1; margin-bottom: 0 !important; }
             #pos .pos-searchrow { order: 2; }
@@ -268,145 +267,45 @@
             #inventoryListContainer > .product-card .action-btn i { font-size: 10px !important; }
             #inventoryListContainer > .product-card .unit-qty { font-size: 0.6rem !important; }
 
-            #expensesListContainer > div {
-                padding: 12px !important;
-                border-radius: 14px !important;
-                gap: 5px !important;
-                overflow: hidden !important;
-            }
+            #expensesListContainer > div { padding: 12px !important; border-radius: 14px !important; gap: 5px !important; overflow: hidden !important; }
             #expensesListContainer > div > .absolute.top-4.left-4 { top: 8px !important; left: 8px !important; gap: 4px !important; display: flex; }
-            #expensesListContainer > div > .absolute.top-4.left-4 button {
-                width: 26px !important;
-                height: 26px !important;
-                border-radius: 7px !important;
-            }
+            #expensesListContainer > div > .absolute.top-4.left-4 button { width: 26px !important; height: 26px !important; border-radius: 7px !important; }
             #expensesListContainer > div > .absolute.top-4.left-4 button i { font-size: 11px !important; }
-            #expensesListContainer > div > .flex.items-center.gap-3 {
-                gap: 8px !important;
-                margin-bottom: 8px !important;
-                padding-left: 62px !important;
-            }
-            #expensesListContainer > div > .flex.items-center.gap-3 > div:first-child {
-                width: 40px !important;
-                height: 40px !important;
-                border-radius: 10px !important;
-                font-size: 16px !important;
-                flex-shrink: 0 !important;
-            }
+            #expensesListContainer > div > .flex.items-center.gap-3 { gap: 8px !important; margin-bottom: 8px !important; padding-left: 62px !important; }
+            #expensesListContainer > div > .flex.items-center.gap-3 > div:first-child { width: 40px !important; height: 40px !important; border-radius: 10px !important; font-size: 16px !important; flex-shrink: 0 !important; }
             #expensesListContainer > div > .flex.items-center.gap-3 > div:first-child i { font-size: 15px !important; }
-            #expensesListContainer h3.text-white {
-                font-size: 0.8rem !important;
-                line-height: 1.25 !important;
-                margin-bottom: 3px !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-                white-space: nowrap !important;
-                max-width: 100% !important;
-                display: block !important;
-            }
-            #expensesListContainer span.inline-block {
-                font-size: 0.6rem !important;
-                padding: 2px 8px !important;
-                border-radius: 7px !important;
-                margin-top: 0 !important;
-                line-height: 1.2 !important;
-            }
+            #expensesListContainer h3.text-white { font-size: 0.8rem !important; line-height: 1.25 !important; margin-bottom: 3px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; max-width: 100% !important; display: block !important; }
+            #expensesListContainer span.inline-block { font-size: 0.6rem !important; padding: 2px 8px !important; border-radius: 7px !important; margin-top: 0 !important; line-height: 1.2 !important; }
             #expensesListContainer > div > .grid.grid-cols-2 { gap: 5px !important; margin-bottom: 5px !important; }
-            #expensesListContainer > div > .grid.grid-cols-2 > div {
-                padding: 6px 4px !important;
-                border-radius: 9px !important;
-                min-width: 0 !important;
-                overflow: hidden !important;
-            }
+            #expensesListContainer > div > .grid.grid-cols-2 > div { padding: 6px 4px !important; border-radius: 9px !important; min-width: 0 !important; overflow: hidden !important; }
             #expensesListContainer > div > .grid.grid-cols-2 > div > div:first-child { font-size: 0.55rem !important; margin-bottom: 2px !important; line-height: 1 !important; }
             #expensesListContainer > div > .grid.grid-cols-2 > div > div:last-child { font-size: 0.7rem !important; line-height: 1.15 !important; word-break: break-all !important; }
-            #expensesListContainer > div > .flex.justify-between.items-center.text-xs {
-                padding: 4px 0 !important;
-                gap: 4px !important;
-                font-size: 0.6rem !important;
-            }
+            #expensesListContainer > div > .flex.justify-between.items-center.text-xs { padding: 4px 0 !important; gap: 4px !important; font-size: 0.6rem !important; }
             #expensesListContainer > div > .flex.justify-between.items-center.text-xs > span:first-child { font-size: 0.6rem !important; }
-            #expensesListContainer > div > .flex.justify-between.items-center.text-xs > span:last-child {
-                font-size: 0.55rem !important;
-                padding: 2px 7px !important;
-                border-radius: 6px !important;
-                white-space: nowrap !important;
-            }
+            #expensesListContainer > div > .flex.justify-between.items-center.text-xs > span:last-child { font-size: 0.55rem !important; padding: 2px 7px !important; border-radius: 6px !important; white-space: nowrap !important; }
             #expensesListContainer .expense-notes-box { padding: 6px 8px !important; margin-bottom: 6px !important; min-height: 55px !important; max-height: 55px !important; border-radius: 8px !important; }
             #expensesListContainer .expense-notes-box .notes-label { font-size: 9px !important; margin-bottom: 3px !important; }
             #expensesListContainer .expense-notes-box .notes-content { font-size: 10px !important; line-height: 1.3 !important; }
 
-            #customersListContainer > div {
-                padding: 10px !important;
-                border-radius: 14px !important;
-                gap: 5px !important;
-                overflow: hidden !important;
-            }
+            #customersListContainer > div { padding: 10px !important; border-radius: 14px !important; gap: 5px !important; overflow: hidden !important; }
             #customersListContainer > div > .absolute.top-4.left-4 { top: 8px !important; left: 8px !important; gap: 4px !important; }
-            #customersListContainer > div > .absolute.top-4.left-4 button {
-                width: 26px !important;
-                height: 26px !important;
-                border-radius: 7px !important;
-            }
+            #customersListContainer > div > .absolute.top-4.left-4 button { width: 26px !important; height: 26px !important; border-radius: 7px !important; }
             #customersListContainer > div > .absolute.top-4.left-4 button i { font-size: 11px !important; }
-            #customersListContainer > div > .flex.items-center.gap-3 {
-                gap: 8px !important;
-                margin-bottom: 8px !important;
-                padding-left: 58px !important;
-                align-items: flex-start !important;
-            }
-            #customersListContainer > div > .flex.items-center.gap-3 > div:first-child {
-                width: 40px !important;
-                height: 40px !important;
-                border-radius: 10px !important;
-                font-size: 16px !important;
-                flex-shrink: 0 !important;
-            }
-            #customersListContainer h3.text-white {
-                font-size: 0.8rem !important;
-                line-height: 1.25 !important;
-                margin-bottom: 3px !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-                white-space: nowrap !important;
-                max-width: 100% !important;
-                display: block !important;
-            }
-            #customersListContainer span.inline-block {
-                font-size: 0.6rem !important;
-                padding: 2px 8px !important;
-                border-radius: 7px !important;
-                margin-top: 0 !important;
-                line-height: 1.2 !important;
-            }
+            #customersListContainer > div > .flex.items-center.gap-3 { gap: 8px !important; margin-bottom: 8px !important; padding-left: 58px !important; align-items: flex-start !important; }
+            #customersListContainer > div > .flex.items-center.gap-3 > div:first-child { width: 40px !important; height: 40px !important; border-radius: 10px !important; font-size: 16px !important; flex-shrink: 0 !important; }
+            #customersListContainer h3.text-white { font-size: 0.8rem !important; line-height: 1.25 !important; margin-bottom: 3px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; max-width: 100% !important; display: block !important; }
+            #customersListContainer span.inline-block { font-size: 0.6rem !important; padding: 2px 8px !important; border-radius: 7px !important; margin-top: 0 !important; line-height: 1.2 !important; }
             #customersListContainer .space-y-2.text-sm { gap: 5px !important; margin-bottom: 8px !important; }
-            #customersListContainer .space-y-2.text-sm > div {
-                font-size: 0.65rem !important;
-                gap: 5px !important;
-            }
+            #customersListContainer .space-y-2.text-sm > div { font-size: 0.65rem !important; gap: 5px !important; }
             #customersListContainer .space-y-2.text-sm > div i { font-size: 0.65rem !important; width: 12px !important; }
             #customersListContainer > div > .grid.grid-cols-2 { gap: 5px !important; margin-bottom: 5px !important; }
-            #customersListContainer > div > .grid.grid-cols-2 > div {
-                padding: 6px 4px !important;
-                border-radius: 9px !important;
-                min-width: 0 !important;
-                overflow: hidden !important;
-            }
+            #customersListContainer > div > .grid.grid-cols-2 > div { padding: 6px 4px !important; border-radius: 9px !important; min-width: 0 !important; overflow: hidden !important; }
             #customersListContainer > div > .grid.grid-cols-2 > div > div:first-child { font-size: 0.55rem !important; margin-bottom: 2px !important; line-height: 1 !important; }
             #customersListContainer > div > .grid.grid-cols-2 > div > div:last-child { font-size: 0.7rem !important; line-height: 1.15 !important; word-break: break-all !important; }
-            #customersListContainer > div > .flex.justify-between.items-center.text-xs {
-                padding: 4px 0 !important;
-                gap: 4px !important;
-                font-size: 0.6rem !important;
-                margin-bottom: 6px !important;
-            }
+            #customersListContainer > div > .flex.justify-between.items-center.text-xs { padding: 4px 0 !important; gap: 4px !important; font-size: 0.6rem !important; margin-bottom: 6px !important; }
             #customersListContainer > div > .flex.justify-between.items-center.text-xs > span:first-child { font-size: 0.6rem !important; }
             #customersListContainer > div > .flex.justify-between.items-center.text-xs > span:last-child { font-size: 0.6rem !important; white-space: nowrap !important; }
-            #customersListContainer button.w-full {
-                font-size: 0.7rem !important;
-                padding: 8px 6px !important;
-                border-radius: 9px !important;
-            }
+            #customersListContainer button.w-full { font-size: 0.7rem !important; padding: 8px 6px !important; border-radius: 9px !important; }
             #customersListContainer button.w-full i { font-size: 0.75rem !important; }
             #customersListContainer .customer-notes-box { padding: 6px 8px !important; margin-bottom: 6px !important; min-height: 55px !important; max-height: 55px !important; border-radius: 8px !important; }
             #customersListContainer .customer-notes-box .notes-label { font-size: 9px !important; margin-bottom: 3px !important; }
@@ -1182,7 +1081,6 @@
             const phoneIntl = ADMIN_WHATSAPP_INTERNATIONAL;
             const waUrl = 'https://wa.me/' + phoneIntl + '?text=' + message;
             const waAppUrl = 'whatsapp://send?phone=' + phoneIntl + '&text=' + message;
-            // 🤖 أندرويد: رابط Intent يفتح تطبيق واتساب مباشرة، وإن لم يكن مثبتاً ينتقل تلقائياً إلى wa.me
             if (/Android/i.test(navigator.userAgent)) {
                 const intentUrl = 'intent://send?phone=' + phoneIntl + '&text=' + message +
                     '#Intent;scheme=whatsapp;S.browser_fallback_url=' + encodeURIComponent(waUrl) + ';end';
@@ -1194,7 +1092,6 @@
                 } catch (e) {
                     try { window.location.href = waAppUrl; } catch (e2) { window.location.href = waUrl; }
                 }
-                // شبكة أمان: إن لم يحدث أي انتقال خلال ثانيتين ونصف نعرض الرقم للمستخدم
                 setTimeout(() => {
                     document.removeEventListener('visibilitychange', onVis);
                     if (!hidden && !document.hidden) {
@@ -1204,11 +1101,9 @@
                 return;
             }
 
-
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
             if (isMobile) {
-                // على الجوال: نحاول فتح التطبيق مباشرة ثم نعود إلى الرابط العادي
                 const startTime = Date.now();
                 let appOpened = false;
                 
@@ -1217,14 +1112,12 @@
                 };
                 document.addEventListener('visibilitychange', handleVisibility, { once: true });
                 
-                // محاولة فتح تطبيق واتساب مباشرة
                 try {
                     window.location.href = waAppUrl;
                 } catch (e) {
                     console.warn('whatsapp:// failed:', e);
                 }
                 
-                // بعد 1.5 ثانية، إذا لم يفتح التطبيق، نفتح wa.me
                 setTimeout(() => {
                     document.removeEventListener('visibilitychange', handleVisibility);
                     if (!appOpened && !document.hidden && (Date.now() - startTime) < 2500) {
@@ -1236,7 +1129,6 @@
                     }
                 }, 1500);
             } else {
-                // على الكمبيوتر: نفتح wa.me مباشرة
                 try {
                     window.open(waUrl, '_blank', 'noopener,noreferrer');
                 } catch (e) {
@@ -2408,7 +2300,6 @@
             updateCartUI(); renderPOSProducts(); renderPosCategories(); renderCustomers();
             setTimeout(() => { try { checkStockNotifications(); } catch(e) {} }, 500);
         }
-        // 🖨️ طباعة نظيفة: اسم المتجر من الإعدادات + إخفاء عنوان الصفحة (والرابط يُخفى عبر @page)
         (function setupCleanPrint() {
             let savedTitle = null;
             function beforePrintClean() {
@@ -2961,7 +2852,6 @@
             }
         }
         function addCustomer() {
-            // في وضع فواتير الدَّين: هذه النافذة تُستخدم لتعديل بيانات الفاتورة فقط
             if (!checkSubscription()) return;
             const name = document.getElementById('custName').value.trim();
             if (!name) { showToast('أدخل اسم العميل', 'warning'); return; }
@@ -3252,10 +3142,10 @@
             } catch(e) {}
         }
 
-        // ✅ إصلاح دالة التقارير: حساب جميع الفواتير + رسم بياني حقيقي للأداء الشهري
+        // ✅ دالة التقارير: حساب جميع الفواتير + رسم بياني حقيقي للأداء الشهري
         function renderReports() {
             let totalRevenue = 0, totalCost = 0, totalProfit = 0;
-            // حساب الإيرادات والأرباح من جميع الفواتير (مع تجاهل القيم المفقودة)
+            // حساب الإيرادات والأرباح من جميع الفواتير
             state.invoices.forEach(inv => {
                 const invTotal = parseFloat(inv.totalUSD) || 0;
                 const invProfit = parseFloat(inv.profit) || 0;
@@ -3276,7 +3166,7 @@
             document.getElementById('repExpensesCount').innerText = state.expenses.length;
             document.getElementById('repNetProfit').innerText = formatMoney(netProfit);
 
-            // ✅ رسم بياني حقيقي للأداء الشهري (آخر 6 أشهر)
+            // رسم بياني حقيقي للأداء الشهري (آخر 6 أشهر)
             setTimeout(() => {
                 try {
                     const ctx = document.getElementById('monthlyPerformanceChart').getContext('2d');
@@ -3286,30 +3176,24 @@
                     const revenueData = [];
                     const expenseData = [];
                     const profitData = [];
-                                       // آخر 6 أشهر
+                    // آخر 6 أشهر
                     for (let i = 5; i >= 0; i--) {
                         const d = new Date();
                         d.setMonth(d.getMonth() - i);
                         const year = d.getFullYear();
-                        const month = d.getMonth(); // 0-11
+                        const month = d.getMonth();
                         labels.push(monthNames[month] + ' ' + year);
 
-                        // حساب إيرادات وأرباح الشهر
                         let monthRevenue = 0;
                         let monthProfit = 0;
                         state.invoices.forEach(inv => {
                             if (!inv.date) return;
-                            // نحاول استخراج التاريخ من النص العربي
-                            // الصيغة المتوقعة: "dd/mm/yyyy, hh:mm:ss AM/PM" أو ما شابه
-                            // نستخدم طريقة مرنة: نبحث عن أرقام الشهر والسنة
                             const dateStr = String(inv.date);
-                            // محاولة تحويل التاريخ العربي إلى Date
                             let invDate = null;
-                            // نبحث عن نمط التاريخ dd/mm/yyyy
                             const match = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
                             if (match) {
                                 const day = parseInt(match[1]);
-                                const m = parseInt(match[2]) - 1; // شهر
+                                const m = parseInt(match[2]) - 1;
                                 let y = parseInt(match[3]);
                                 if (y < 100) y += 2000;
                                 invDate = new Date(y, m, day);
@@ -3320,11 +3204,9 @@
                             }
                         });
 
-                        // حساب مصروفات الشهر
                         let monthExpenses = 0;
                         state.expenses.forEach(e => {
                             if (!e.date) return;
-                            // تاريخ المصروفات بصيغة yyyy-mm-dd
                             const parts = String(e.date).split('-');
                             if (parts.length === 3) {
                                 const y = parseInt(parts[0]);
