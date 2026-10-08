@@ -156,6 +156,26 @@
         .product-card .product-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 3.6rem; line-height: 1.35; }
         @media (min-width: 1024px) { .product-card .product-name { font-size: 0.875rem; min-height: 2.4rem; line-height: 1.35; } }
 
+        /* إصلاح عرض حقول التاريخ */
+        input[type="date"] {
+            direction: ltr !important;
+            text-align: right !important;
+            font-family: 'Cairo', sans-serif !important;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: invert(0.7);
+        }
+        input[type="date"]::-webkit-datetime-edit {
+            direction: ltr;
+        }
+        input[type="date"],
+        input[type="datetime-local"],
+        input[type="time"] {
+            text-align: right !important;
+            padding-right: 12px;
+        }
+
         .customer-notes-box {
             background-color: rgba(10, 17, 32, 0.6);
             border: 1px solid #1e293b;
@@ -675,10 +695,46 @@
 
                     <div id="reportCustomDateWrap" class="hidden bg-navy-800 p-4 rounded-2xl border border-gold-500/40 shadow-lg mb-6 flex-wrap items-center gap-3">
                         <label class="text-slate-300 text-sm font-bold"><i class="fa-solid fa-calendar-day text-gold-400"></i> اختر التاريخ:</label>
-                        <input type="date" id="reportCustomDate" onchange="onReportCustomDateChange()" class="bg-navy-900 border border-navy-700 rounded-lg px-4 py-2 text-white focus:border-gold-400 outline-none">
+                        <input type="date" id="reportCustomDate" lang="en" dir="ltr" onchange="onReportCustomDateChange()" class="bg-navy-900 border border-navy-700 rounded-lg px-4 py-2 text-white focus:border-gold-400 outline-none">
                         <span id="reportActiveRange" class="text-gold-400 text-sm font-bold"></span>
                     </div>
                     <div id="reportActiveRangeTop" class="text-xs text-slate-400 mb-4"></div>
+
+                    <!-- بطاقات التقارير المالية -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="stat-card">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-slate-400 text-sm mb-1">إجمالي الإيرادات</h3>
+                                <div class="text-2xl font-bold text-emerald-400" id="repTotalRevenue">$0.00</div>
+                                <div class="text-xs text-slate-500 mt-1" id="repTotalRevenueSYP">0.00 ل.س</div>
+                            </div>
+                            <div class="stat-card-icon bg-emerald-500/10 text-emerald-500"><i class="fa-solid fa-dollar-sign"></i></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-slate-400 text-sm mb-1">إجمالي الربح</h3>
+                                <div class="text-2xl font-bold text-gold-400" id="repTotalProfit">$0.00</div>
+                                <div class="text-xs text-slate-500 mt-1">هامش: <span id="repProfitMargin">0%</span></div>
+                            </div>
+                            <div class="stat-card-icon bg-gold-500/10 text-gold-400"><i class="fa-solid fa-chart-line"></i></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-slate-400 text-sm mb-1">إجمالي المصروفات</h3>
+                                <div class="text-2xl font-bold text-red-400" id="repTotalExpenses">$0.00</div>
+                                <div class="text-xs text-slate-500 mt-1"><span id="repExpensesCount">0</span> عملية</div>
+                            </div>
+                            <div class="stat-card-icon bg-red-500/10 text-red-500"><i class="fa-solid fa-wallet"></i></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-slate-400 text-sm mb-1">صافي الربح</h3>
+                                <div class="text-2xl font-bold text-white" id="repNetProfit">$0.00</div>
+                                <div class="text-xs text-slate-500 mt-1">بعد المصروفات</div>
+                            </div>
+                            <div class="stat-card-icon bg-blue-500/10 text-blue-400"><i class="fa-solid fa-money-bill-wave"></i></div>
+                        </div>
+                    </div>
 
                     <div class="bg-navy-800 p-6 rounded-2xl border border-navy-700 shadow-xl mb-6">
                         <div class="flex justify-between items-center mb-4">
@@ -828,7 +884,6 @@
                         </div>
                     </div>
 
-                    <!-- قسم الهوية التجارية -->
                     <div class="bg-gradient-to-r from-navy-800 to-navy-700 p-6 rounded-2xl border-2 border-gold-500/40 shadow-xl mb-6">
                         <div class="flex items-center gap-4 mb-6">
                             <div class="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center text-navy-900 text-xl shadow-lg"><i class="fa-solid fa-palette"></i></div>
@@ -838,7 +893,6 @@
                             </div>
                         </div>
                         
-                        <!-- الشعار -->
                         <div class="bg-navy-900 p-4 rounded-xl border border-navy-700 mb-5">
                             <label class="block text-slate-300 font-semibold mb-3 text-sm"><i class="fa-solid fa-image text-gold-400 ml-1"></i> شعار المحل / الشركة</label>
                             <div class="flex items-center gap-4 flex-wrap">
@@ -858,7 +912,6 @@
                             </div>
                         </div>
 
-                        <!-- الاسم -->
                         <div class="bg-navy-900 p-4 rounded-xl border border-navy-700">
                             <label class="block text-slate-300 font-semibold mb-2 text-sm"><i class="fa-solid fa-signature text-gold-400 ml-1"></i> اسم المحل / الشركة</label>
                             <input type="text" id="settingsStoreName" oninput="saveSettings()" class="w-full bg-navy-800 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="مثال: سوبر ماركت الأمانة">
@@ -1002,7 +1055,7 @@
                 <div><label class="block text-sm text-slate-300 mb-1">الوصف *</label><input type="text" id="expDescription" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="مثال: فاتورة كهرباء"></div>
                 <div><label class="block text-sm text-slate-300 mb-1">المبلغ ($) *</label><input type="number" id="expAmount" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="$"></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm text-slate-300 mb-1">التاريخ</label><input type="date" id="expDate" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
+                    <div><label class="block text-sm text-slate-300 mb-1">التاريخ</label><input type="date" id="expDate" lang="en" dir="ltr" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                     <div><label class="block text-sm text-slate-300 mb-1">طريقة الدفع</label><select id="expPaymentMethod" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"><option value="نقدي">نقدي</option><option value="شام كاش">شام كاش</option><option value="دين">دين</option></select></div>
                 </div>
                 <div><label class="block text-sm text-slate-300 mb-1">ملاحظات</label><textarea id="expNotes" rows="2" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></textarea></div>
@@ -1034,10 +1087,10 @@
     <div id="receiptModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="bg-white text-black rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-navy-900 to-navy-800 p-4 text-center">
-    <img id="receiptStoreLogo" src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Store Logo" class="w-16 h-16 mx-auto mb-2 rounded-xl shadow-lg object-contain border-2 border-gold-500/40 bg-navy-900 p-1">
-    <h2 id="receiptStoreName" class="text-xl font-bold text-gold-400 mb-1">اسم المتجر</h2>
-    <p class="text-slate-400 text-xs" id="receiptStoreInfo">فاتورة مبيعات</p>
-</div>
+                <img id="receiptStoreLogo" src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Store Logo" class="w-16 h-16 mx-auto mb-2 rounded-xl shadow-lg object-contain border-2 border-gold-500/40 bg-navy-900 p-1">
+                <h2 id="receiptStoreName" class="text-xl font-bold text-gold-400 mb-1">اسم المتجر</h2>
+                <p class="text-slate-400 text-xs" id="receiptStoreInfo">فاتورة مبيعات</p>
+            </div>
             <div class="p-5 border-b border-dashed border-gray-300 bg-gray-50">
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div><div class="text-gray-500 text-xs mb-1">رقم الفاتورة</div><div class="font-bold text-gray-900" id="receiptInvoiceId">-</div></div>
@@ -1083,8 +1136,8 @@
                 <div class="bg-navy-900 p-4 rounded-xl border border-navy-700">
                     <h4 class="text-gold-400 font-bold text-sm mb-3"><i class="fa-solid fa-crown"></i> بيانات الاشتراك</h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><label class="block text-sm text-slate-300 mb-1">بداية الاشتراك</label><input type="date" id="clientStartDate" class="w-full bg-navy-800 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
-                        <div><label class="block text-sm text-slate-300 mb-1">نهاية الاشتراك *</label><input type="date" id="clientEndDate" class="w-full bg-navy-800 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
+                        <div><label class="block text-sm text-slate-300 mb-1">بداية الاشتراك</label><input type="date" id="clientStartDate" lang="en" dir="ltr" class="w-full bg-navy-800 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
+                        <div><label class="block text-sm text-slate-300 mb-1">نهاية الاشتراك *</label><input type="date" id="clientEndDate" lang="en" dir="ltr" class="w-full bg-navy-800 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                         <div><label class="block text-sm text-slate-300 mb-1">قيمة الاشتراك ($)</label><input type="number" id="clientPayment" class="w-full bg-navy-800 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="0.00" step="0.01" value="0"></div>
                     </div>
                 </div>
@@ -1303,6 +1356,16 @@
             updateStoreLogoPreview();
             updateSidebarIdentity();
             showToast('🗑️ تم إزالة الشعار', 'delete');
+        }
+
+        // إصلاح حقول التاريخ: ضمان lang/dir في كل الأماكن
+        function forceDateInputLocale() {
+            try {
+                document.querySelectorAll('input[type="date"]').forEach(el => {
+                    if (!el.hasAttribute('lang')) el.setAttribute('lang', 'en');
+                    if (!el.hasAttribute('dir')) el.setAttribute('dir', 'ltr');
+                });
+            } catch(e) {}
         }
         // ========== نهاية دوال الهوية التجارية ==========
 
@@ -1980,6 +2043,7 @@
             document.getElementById('clientPayment').value = '0';
             document.getElementById('clientNotes').value = '';
             openModal('addClientModal');
+            try { forceDateInputLocale(); } catch(e) {}
         }
         function editClient(id) {
             const client = (state.adminClients || []).find(c => c.id === id);
@@ -1998,6 +2062,7 @@
             document.getElementById('clientPayment').value = client.payment || 0;
             document.getElementById('clientNotes').value = client.notes || '';
             openModal('addClientModal');
+            try { forceDateInputLocale(); } catch(e) {}
         }
         function saveClient() {
             const name = document.getElementById('clientName').value.trim();
@@ -2123,6 +2188,7 @@
             document.getElementById('app').classList.add('active');
             try { updateSidebarIdentity(); } catch(e) {}
             try { updateStoreLogoPreview(); } catch(e) {}
+            try { forceDateInputLocale(); } catch(e) {}
             document.getElementById('topExchangeRate').value = state.settings.exchangeRate;
             document.getElementById('settingsNewSYP').value = state.settings.exchangeRate;
             document.getElementById('settingsOldSYP').value = state.settings.oldExchangeRate;
@@ -2551,26 +2617,26 @@
         }
         (function setupCleanPrint() {
             let savedTitle = null;
-           function beforePrintClean() {
-    try {
-        const st = (typeof state !== 'undefined' && state && state.settings) ? state.settings : null;
-        if (st) {
-            const nameEl = document.getElementById('receiptStoreName');
-            if (nameEl && st.storeName) nameEl.innerText = st.storeName;
-            const phoneEl = document.getElementById('receiptStorePhone');
-            if (phoneEl) phoneEl.innerText = st.phone || '';
-            const logoEl = document.getElementById('receiptStoreLogo');
-            if (logoEl) {
-                if (st.storeLogo && typeof st.storeLogo === 'string' && st.storeLogo.length > 0) {
-                    logoEl.src = st.storeLogo;
-                } else {
-                    logoEl.src = 'icon.png';
-                }
+            function beforePrintClean() {
+                try {
+                    const st = (typeof state !== 'undefined' && state && state.settings) ? state.settings : null;
+                    if (st) {
+                        const nameEl = document.getElementById('receiptStoreName');
+                        if (nameEl && st.storeName) nameEl.innerText = st.storeName;
+                        const phoneEl = document.getElementById('receiptStorePhone');
+                        if (phoneEl) phoneEl.innerText = st.phone || '';
+                        const logoEl = document.getElementById('receiptStoreLogo');
+                        if (logoEl) {
+                            if (st.storeLogo && typeof st.storeLogo === 'string' && st.storeLogo.length > 0) {
+                                logoEl.src = st.storeLogo;
+                            } else {
+                                logoEl.src = 'icon.png';
+                            }
+                        }
+                    }
+                } catch (e) {}
+                if (savedTitle === null) { savedTitle = document.title; document.title = '\u200B'; }
             }
-        }
-    } catch (e) {}
-    if (savedTitle === null) { savedTitle = document.title; document.title = '\u200B'; }
-}
             function afterPrintClean() { if (savedTitle !== null) { document.title = savedTitle; savedTitle = null; } }
             window.addEventListener('beforeprint', beforePrintClean);
             window.addEventListener('afterprint', afterPrintClean);
@@ -2582,22 +2648,20 @@
         })();
 
         function showReceipt(invoice) {
-    // اسم المتجر
-    document.getElementById('receiptStoreName').innerText = state.settings.storeName || 'متجري';
-    document.getElementById('receiptStoreInfo').innerText = 'فاتورة مبيعات';
-    document.getElementById('receiptStorePhone').innerText = state.settings.phone || '';
-    // شعار المتجر في أعلى الفاتورة
-    const receiptLogo = document.getElementById('receiptStoreLogo');
-    if (receiptLogo) {
-        const customLogo = state.settings.storeLogo;
-        if (customLogo && typeof customLogo === 'string' && customLogo.length > 0) {
-            receiptLogo.src = customLogo;
-            receiptLogo.onerror = function() { this.src = 'https://img.icons8.com/fluency/96/accounting.png'; };
-        } else {
-            receiptLogo.src = 'icon.png';
-            receiptLogo.onerror = function() { this.src = 'https://img.icons8.com/fluency/96/accounting.png'; };
-        }
-    }
+            document.getElementById('receiptStoreName').innerText = state.settings.storeName || 'متجري';
+            document.getElementById('receiptStoreInfo').innerText = 'فاتورة مبيعات';
+            document.getElementById('receiptStorePhone').innerText = state.settings.phone || '';
+            const receiptLogo = document.getElementById('receiptStoreLogo');
+            if (receiptLogo) {
+                const customLogo = state.settings.storeLogo;
+                if (customLogo && typeof customLogo === 'string' && customLogo.length > 0) {
+                    receiptLogo.src = customLogo;
+                    receiptLogo.onerror = function() { this.src = 'https://img.icons8.com/fluency/96/accounting.png'; };
+                } else {
+                    receiptLogo.src = 'icon.png';
+                    receiptLogo.onerror = function() { this.src = 'https://img.icons8.com/fluency/96/accounting.png'; };
+                }
+            }
             document.getElementById('receiptInvoiceId').innerText = invoice.id || '-';
             document.getElementById('receiptDate').innerText = invoice.date || '-';
             document.getElementById('receiptCustomer').innerText = invoice.customerName || 'زبون نقدي';
@@ -3113,6 +3177,7 @@
             document.getElementById('expenseModalTitle').innerText = 'تعديل المصروف';
             document.getElementById('expenseSubmitBtn').innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
             openModal('addExpenseModal');
+            try { forceDateInputLocale(); } catch(e) {}
         }
         function resetExpenseModal() {
             editingExpenseId = null;
@@ -3161,6 +3226,7 @@
                     dateInput.value = `${yyyy}-${mm}-${dd}`;
                 }
                 currentReportDate = dateInput.value;
+                try { forceDateInputLocale(); } catch(e) {}
             } else {
                 customWrap.classList.add('hidden');
                 customWrap.classList.remove('flex');
@@ -3224,42 +3290,69 @@
             const filteredInvoices = filterInvoicesByRange();
             const filteredExpenses = filterExpensesByRange();
 
+            // ============ البطاقات الأربع الرئيسية ============
+            let totalRevenue = 0, totalProfit = 0;
+            filteredInvoices.forEach(inv => {
+                totalRevenue += parseFloat(inv.totalUSD) || 0;
+                totalProfit += parseFloat(inv.profit) || 0;
+            });
+            const totalExpenses = filteredExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+            const netProfit = totalProfit - totalExpenses;
+            const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
+            const repEl = document.getElementById('repTotalRevenue');
+            if (repEl) repEl.innerText = formatMoney(totalRevenue);
+            const repSYPEl = document.getElementById('repTotalRevenueSYP');
+            if (repSYPEl) repSYPEl.innerText = formatSYP(totalRevenue * state.settings.exchangeRate);
+            const repProfEl = document.getElementById('repTotalProfit');
+            if (repProfEl) repProfEl.innerText = formatMoney(totalProfit);
+            const repMarginEl = document.getElementById('repProfitMargin');
+            if (repMarginEl) repMarginEl.innerText = `${profitMargin.toFixed(1)}%`;
+            const repExpEl = document.getElementById('repTotalExpenses');
+            if (repExpEl) repExpEl.innerText = formatMoney(totalExpenses);
+            const repExpCountEl = document.getElementById('repExpensesCount');
+            if (repExpCountEl) repExpCountEl.innerText = filteredExpenses.length;
+            const repNetEl = document.getElementById('repNetProfit');
+            if (repNetEl) repNetEl.innerText = formatMoney(netProfit);
+
+            // ============ إحصائيات المخزون ============
             const allProducts = state.products || [];
             const totalProducts = allProducts.length;
             const totalPieces = allProducts.reduce((s, p) => s + (parseInt(p.qty) || 0), 0);
             const inventoryValue = allProducts.reduce((s, p) => s + ((parseFloat(p.cost) || 0) * (parseInt(p.qty) || 0)), 0);
             const lowStockProducts = allProducts.filter(p => { const qty = parseInt(p.qty)||0; const min = parseInt(p.minLimit)||10; return qty > 0 && qty <= min; }).length;
             const outOfStockProducts = allProducts.filter(p => (parseInt(p.qty)||0) <= 0).length;
-            document.getElementById('invStatTotalProducts').innerText = totalProducts;
-            document.getElementById('invStatTotalPieces').innerText = totalPieces;
-            document.getElementById('invStatValue').innerText = formatMoney(inventoryValue);
-            document.getElementById('invStatLow').innerText = lowStockProducts;
-            document.getElementById('invStatOut').innerText = outOfStockProducts;
+            const invEl1 = document.getElementById('invStatTotalProducts'); if (invEl1) invEl1.innerText = totalProducts;
+            const invEl2 = document.getElementById('invStatTotalPieces'); if (invEl2) invEl2.innerText = totalPieces;
+            const invEl3 = document.getElementById('invStatValue'); if (invEl3) invEl3.innerText = formatMoney(inventoryValue);
+            const invEl4 = document.getElementById('invStatLow'); if (invEl4) invEl4.innerText = lowStockProducts;
+            const invEl5 = document.getElementById('invStatOut'); if (invEl5) invEl5.innerText = outOfStockProducts;
 
+            // ============ إحصائيات الدين ============
             const allDebts = Array.isArray(state.debtInvoices) ? state.debtInvoices : [];
             const totalDebtInvoices = allDebts.length;
             const wholesaleDebts = allDebts.filter(d => d.type === 'wholesale').length;
             const retailDebts = allDebts.filter(d => d.type !== 'wholesale').length;
             const totalDebtAmount = allDebts.reduce((s, d) => s + (parseFloat(d.total) || 0), 0);
             const remainingDebt = allDebts.reduce((s, d) => s + (parseFloat(d.remaining) || 0), 0);
-            document.getElementById('debtStatTotalInvoices').innerText = totalDebtInvoices;
-            document.getElementById('debtStatWholesale').innerText = wholesaleDebts;
-            document.getElementById('debtStatRetail').innerText = retailDebts;
-            document.getElementById('debtStatTotalAmount').innerText = formatMoney(totalDebtAmount);
-            document.getElementById('debtStatRemaining').innerText = formatMoney(remainingDebt);
+            const debtEl1 = document.getElementById('debtStatTotalInvoices'); if (debtEl1) debtEl1.innerText = totalDebtInvoices;
+            const debtEl2 = document.getElementById('debtStatWholesale'); if (debtEl2) debtEl2.innerText = wholesaleDebts;
+            const debtEl3 = document.getElementById('debtStatRetail'); if (debtEl3) debtEl3.innerText = retailDebts;
+            const debtEl4 = document.getElementById('debtStatTotalAmount'); if (debtEl4) debtEl4.innerText = formatMoney(totalDebtAmount);
+            const debtEl5 = document.getElementById('debtStatRemaining'); if (debtEl5) debtEl5.innerText = formatMoney(remainingDebt);
 
+            // ============ إحصائيات المبيعات ============
             const salesCount = filteredInvoices.length;
             const wholesaleCount = filteredInvoices.filter(i => i.isWholesale).length;
             const retailCount = filteredInvoices.filter(i => !i.isWholesale).length;
-            let totalRevenue = 0;
-            filteredInvoices.forEach(inv => { totalRevenue += parseFloat(inv.totalUSD) || 0; });
             const avgInvoice = salesCount > 0 ? (totalRevenue / salesCount) : 0;
-            document.getElementById('salesStatCountRep').innerText = salesCount;
-            document.getElementById('salesStatWholesaleCount').innerText = wholesaleCount;
-            document.getElementById('salesStatRetailCount').innerText = retailCount;
-            document.getElementById('salesStatAvg').innerText = formatMoney(avgInvoice);
-            document.getElementById('salesStatTotalRevenue').innerText = formatMoney(totalRevenue);
+            const salesEl1 = document.getElementById('salesStatCountRep'); if (salesEl1) salesEl1.innerText = salesCount;
+            const salesEl2 = document.getElementById('salesStatWholesaleCount'); if (salesEl2) salesEl2.innerText = wholesaleCount;
+            const salesEl3 = document.getElementById('salesStatRetailCount'); if (salesEl3) salesEl3.innerText = retailCount;
+            const salesEl4 = document.getElementById('salesStatAvg'); if (salesEl4) salesEl4.innerText = formatMoney(avgInvoice);
+            const salesEl5 = document.getElementById('salesStatTotalRevenue'); if (salesEl5) salesEl5.innerText = formatMoney(totalRevenue);
 
+            // ============ الرسم البياني ============
             const periodLabelEl = document.getElementById('chartPeriodLabel');
             if (periodLabelEl) periodLabelEl.innerText = '(' + label + ')';
             setTimeout(() => {
