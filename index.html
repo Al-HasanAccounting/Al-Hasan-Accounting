@@ -1385,41 +1385,58 @@
         // ========== نهاية دوال الهوية التجارية ==========
 
         function openWhatsApp() {
-            const message = encodeURIComponent(ADMIN_WHATSAPP_MESSAGE);
-            const phoneIntl = ADMIN_WHATSAPP_INTERNATIONAL;
-            const waUrl = 'https://wa.me/' + phoneIntl + '?text=' + message;
-            const waAppUrl = 'whatsapp://send?phone=' + phoneIntl + '&text=' + message;
-            if (/Android/i.test(navigator.userAgent)) {
-                const intentUrl = 'intent://send?phone=' + phoneIntl + '&text=' + message + '#Intent;scheme=whatsapp;S.browser_fallback_url=' + encodeURIComponent(waUrl) + ';end';
-                let hidden = false;
-                const onVis = () => { if (document.hidden) hidden = true; };
-                document.addEventListener('visibilitychange', onVis);
-                try { window.location.href = intentUrl; } catch (e) {
-                    try { window.location.href = waAppUrl; } catch (e2) { window.location.href = waUrl; }
-                }
-                setTimeout(() => {
-                    document.removeEventListener('visibilitychange', onVis);
-                    if (!hidden && !document.hidden) { try { showToast('⚠️ تعذر فتح واتساب تلقائياً. رقم الإدارة: ' + ADMIN_WHATSAPP, 'warning'); } catch (e) {} }
-                }, 2500);
-                return;
-            }
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-                const startTime = Date.now();
-                let appOpened = false;
-                const handleVisibility = () => { if (document.hidden) appOpened = true; };
-                document.addEventListener('visibilitychange', handleVisibility, { once: true });
-                try { window.location.href = waAppUrl; } catch (e) {}
-                setTimeout(() => {
-                    document.removeEventListener('visibilitychange', handleVisibility);
-                    if (!appOpened && !document.hidden && (Date.now() - startTime) < 2500) {
-                        try { window.open(waUrl, '_blank'); } catch (e) { window.location.href = waUrl; }
-                    }
-                }, 1500);
-            } else {
-                try { window.open(waUrl, '_blank', 'noopener,noreferrer'); } catch (e) { window.location.href = waUrl; }
-            }
+    const message = encodeURIComponent(ADMIN_WHATSAPP_MESSAGE);
+    const phoneIntl = ADMIN_WHATSAPP_INTERNATIONAL;
+    const waUrl = 'https://wa.me/' + phoneIntl + '?text=' + message;
+    const waAppUrl = 'whatsapp://send?phone=' + phoneIntl + '&text=' + message;
+    
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isAndroid = /Android/i.test(ua);
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    
+    if (isAndroid) {
+        const intentUrl = 'intent://send?phone=' + phoneIntl + '&text=' + message + 
+            '#Intent;scheme=whatsapp;package=com.whatsapp;S.browser_fallback_url=' + encodeURIComponent(waUrl) + ';end';
+        
+        let appOpened = false;
+        const onVis = () => { if (document.hidden) appOpened = true; };
+        document.addEventListener('visibilitychange', onVis);
+        
+        try {
+            window.location.href = intentUrl;
+        } catch (e) {
+            try { window.location.href = waAppUrl; } catch (e2) { window.location.href = waUrl; }
         }
+        
+        setTimeout(() => {
+            document.removeEventListener('visibilitychange', onVis);
+            if (!appOpened && !document.hidden) {
+                try { window.location.href = waUrl; } catch (e) {}
+            }
+        }, 2500);
+        return;
+    }
+    
+    if (isIOS) {
+        try {
+            window.location.href = waAppUrl;
+        } catch (e) {
+            window.location.href = waUrl;
+        }
+        setTimeout(() => {
+            if (!document.hidden) {
+                try { window.location.href = waUrl; } catch (e) {}
+            }
+        }, 1500);
+        return;
+    }
+    
+    try {
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+        window.location.href = waUrl;
+    }
+}
 
         function copyAdminPhone() {
             navigator.clipboard.writeText(ADMIN_WHATSAPP).then(() => { showToast('✅ تم نسخ رقم الإدارة: ' + ADMIN_WHATSAPP, 'success'); }).catch(() => { prompt('انسخ رقم الإدارة:', ADMIN_WHATSAPP); });
