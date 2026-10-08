@@ -1468,6 +1468,57 @@
             if (typeof cloudData === 'string') return safeJsonParse(cloudData, null);
             return null;
         }
+        // 🔐 حفظ جلسة تسجيل الدخول على الجهاز (تبقى بعد إغلاق التطبيق حتى يضغط المستخدم تسجيل الخروج)
+        const PERSIST_SESSION_KEY = 'alhasan_persist_session';
+        const PERSIST_SESSION_FIELDS = ['alhasan_logged_in', 'alhasan_user_type', 'alhasan_client_username', 'alhasan_client_db_key', 'alhasan_client_id', 'alhasan_master_logged_in'];
+        function persistSession() {
+            try {
+                const data = {};
+                PERSIST_SESSION_FIELDS.forEach(k => { const v = sessionStorage.getItem(k); if (v !== null) data[k] = v; });
+                if (data.alhasan_logged_in === 'true' || data.alhasan_master_logged_in === 'true') {
+                    localStorage.setItem(PERSIST_SESSION_KEY, JSON.stringify(data));
+                }
+            } catch (e) {}
+        }
+        function clearPersistedSession() {
+            try { localStorage.removeItem(PERSIST_SESSION_KEY); } catch (e) {}
+        }
+        (function restorePersistedSession() {
+            try {
+                if (sessionStorage.getItem('alhasan_logged_in') === 'true' || sessionStorage.getItem('alhasan_master_logged_in') === 'true') return;
+                const raw = localStorage.getItem(PERSIST_SESSION_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (!data || typeof data !== 'object') return;
+                if (data.alhasan_logged_in !== 'true' && data.alhasan_master_logged_in !== 'true') return;
+                PERSIST_SESSION_FIELDS.forEach(k => { if (typeof data[k] === 'string') sessionStorage.setItem(k, data[k]); });
+                window.__sessionRestored = true;
+            } catch (e) {}
+        })();
+        // يتحقق عند فتح التطبيق من أن حساب العميل ما زال موجوداً واشتراكه ساري، ويحدّث بيانات الاشتراك (نفس ما يحدث عند تسجيل الدخول)
+        async function revalidateRestoredClient() {
+            if (!window.__sessionRestored || !isClientUser()) return;
+            try {
+                const snap = await db.ref('appData/mainState').once('value');
+                const main = normalizeCloudData(snap.val());
+                if (!main || !Array.isArray(main.adminClients)) return;
+                const uname = sessionStorage.getItem('alhasan_client_username');
+                const cid = sessionStorage.getItem('alhasan_client_id');
+                const client = main.adminClients.find(c => (c.username || 'admin') === uname && (!cid || String(c.id) === String(cid)));
+                let invalidMsg = null;
+                if (!client) invalidMsg = '⚠️ تعذر التحقق من حسابك، يرجى تسجيل الدخول من جديد';
+                else if (getClientDaysLeft(client.endDate) <= 0) invalidMsg = '⚠️ اشتراكك منتهي! تواصل مع الإدارة على الرقم ' + ADMIN_WHATSAPP;
+                if (invalidMsg) {
+                    PERSIST_SESSION_FIELDS.forEach(k => sessionStorage.removeItem(k));
+                    clearPersistedSession();
+                    window.__sessionInvalidMsg = invalidMsg;
+                    await loadMainState();
+                    return;
+                }
+                const sub = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: (state.subscription && state.subscription.providerPhone) || ADMIN_WHATSAPP };
+                if (JSON.stringify(sub) !== JSON.stringify(state.subscription)) { state.subscription = sub; saveStateToCloud(); }
+            } catch (e) {}
+        }
         function isMasterUser() { return sessionStorage.getItem('alhasan_master_logged_in') === 'true'; }
         function isClientUser() { return sessionStorage.getItem('alhasan_user_type') === 'client' && !!sessionStorage.getItem('alhasan_client_username'); }
         function getActiveRef() {
@@ -1909,6 +1960,7 @@
                 sessionStorage.setItem('alhasan_logged_in', 'true');
                 sessionStorage.setItem('alhasan_user_type', 'admin');
                 sessionStorage.setItem('alhasan_client_username', username);
+                persistSession();
                 errorBox.classList.add('hidden');
                 document.getElementById('loginScreen').classList.remove('active');
                 document.getElementById('loginPassword').value = '';
@@ -1931,6 +1983,7 @@
                 sessionStorage.setItem('alhasan_client_username', username);
                 sessionStorage.setItem('alhasan_client_db_key', encodedUsername);
                 sessionStorage.setItem('alhasan_client_id', client.id);
+                persistSession();
                 await loadClientData(encodedUsername);
                 state.subscription = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: state.subscription.providerPhone || ADMIN_WHATSAPP };
                 if (!state.settings.storeName || state.settings.storeName === 'الحسن للمحاسبة') {
@@ -1959,6 +2012,7 @@
                 sessionStorage.removeItem('alhasan_client_db_key');
                 sessionStorage.removeItem('alhasan_client_id');
                 sessionStorage.removeItem('alhasan_master_logged_in');
+                clearPersistedSession();
                 location.reload();
             }
         }
@@ -1993,6 +2047,7 @@
                 sessionStorage.removeItem('alhasan_client_id');
                 sessionStorage.removeItem('alhasan_logged_in');
                 sessionStorage.setItem('alhasan_master_logged_in', 'true');
+                persistSession();
                 closeModal('masterLoginModal');
                 document.getElementById('loginScreen').classList.remove('active');
                 document.getElementById('adminPanel').classList.add('active');
@@ -2006,6 +2061,7 @@
         function adminLogout() {
             if (confirm('هل أنت متأكد من الخروج؟')) {
                 sessionStorage.removeItem('alhasan_master_logged_in');
+                clearPersistedSession();
                 document.getElementById('adminPanel').classList.remove('active');
                 document.getElementById('loginScreen').classList.add('active');
             }
@@ -2263,6 +2319,7 @@
                 const splashStatus = document.getElementById('splashStatus');
                 if (splashStatus) splashStatus.innerText = 'جاري الاتصال بالسحابة...';
                 try { await loadStateFromCloud(); } catch(e) {}
+                try { await revalidateRestoredClient(); } catch(e) {}
                 state.cart = [];
                 if (splashStatus) splashStatus.innerText = 'جاري تحميل النظام...';
                 if (splash) {
@@ -2271,7 +2328,7 @@
                         splash.style.display = 'none';
                         if (isMasterUser()) { document.getElementById('adminPanel').classList.add('active'); renderAdminPanel(); }
                         else if (sessionStorage.getItem('alhasan_logged_in') === 'true') startApp();
-                        else { document.getElementById('loginScreen').classList.add('active'); setTimeout(() => document.getElementById('loginUsername').focus(), 300); }
+                        else { document.getElementById('loginScreen').classList.add('active'); setTimeout(() => document.getElementById('loginUsername').focus(), 300); if (window.__sessionInvalidMsg) { try { showToast(window.__sessionInvalidMsg, 'warning'); } catch(e) {} } }
                     }, 500);
                 }
             }, 1500);
