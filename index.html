@@ -410,8 +410,11 @@
         <div id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
         <aside id="appSidebar" class="w-64 bg-gradient-to-b from-navy-900 to-navy-800 border-l border-navy-700 flex flex-col no-print shadow-2xl z-20">
             <div class="p-5 flex items-center gap-3 border-b border-navy-700 bg-navy-900/50">
-                <img src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Logo" class="w-12 h-12 rounded-xl shadow-lg object-cover border border-navy-600">
-                <div><h1 class="text-lg font-bold text-gold-400 leading-tight">الحسن</h1><span class="text-xs text-slate-400">للمحاسبة</span></div>
+                <img id="sidebarLogo" src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Logo" class="w-12 h-12 rounded-xl shadow-lg object-cover border border-navy-600">
+                <div class="min-w-0 flex-1">
+                    <h1 id="sidebarStoreName" class="text-sm font-bold text-gold-400 leading-tight truncate">الحسن</h1>
+                    <span id="sidebarStoreSub" class="text-xs text-slate-400 truncate block">للمحاسبة</span>
+                </div>
             </div>
             <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
                 <div>
@@ -824,10 +827,48 @@
                             <div class="bg-navy-900 p-5 rounded-xl border border-navy-700"><label class="block text-center text-slate-300 font-semibold mb-3">الدولار / الليرة القديمة</label><div class="flex items-center gap-3 bg-navy-800 border border-navy-600 rounded-lg p-3"><input type="number" id="settingsOldSYP" oninput="saveSettings()" class="bg-transparent text-white font-bold text-xl w-full text-center outline-none" value="1400000"><span class="text-gold-400 font-bold text-sm">ل.س</span></div></div>
                         </div>
                     </div>
+
+                    <!-- قسم الهوية التجارية -->
+                    <div class="bg-gradient-to-r from-navy-800 to-navy-700 p-6 rounded-2xl border-2 border-gold-500/40 shadow-xl mb-6">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center text-navy-900 text-xl shadow-lg"><i class="fa-solid fa-palette"></i></div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-white">الهوية التجارية</h3>
+                                <p class="text-slate-400 text-sm">شعار واسم محلك أو شركتك</p>
+                            </div>
+                        </div>
+                        
+                        <!-- الشعار -->
+                        <div class="bg-navy-900 p-4 rounded-xl border border-navy-700 mb-5">
+                            <label class="block text-slate-300 font-semibold mb-3 text-sm"><i class="fa-solid fa-image text-gold-400 ml-1"></i> شعار المحل / الشركة</label>
+                            <div class="flex items-center gap-4 flex-wrap">
+                                <div id="storeLogoPreview" class="w-24 h-24 rounded-xl bg-navy-800 border-2 border-dashed border-navy-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    <i class="fa-solid fa-store text-slate-500 text-3xl"></i>
+                                </div>
+                                <div class="flex flex-col gap-2 flex-1 min-w-[200px]">
+                                    <button type="button" onclick="document.getElementById('storeLogoInput').click()" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm">
+                                        <i class="fa-solid fa-upload"></i> اختيار شعار من الجهاز
+                                    </button>
+                                    <button type="button" onclick="removeStoreLogo()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm border border-red-500/30">
+                                        <i class="fa-solid fa-trash"></i> إزالة الشعار
+                                    </button>
+                                    <p class="text-xs text-slate-500 text-center">يُفضّل صورة مربعة (PNG أو JPG)</p>
+                                </div>
+                                <input type="file" id="storeLogoInput" class="hidden" accept="image/*" onchange="handleStoreLogo(event)">
+                            </div>
+                        </div>
+
+                        <!-- الاسم -->
+                        <div class="bg-navy-900 p-4 rounded-xl border border-navy-700">
+                            <label class="block text-slate-300 font-semibold mb-2 text-sm"><i class="fa-solid fa-signature text-gold-400 ml-1"></i> اسم المحل / الشركة</label>
+                            <input type="text" id="settingsStoreName" oninput="saveSettings()" class="w-full bg-navy-800 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="مثال: سوبر ماركت الأمانة">
+                            <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-info-circle"></i> يظهر هذا الاسم في الشريط الجانبي وفي الفواتير</p>
+                        </div>
+                    </div>
+
                     <div class="bg-navy-800 p-6 rounded-2xl border border-navy-700 shadow-xl mb-6">
                         <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white text-xl shadow-lg"><i class="fa-solid fa-store"></i></div><div><h3 class="text-xl font-bold text-white">معلومات المتجر</h3></div></div>
                         <div class="space-y-5">
-                            <div><label class="block text-slate-300 font-semibold mb-2 text-sm">اسم المتجر</label><input type="text" id="settingsStoreName" oninput="saveSettings()" class="w-full bg-navy-900 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div><label class="block text-slate-300 font-semibold mb-2 text-sm">رقم الهاتف</label><input type="text" id="settingsPhone" oninput="saveSettings()" class="w-full bg-navy-900 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                                 <div><label class="block text-slate-300 font-semibold mb-2 text-sm">العنوان</label><input type="text" id="settingsAddress" oninput="saveSettings()" class="w-full bg-navy-900 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
@@ -1107,7 +1148,6 @@
         const ADMIN_WHATSAPP_INTERNATIONAL = '963982199738';
         const ADMIN_WHATSAPP_MESSAGE = 'مرحباً، أريد التواصل مع الإدارة بخصوص تطبيق الحسن للمحاسبة';
 
-        // ========== دوال التاريخ: ISO للتخزين + عرض لاتيني ==========
         function getCurrentISODate() {
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
@@ -1155,6 +1195,116 @@
             }
             return null;
         }
+
+        // ========== دوال الهوية التجارية ==========
+        function updateSidebarIdentity() {
+            try {
+                const logoEl = document.getElementById('sidebarLogo');
+                const nameEl = document.getElementById('sidebarStoreName');
+                const subEl = document.getElementById('sidebarStoreSub');
+                
+                if (nameEl) {
+                    const fullName = (state.settings.storeName || 'الحسن للمحاسبة').trim();
+                    const parts = fullName.split(' ').filter(p => p.length > 0);
+                    if (parts.length >= 2) {
+                        nameEl.innerText = parts[0];
+                        subEl.innerText = parts.slice(1).join(' ');
+                    } else {
+                        nameEl.innerText = fullName;
+                        subEl.innerText = 'للمحاسبة';
+                    }
+                }
+                
+                if (logoEl) {
+                    const customLogo = state.settings.storeLogo;
+                    if (customLogo && typeof customLogo === 'string' && customLogo.length > 0) {
+                        logoEl.src = customLogo;
+                    } else {
+                        logoEl.src = 'icon.png';
+                    }
+                    logoEl.onerror = function() { this.src = 'https://img.icons8.com/fluency/96/accounting.png'; };
+                }
+            } catch (e) { console.warn('updateSidebarIdentity error:', e); }
+        }
+
+        function updateStoreLogoPreview() {
+            const preview = document.getElementById('storeLogoPreview');
+            if (!preview) return;
+            const customLogo = state.settings.storeLogo;
+            if (customLogo && typeof customLogo === 'string' && customLogo.length > 0) {
+                preview.innerHTML = `<img src="${customLogo}" class="w-full h-full object-contain" alt="Store Logo">`;
+            } else {
+                preview.innerHTML = '<i class="fa-solid fa-store text-slate-500 text-3xl"></i>';
+            }
+        }
+
+        function compressStoreLogo(file, maxSize = 400, quality = 0.85) {
+            return new Promise((resolve, reject) => {
+                if (!file.type.startsWith('image/')) { reject(new Error('ليس ملف صورة')); return; }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let { width, height } = img;
+                        const size = Math.min(width, height);
+                        const offsetX = (width - size) / 2;
+                        const offsetY = (height - size) / 2;
+                        const targetSize = Math.min(size, maxSize);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = targetSize;
+                        canvas.height = targetSize;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#0a1120';
+                        ctx.fillRect(0, 0, targetSize, targetSize);
+                        ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, targetSize, targetSize);
+                        const format = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                        resolve(canvas.toDataURL(format, quality));
+                    };
+                    img.onerror = () => reject(new Error('فشل تحميل الصورة'));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error('فشل قراءة الملف'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleStoreLogo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) { showToast('⚠️ حجم الصورة كبير جداً (الحد 5MB)', 'warning'); event.target.value = ''; return; }
+            try {
+                showToast('⏳ جاري معالجة الشعار...', 'info');
+                const compressed = await compressStoreLogo(file, 400, 0.85);
+                if (compressed.length > 300000) {
+                    showToast('⚠️ الصورة كبيرة جداً بعد الضغط، اختر صورة أصغر', 'warning');
+                    event.target.value = '';
+                    return;
+                }
+                state.settings.storeLogo = compressed;
+                try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+                saveStateToCloud();
+                updateStoreLogoPreview();
+                updateSidebarIdentity();
+                showToast('✅ تم رفع الشعار بنجاح', 'success');
+            } catch(err) {
+                showToast('⚠️ ' + (err.message || 'فشل معالجة الصورة'), 'warning');
+                event.target.value = '';
+            }
+        }
+
+        function removeStoreLogo() {
+            if (!state.settings.storeLogo) { showToast('لا يوجد شعار مرفوع', 'info'); return; }
+            if (!confirm('هل تريد إزالة الشعار؟')) return;
+            state.settings.storeLogo = null;
+            try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+            saveStateToCloud();
+            const input = document.getElementById('storeLogoInput');
+            if (input) input.value = '';
+            updateStoreLogoPreview();
+            updateSidebarIdentity();
+            showToast('🗑️ تم إزالة الشعار', 'delete');
+        }
+        // ========== نهاية دوال الهوية التجارية ==========
 
         function openWhatsApp() {
             const message = encodeURIComponent(ADMIN_WHATSAPP_MESSAGE);
@@ -1370,7 +1520,7 @@
         }
 
         const defaultState = {
-            settings: { exchangeRate: 14500, oldExchangeRate: 1400000, wholesaleDiscount: 10, isWholesale: false, activePosCategory: 'all', storeName: "الحسن للمحاسبة", phone: "+963 11 000 0000", address: "سوريا - دمشق", taxRate: 0 },
+            settings: { exchangeRate: 14500, oldExchangeRate: 1400000, wholesaleDiscount: 10, isWholesale: false, activePosCategory: 'all', storeName: "الحسن للمحاسبة", phone: "+963 11 000 0000", address: "سوريا - دمشق", taxRate: 0, storeLogo: null },
             subscription: { startDate: new Date().toISOString().slice(0, 10), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10), username: 'admin', password: 'admin123', providerPhone: ADMIN_WHATSAPP },
             adminClients: [], products: [], customers: [], debtInvoices: [], expenses: [], invoices: [], cart: [],
             productImages: {}, notifications: []
@@ -1406,8 +1556,8 @@
         if (!state.subscription.endDate) state.subscription.endDate = defaultState.subscription.endDate;
         if (!state.subscription.startDate) state.subscription.startDate = defaultState.subscription.startDate;
         if (!state.subscription.providerPhone) state.subscription.providerPhone = ADMIN_WHATSAPP;
+        if (!state.settings.storeLogo) state.settings.storeLogo = null;
 
-        // ترحيل البيانات القديمة: تحويل date إلى isoDate
         (function migrateOldDates() {
             let migrated = false;
             state.invoices.forEach(function(inv) {
@@ -1585,6 +1735,7 @@
                     if (!Array.isArray(state.adminClients)) state.adminClients = [];
                     if (!state.productImages || typeof state.productImages !== 'object' || Array.isArray(state.productImages)) state.productImages = {};
                     if (!state.subscription.providerPhone) state.subscription.providerPhone = ADMIN_WHATSAPP;
+                    if (!state.settings.storeLogo) state.settings.storeLogo = null;
                     try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
                     return true;
                 } else {
@@ -1609,6 +1760,7 @@
                     if (!Array.isArray(state.invoices)) state.invoices = [];
                     if (!Array.isArray(state.notifications)) state.notifications = [];
                     if (!state.productImages || typeof state.productImages !== 'object' || Array.isArray(state.productImages)) state.productImages = {};
+                    if (!state.settings.storeLogo) state.settings.storeLogo = null;
                     state.cart = [];
                     try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
                     return true;
@@ -1969,6 +2121,8 @@
         }
         function startApp() {
             document.getElementById('app').classList.add('active');
+            try { updateSidebarIdentity(); } catch(e) {}
+            try { updateStoreLogoPreview(); } catch(e) {}
             document.getElementById('topExchangeRate').value = state.settings.exchangeRate;
             document.getElementById('settingsNewSYP').value = state.settings.exchangeRate;
             document.getElementById('settingsOldSYP').value = state.settings.oldExchangeRate;
@@ -2023,6 +2177,8 @@
 
         function renderAll() {
             try { renderDashboard(); } catch(e) {}
+            try { updateSidebarIdentity(); } catch(e) {}
+            try { updateStoreLogoPreview(); } catch(e) {}
             try { renderPosCategories(); } catch(e) {}
             try { renderPOSProducts(); } catch(e) {}
             try { renderInventory(); } catch(e) {}
@@ -2045,6 +2201,7 @@
             document.getElementById('page-title').innerText = titles[pageId];
             if (pageId === 'reports') renderReports();
             if (pageId === 'settings') {
+                try { updateStoreLogoPreview(); } catch(e) {}
                 document.getElementById('settingsNewSYP').value = state.settings.exchangeRate;
                 document.getElementById('settingsOldSYP').value = state.settings.oldExchangeRate;
                 document.getElementById('settingsStoreName').value = state.settings.storeName;
@@ -2114,6 +2271,7 @@
             state.settings.address = document.getElementById('settingsAddress').value;
             state.settings.taxRate = parseFloat(document.getElementById('settingsTaxRate').value) || 0;
             syncExchangeRate(newRate, newOldRate);
+            try { updateSidebarIdentity(); } catch(e) {}
         }
         function resetData() {
             if (!checkSubscription()) return;
@@ -2136,7 +2294,6 @@
             }
         }
 
-        // ============ دوال مساعدة للتواريخ ============
         function getInvoiceDate(inv) {
             if (!inv) return null;
             if (inv.isoDate) { const d = new Date(inv.isoDate); if (!isNaN(d.getTime())) return d; }
@@ -3046,7 +3203,6 @@
             const filteredInvoices = filterInvoicesByRange();
             const filteredExpenses = filterExpensesByRange();
 
-            // ============ إحصائيات المخزون ============
             const allProducts = state.products || [];
             const totalProducts = allProducts.length;
             const totalPieces = allProducts.reduce((s, p) => s + (parseInt(p.qty) || 0), 0);
@@ -3059,7 +3215,6 @@
             document.getElementById('invStatLow').innerText = lowStockProducts;
             document.getElementById('invStatOut').innerText = outOfStockProducts;
 
-            // ============ إحصائيات الدين ============
             const allDebts = Array.isArray(state.debtInvoices) ? state.debtInvoices : [];
             const totalDebtInvoices = allDebts.length;
             const wholesaleDebts = allDebts.filter(d => d.type === 'wholesale').length;
@@ -3072,7 +3227,6 @@
             document.getElementById('debtStatTotalAmount').innerText = formatMoney(totalDebtAmount);
             document.getElementById('debtStatRemaining').innerText = formatMoney(remainingDebt);
 
-            // ============ إحصائيات المبيعات ============
             const salesCount = filteredInvoices.length;
             const wholesaleCount = filteredInvoices.filter(i => i.isWholesale).length;
             const retailCount = filteredInvoices.filter(i => !i.isWholesale).length;
@@ -3085,7 +3239,6 @@
             document.getElementById('salesStatAvg').innerText = formatMoney(avgInvoice);
             document.getElementById('salesStatTotalRevenue').innerText = formatMoney(totalRevenue);
 
-            // ============ الرسم البياني ============
             const periodLabelEl = document.getElementById('chartPeriodLabel');
             if (periodLabelEl) periodLabelEl.innerText = '(' + label + ')';
             setTimeout(() => {
@@ -3447,6 +3600,7 @@
             if (has(q, ['باركود', 'مسح'])) return '📷 <b>الباركود:</b>\nمن «استفسار عن منتج» اضغط «مسح الباركود».';
             if (has(q, ['صرف', 'دولار'])) return '💱 <b>تعديل سعر الصرف:</b>\nغيّره من الحقل أعلى الصفحة أو من «الإعدادات».';
             if (has(q, ['اداره', 'تواصل', 'واتساب', 'whatsapp', 'دعم'])) return '📞 <b>التواصل مع الإدارة:</b>\nمن قسم «النظام» ← «التواصل مع الإدارة» ستجد زر واتساب مباشر على الرقم ' + ADMIN_WHATSAPP;
+            if (has(q, ['شعار', 'لوجو', 'لوكو', 'هويه'])) return '🎨 <b>تغيير الشعار والاسم:</b>\nمن «الإعدادات» ← «الهوية التجارية» يمكنك رفع شعار محلك وتغيير الاسم.';
             return null;
         }
         function answer(raw) {
@@ -3454,7 +3608,7 @@
             if (!q) return 'اكتب سؤالك وسأحاول مساعدتك 😊';
             var st = S(), r = rate();
             if (has(q, ['ماذا تستطيع', 'شو بتعمل', 'مساعده', 'اوامر', 'ماذا يمكنك', 'شو بتقدر']) || q === 'help')
-                return '🤖 <b>أستطيع مساعدتك في:</b>\n• مبيعات وأرباح اليوم والإجمالي\n• المنتجات الناقصة\n• سعر وكمية أي منتج\n• سعر الصرف والمصروفات\n• الديون والعملاء والاشتراك\n• التواصل مع الإدارة: ' + ADMIN_WHATSAPP;
+                return '🤖 <b>أستطيع مساعدتك في:</b>\n• مبيعات وأرباح اليوم والإجمالي\n• المنتجات الناقصة\n• سعر وكمية أي منتج\n• سعر الصرف والمصروفات\n• الديون والعملاء والاشتراك\n• تغيير الشعار والاسم\n• التواصل مع الإدارة: ' + ADMIN_WHATSAPP;
             if (/^(مرحبا|اهلا|هلا|السلام|صباح|مساء|هاي|hi|hello)/.test(q))
                 return 'أهلاً وسهلاً بك 👋\nأنا مساعد «' + esc(st.settings.storeName || 'الحسن') + '».';
             if (/^(كيف|طريقه|ازاي|شلون|كيفيه)/.test(q) || has(q, ['كيف '])) { var h = howTo(q); if (h) return h; }
@@ -3479,7 +3633,7 @@
             if (h2) return h2;
             return 'لم أفهم سؤالك تماماً 🤔\nجرّب أحد الأسئلة المقترحة أدناه.\n📞 للتواصل مع الإدارة: ' + ADMIN_WHATSAPP;
         }
-        var CHIPS = ['كم مبيعات اليوم؟', 'أرباح اليوم', 'المنتجات الناقصة', 'سعر الصرف', 'الديون', 'مصروفات الشهر', 'الأكثر مبيعاً', 'رقم الإدارة'];
+        var CHIPS = ['كم مبيعات اليوم؟', 'أرباح اليوم', 'المنتجات الناقصة', 'سعر الصرف', 'الديون', 'مصروفات الشهر', 'تغيير الشعار', 'رقم الإدارة'];
         function addMsg(html, who) {
             var box = document.getElementById('aiChatMessages');
             if (!box) return;
