@@ -1260,16 +1260,24 @@
             const fullName = (state.settings.storeName || 'الحسن للمحاسبة').trim();
             const parts = fullName.split(/\s+/).filter(p => p.length > 0);
             
+            // إظهار السطر الثاني افتراضياً
+            subEl.style.display = '';
+            
             if (parts.length === 0) {
                 nameEl.innerText = 'الحسن';
                 subEl.innerText = 'للمحاسبة';
             } else if (parts.length === 1) {
+                // كلمة واحدة: كلها ذهبي، السطر الثاني فارغ ومخفي
                 nameEl.innerText = parts[0];
                 subEl.innerText = '';
+                subEl.style.display = 'none';
             } else if (parts.length === 2) {
-                nameEl.innerText = parts[0];
-                subEl.innerText = parts[1];
+                // كلمتان: كلتاهما ذهبي
+                nameEl.innerText = parts[0] + ' ' + parts[1];
+                subEl.innerText = '';
+                subEl.style.display = 'none';
             } else {
+                // 3 كلمات أو أكثر: أول كلمتين ذهبي، الباقي رمادي
                 nameEl.innerText = parts[0] + ' ' + parts[1];
                 subEl.innerText = parts.slice(2).join(' ');
             }
