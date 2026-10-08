@@ -493,7 +493,7 @@
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي الإيرادات</h3><div class="text-2xl font-bold text-white" id="dashTotalRevenue">$0.00</div></div><div class="stat-card-icon bg-emerald-500/10 text-emerald-500"><i class="fa-solid fa-dollar-sign"></i></div></div>
                         <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">صافي الربح</h3><div class="text-2xl font-bold text-white" id="dashNetProfit">$0.00</div></div><div class="stat-card-icon bg-gold-500/10 text-gold-400"><i class="fa-solid fa-chart-line"></i></div></div>
-                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">قيمة المخزون</h3><div class="text-sm font-bold text-white mb-1">بالتكلفة: <span class="text-blue-400" id="dashInventoryCostValue">$0.00</span></div><div class="text-sm font-bold text-white">بالمفرد: <span class="text-emerald-400" id="dashInventoryRetailValue">$0.00</span></div></div><div class="stat-card-icon bg-blue-500/10 text-blue-400"><i class="fa-solid fa-box"></i></div></div>
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">قيمة المخزون</h3><div class="text-sm font-bold text-white mb-1">بالتكلفة: <span class="text-blue-400" id="dashInventoryCostValue">$0.00</span></div><div class="text-sm font-bold text-white">بالمفرق: <span class="text-emerald-400" id="dashInventoryRetailValue">$0.00</span></div></div><div class="stat-card-icon bg-blue-500/10 text-blue-400"><i class="fa-solid fa-box"></i></div></div>
                         <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">هامش الربح</h3><div class="text-2xl font-bold text-white" id="dashProfitMargin">0.0%</div></div><div class="stat-card-icon bg-purple-500/10 text-purple-400"><i class="fa-solid fa-percent"></i></div></div>
                     </div>
                     <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -516,7 +516,7 @@
                             <div class="pos-head flex justify-between items-end mb-2 flex-wrap gap-2">
                                 <div><h2 class="text-3xl font-bold text-white mb-1">نقطة البيع</h2><p class="text-slate-400 text-sm">اختر المنتجات لإضافتها إلى السلة</p></div>
                                 <div class="bg-navy-800 p-1 rounded-xl flex gap-1 border border-navy-700">
-                                    <button id="btnRetail" class="px-5 py-2 rounded-lg text-sm font-bold bg-blue-500 text-white" onclick="setSaleType('retail')">بيع مفرد</button>
+                                    <button id="btnRetail" class="px-5 py-2 rounded-lg text-sm font-bold bg-blue-500 text-white" onclick="setSaleType('retail')">بيع مفرق</button>
                                     <button id="btnWholesale" class="px-5 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white" onclick="setSaleType('wholesale')">بيع جملة</button>
                                 </div>
                             </div>
@@ -558,12 +558,15 @@
                 <div id="inventory" class="page">
                     <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
                         <div><h2 class="text-3xl font-bold text-white mb-1">المنتجات والمخزون</h2><p class="text-slate-400 text-sm">إدارة المنتجات</p></div>
-                        <button onclick="resetProductModal(); openModal('addProductModal')" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-plus"></i> إضافة منتج</button>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="exportInventoryExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
+                            <button onclick="resetProductModal(); openModal('addProductModal')" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-plus"></i> إضافة منتج</button>
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                         <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">المنتجات</h3><div class="text-2xl font-bold text-white" id="statTotalProducts">0</div></div><div class="stat-card-icon bg-blue-500/10 text-blue-400"><i class="fa-solid fa-cubes"></i></div></div>
                         <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">القطع</h3><div class="text-2xl font-bold text-white" id="statTotalPieces">0</div></div><div class="stat-card-icon bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-boxes-stacked"></i></div></div>
-                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">قيمة المخزون</h3><div class="text-sm font-bold text-white mb-1">بالتكلفة: <span class="text-blue-400" id="statInventoryCostValue">$0.00</span></div><div class="text-sm font-bold text-white">بالمفرد: <span class="text-emerald-400" id="statInventoryRetailValue">$0.00</span></div></div><div class="stat-card-icon bg-gold-500/10 text-gold-400"><i class="fa-solid fa-dollar-sign"></i></div></div>
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">قيمة المخزون</h3><div class="text-sm font-bold text-white mb-1">بالتكلفة: <span class="text-blue-400" id="statInventoryCostValue">$0.00</span></div><div class="text-sm font-bold text-white">بالمفرق: <span class="text-emerald-400" id="statInventoryRetailValue">$0.00</span></div></div><div class="stat-card-icon bg-gold-500/10 text-gold-400"><i class="fa-solid fa-dollar-sign"></i></div></div>
                         <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">نقص</h3><div class="text-2xl font-bold text-red-400" id="statLowStock">0</div></div><div class="stat-card-icon bg-red-500/10 text-red-400"><i class="fa-solid fa-triangle-exclamation"></i></div></div>
                     </div>
                     <div class="flex flex-col md:flex-row gap-4 mb-6">
@@ -650,9 +653,24 @@
                     <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
                         <div><h2 class="text-3xl font-bold text-white mb-1">التقارير</h2><p class="text-slate-400 text-sm">تقارير شاملة</p></div>
                         <div class="flex gap-3 no-print">
-                            <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
-                            <button onclick="window.print()" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-4 py-2 rounded-lg flex items-center gap-2"><i class="fa-solid fa-print"></i> طباعة</button>
+                            <button onclick="exportReportsExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
                         </div>
+                    </div>
+                    <div class="bg-navy-800 p-4 rounded-2xl border border-navy-700 shadow-lg mb-6">
+                        <div class="flex flex-wrap items-center gap-2 mb-3">
+                            <span class="text-slate-400 text-sm font-bold"><i class="fa-solid fa-filter text-gold-400"></i> الفترة:</span>
+                            <button onclick="setReportFilter('24h')" id="repFilter24h" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300">آخر 24 ساعة</button>
+                            <button onclick="setReportFilter('7d')" id="repFilter7d" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300">آخر أسبوع</button>
+                            <button onclick="setReportFilter('30d')" id="repFilter30d" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300">آخر شهر</button>
+                            <button onclick="setReportFilter('6m')" id="repFilter6m" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300">آخر 6 أشهر</button>
+                            <button onclick="setReportFilter('custom')" id="repFilterCustom" class="report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300"><i class="fa-solid fa-calendar-day"></i> يوم محدد</button>
+                        </div>
+                        <div id="reportCustomDateBox" class="hidden flex-wrap items-center gap-3 bg-navy-900 p-3 rounded-xl border border-gold-500/30">
+                            <label class="text-slate-300 text-sm">اختر التاريخ:</label>
+                            <input type="date" id="reportCustomDate" onchange="setReportFilter('custom', this.value)" class="bg-navy-800 border border-navy-600 rounded-lg p-2 text-white focus:border-gold-400 outline-none">
+                            <span id="reportFilterLabel" class="text-gold-400 text-sm font-bold"></span>
+                        </div>
+                        <div id="reportActiveRange" class="text-xs text-slate-400 mt-3"></div>
                     </div>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                         <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي الإيرادات</h3><div class="text-2xl font-bold text-emerald-400" id="repTotalRevenue">$0.00</div><div class="text-xs text-slate-500 mt-1" id="repTotalRevenueSYP">0.00 ل.س</div></div><div class="stat-card-icon bg-emerald-500/10 text-emerald-500"><i class="fa-solid fa-dollar-sign"></i></div></div>
@@ -868,7 +886,7 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div><label class="block text-sm text-slate-300 mb-1">التكلفة ($)</label><input type="number" id="prodCost" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="0"></div>
-                    <div><label class="block text-sm text-slate-300 mb-1">سعر المفرد ($)</label><input type="number" id="prodRetailPrice" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="0"></div>
+                    <div><label class="block text-sm text-slate-300 mb-1">سعر المفرق ($)</label><input type="number" id="prodRetailPrice" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="0"></div>
                     <div><label class="block text-sm text-slate-300 mb-1">سعر الجملة ($)</label><input type="number" id="prodWholesalePrice" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="0"></div>
                 </div>
                 <div><label class="block text-sm text-slate-300 mb-1">ملاحظات</label><textarea id="prodNotes" rows="2" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></textarea></div>
@@ -904,7 +922,7 @@
             <div class="space-y-4">
                 <div><label class="block text-sm text-slate-300 mb-1">اسم العميل *</label><input type="text" id="custName" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm text-slate-300 mb-1">نوع العميل</label><select id="custType" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"><option value="retail">مفرد</option><option value="wholesale">جملة</option></select></div>
+                    <div><label class="block text-sm text-slate-300 mb-1">نوع العميل</label><select id="custType" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"><option value="retail">مفرق</option><option value="wholesale">جملة</option></select></div>
                     <div><label class="block text-sm text-slate-300 mb-1">الهاتف</label><input type="text" id="custPhone" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                 </div>
                 <div><label class="block text-sm text-slate-300 mb-1">العنوان</label><input type="text" id="custAddress" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
@@ -1087,9 +1105,7 @@
                 let hidden = false;
                 const onVis = () => { if (document.hidden) hidden = true; };
                 document.addEventListener('visibilitychange', onVis);
-                try {
-                    window.location.href = intentUrl;
-                } catch (e) {
+                try { window.location.href = intentUrl; } catch (e) {
                     try { window.location.href = waAppUrl; } catch (e2) { window.location.href = waUrl; }
                 }
                 setTimeout(() => {
@@ -1100,49 +1116,28 @@
                 }, 2500);
                 return;
             }
-
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
             if (isMobile) {
                 const startTime = Date.now();
                 let appOpened = false;
-                
-                const handleVisibility = () => {
-                    if (document.hidden) appOpened = true;
-                };
+                const handleVisibility = () => { if (document.hidden) appOpened = true; };
                 document.addEventListener('visibilitychange', handleVisibility, { once: true });
-                
-                try {
-                    window.location.href = waAppUrl;
-                } catch (e) {
-                    console.warn('whatsapp:// failed:', e);
-                }
-                
+                try { window.location.href = waAppUrl; } catch (e) {}
                 setTimeout(() => {
                     document.removeEventListener('visibilitychange', handleVisibility);
                     if (!appOpened && !document.hidden && (Date.now() - startTime) < 2500) {
-                        try {
-                            window.open(waUrl, '_blank');
-                        } catch (e) {
-                            window.location.href = waUrl;
-                        }
+                        try { window.open(waUrl, '_blank'); } catch (e) { window.location.href = waUrl; }
                     }
                 }, 1500);
             } else {
-                try {
-                    window.open(waUrl, '_blank', 'noopener,noreferrer');
-                } catch (e) {
-                    window.location.href = waUrl;
-                }
+                try { window.open(waUrl, '_blank', 'noopener,noreferrer'); } catch (e) { window.location.href = waUrl; }
             }
         }
 
         function copyAdminPhone() {
             navigator.clipboard.writeText(ADMIN_WHATSAPP).then(() => {
                 showToast('✅ تم نسخ رقم الإدارة: ' + ADMIN_WHATSAPP, 'success');
-            }).catch(() => {
-                prompt('انسخ رقم الإدارة:', ADMIN_WHATSAPP);
-            });
+            }).catch(() => { prompt('انسخ رقم الإدارة:', ADMIN_WHATSAPP); });
         }
 
         function encodeKey(key) { if (!key) return 'unknown'; return key.replace(/[.#$\[\]\/@]/g, '_'); }
@@ -2161,7 +2156,7 @@
             } else {
                 btnRetail.className = 'px-5 py-2 rounded-lg text-sm font-bold bg-blue-500 text-white';
                 btnWholesale.className = 'px-5 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white';
-                showToast('تم تفعيل البيع بالمفرد', 'info');
+                showToast('تم تفعيل البيع بالمفرق', 'info');
             }
             state.cart.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) item.price = state.settings.isWholesale ? product.wholesalePrice : product.retailPrice; });
             updateCartUI(); renderPOSProducts();
@@ -2397,7 +2392,7 @@
                         </div>
                         <div class="price-grid grid grid-cols-3 gap-2 lg:gap-1 text-center">
                             <div class="price-box bg-navy-900 rounded-xl lg:rounded-lg p-3 lg:p-1.5 border border-navy-700 min-w-0 overflow-hidden"><span class="price-label text-slate-400 text-xs lg:text-[9px] mb-1 lg:mb-0.5 block leading-none">التكلفة</span><span class="price-value text-white font-bold lg:text-xs break-all">${formatMoney(p.cost)}</span></div>
-                            <div class="price-box bg-navy-900 rounded-xl lg:rounded-lg p-3 lg:p-1.5 border border-navy-700 min-w-0 overflow-hidden"><span class="price-label text-slate-400 text-xs lg:text-[9px] mb-1 lg:mb-0.5 block leading-none">مفرد</span><span class="price-value text-gold-400 font-bold lg:text-xs break-all">${formatMoney(p.retailPrice)}</span></div>
+                            <div class="price-box bg-navy-900 rounded-xl lg:rounded-lg p-3 lg:p-1.5 border border-navy-700 min-w-0 overflow-hidden"><span class="price-label text-slate-400 text-xs lg:text-[9px] mb-1 lg:mb-0.5 block leading-none">مفرق</span><span class="price-value text-gold-400 font-bold lg:text-xs break-all">${formatMoney(p.retailPrice)}</span></div>
                             <div class="price-box bg-navy-900 rounded-xl lg:rounded-lg p-3 lg:p-1.5 border border-navy-700 min-w-0 overflow-hidden"><span class="price-label text-slate-400 text-xs lg:text-[9px] mb-1 lg:mb-0.5 block leading-none">جملة</span><span class="price-value text-purple-400 font-bold lg:text-xs break-all">${formatMoney(p.wholesalePrice)}</span></div>
                         </div>
                         <div class="card-actions flex justify-between items-center pt-3 lg:pt-2 border-t border-navy-700 mt-auto">
@@ -2661,7 +2656,7 @@
                     ['إجمالي الأرباح (دولار)', parseFloat(state.invoices.reduce((s, i) => s + (i.profit || 0), 0).toFixed(2))],
                     ['إجمالي المصروفات (دولار)', parseFloat(state.expenses.reduce((s, e) => s + (e.amount || 0), 0).toFixed(2))],
                     ['قيمة المخزون بالتكلفة (دولار)', parseFloat(state.products.reduce((s, p) => s + ((p.cost || 0) * (p.qty || 0)), 0).toFixed(2))],
-                    ['قيمة المخزون بالمفرد (دولار)', parseFloat(state.products.reduce((s, p) => s + ((p.retailPrice || 0) * (p.qty || 0)), 0).toFixed(2))]
+                    ['قيمة المخزون بالمفرق (دولار)', parseFloat(state.products.reduce((s, p) => s + ((p.retailPrice || 0) * (p.qty || 0)), 0).toFixed(2))]
                 ];
                 const infoSheet = XLSX.utils.aoa_to_sheet(infoData);
                 setColumnWidths(infoSheet, [40, 40]);
@@ -2669,7 +2664,7 @@
                 XLSX.utils.book_append_sheet(workbook, infoSheet, 'معلومات عامة');
 
                 if (state.products.length > 0) {
-                    const productHeaders = ['#', 'اسم المنتج', 'SKU', 'الباركود', 'التصنيف', 'الكمية', 'الوحدة', 'الحد الأدنى', 'التكلفة ($)', 'سعر المفرد ($)', 'سعر الجملة ($)', 'قيمة المخزون بالتكلفة ($)', 'قيمة المخزون بالمفرد ($)', 'ملاحظات'];
+                    const productHeaders = ['#', 'اسم المنتج', 'SKU', 'الباركود', 'التصنيف', 'الكمية', 'الوحدة', 'الحد الأدنى', 'التكلفة ($)', 'سعر المفرق ($)', 'سعر الجملة ($)', 'قيمة المخزون بالتكلفة ($)', 'قيمة المخزون بالمفرق ($)', 'ملاحظات'];
                     const productRows = [productHeaders];
                     state.products.forEach((p, i) => {
                         productRows.push([
@@ -2693,7 +2688,7 @@
                     const customerRows = [customerHeaders];
                     state.customers.forEach((c, i) => {
                         customerRows.push([
-                            i + 1, c.name || '', c.type === 'wholesale' ? 'جملة' : 'مفرد',
+                            i + 1, c.name || '', c.type === 'wholesale' ? 'جملة' : 'مفرق',
                             c.phone || '', c.address || '', parseFloat((c.creditLimit || 0).toFixed(2)),
                             c.notes || ''
                         ]);
@@ -2832,7 +2827,7 @@
                     const isPaid = c.status === 'paid';
                     const avatarColor = isPaid ? 'linear-gradient(135deg, #10b981, #047857)' : avatarColors[index % avatarColors.length];
                     const firstLetter = (c.name || '؟').trim().charAt(0);
-                    const typeLabel = c.type === 'wholesale' ? 'جملة' : 'مفرد';
+                    const typeLabel = c.type === 'wholesale' ? 'جملة' : 'مفرق';
                     const typeClass = c.type === 'wholesale' ? 'bg-purple-500/20 text-purple-400' : 'bg-emerald-500/20 text-emerald-400';
                     const remaining = c.remaining || 0;
                     const debtColor = isPaid ? 'text-emerald-400' : 'text-red-400';
@@ -3035,7 +3030,7 @@
                 </div>
             `;
 
-            detailContainer.innerHTML = `<div class="bg-gradient-to-br from-navy-800 to-navy-900 rounded-3xl border-2 border-gold-500/40 shadow-2xl overflow-hidden"><div class="bg-gradient-to-r from-navy-900 to-navy-800 p-5 border-b border-gold-500/30"><div class="flex items-center justify-between flex-wrap gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center text-navy-900 text-xl shadow-lg"><i class="fa-solid fa-circle-info"></i></div><div><h3 class="text-gold-400 font-bold text-lg">تفاصيل المنتج</h3><p class="text-slate-400 text-xs">معلومات كاملة وأسعار</p></div></div><span class="px-4 py-2 rounded-xl border-2 text-sm font-bold ${stockStatus.cls}">${stockStatus.text}</span></div></div><div class="p-6"><div class="flex flex-col md:flex-row gap-6 items-center md:items-start"><div class="inquiry-image w-40 h-40 md:w-48 md:h-48 rounded-2xl bg-navy-900 border-2 border-navy-700 overflow-hidden flex-shrink-0 shadow-lg">${imageHtml}</div><div class="flex-1 w-full text-center md:text-right"><h2 class="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">${product.name}</h2>${product.category ? `<span class="inline-block px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-bold mb-3"><i class="fa-solid fa-tag"></i> ${product.category}</span>` : ''}<div class="grid grid-cols-2 gap-3 mt-4"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-barcode"></i> SKU</div><div class="text-white font-bold text-sm truncate" dir="ltr">${product.sku || '-'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-cube"></i> الوحدة</div><div class="text-white font-bold text-sm">${product.unit || 'قطعة'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-boxes-stacked"></i> الكمية المتوفرة</div><div class="${isLowStock ? 'text-orange-400' : 'text-emerald-400'} font-bold text-sm">${product.qty}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-triangle-exclamation"></i> حد أدنى</div><div class="text-white font-bold text-sm">${product.minLimit || 10}</div></div></div></div></div><div class="mt-6"><h4 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-dollar-sign text-gold-400"></i> الأسعار بالعملات الثلاث</h4><div class="grid grid-cols-1 md:grid-cols-3 gap-4">${costCardHtml}<div class="bg-navy-900 rounded-2xl p-4 border-2 border-gold-500/40 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center"><i class="fa-solid fa-store"></i></div><span class="text-gold-400 font-bold text-sm">سعر المفرد</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-gold-400 mb-3">${formatMoney(retailUSD)}</div><div class="space-y-1.5 text-xs"><div class="text-emerald-400 font-bold">${formatSYPValue(retailNewSYP)} ل.س جديدة</div><div class="text-slate-400 font-bold">${formatSYPValue(retailOldSYP)} ل.س قديمة</div></div></div></div><div class="bg-navy-900 rounded-2xl p-4 border-2 border-purple-500/30 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-truck-fast"></i></div><span class="text-purple-400 font-bold text-sm">سعر الجملة</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-purple-400 mb-3">${formatMoney(wholesaleUSD)}</div><div class="space-y-1.5 text-xs"><div class="text-emerald-400 font-bold">${formatSYPValue(wholesaleNewSYP)} ل.س جديدة</div><div class="text-slate-400 font-bold">${formatSYPValue(wholesaleOldSYP)} ل.س قديمة</div></div></div></div></div></div>${product.notes ? `<div class="mt-6 bg-navy-900 rounded-2xl p-4 border border-navy-700"><div class="text-slate-400 text-xs mb-2 flex items-center gap-2"><i class="fa-solid fa-note-sticky text-gold-400"></i> ملاحظات</div><p class="text-white text-sm leading-relaxed">${product.notes}</p></div>` : ''}${product.barcode ? `<div class="mt-6 bg-white rounded-2xl p-4 border-2 border-navy-700"><div class="text-center mb-3 text-gray-500 text-xs font-bold uppercase tracking-wider">الباركود</div><div class="flex items-center justify-center min-h-[100px] overflow-hidden"><svg id="inquiryBarcodeSvg" class="max-w-full"></svg></div><div class="text-center mt-3 text-gray-900 font-bold tracking-wider text-sm" dir="ltr">${product.barcode}</div></div>` : ''}<div class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-3">${product.barcode ? `<button onclick="copyInquiryBarcode('${product.barcode}')" class="bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-copy"></i> نسخ الباركود</button>` : ''}<button onclick="openScanner('inquirySearch')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-camera"></i> مسح آخر</button><button onclick="jumpToPosFromInquiry(${product.id})" class="col-span-2 md:col-span-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"><i class="fa-solid fa-cart-plus"></i> إضافة للسلة</button></div></div></div>`;
+            detailContainer.innerHTML = `<div class="bg-gradient-to-br from-navy-800 to-navy-900 rounded-3xl border-2 border-gold-500/40 shadow-2xl overflow-hidden"><div class="bg-gradient-to-r from-navy-900 to-navy-800 p-5 border-b border-gold-500/30"><div class="flex items-center justify-between flex-wrap gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center text-navy-900 text-xl shadow-lg"><i class="fa-solid fa-circle-info"></i></div><div><h3 class="text-gold-400 font-bold text-lg">تفاصيل المنتج</h3><p class="text-slate-400 text-xs">معلومات كاملة وأسعار</p></div></div><span class="px-4 py-2 rounded-xl border-2 text-sm font-bold ${stockStatus.cls}">${stockStatus.text}</span></div></div><div class="p-6"><div class="flex flex-col md:flex-row gap-6 items-center md:items-start"><div class="inquiry-image w-40 h-40 md:w-48 md:h-48 rounded-2xl bg-navy-900 border-2 border-navy-700 overflow-hidden flex-shrink-0 shadow-lg">${imageHtml}</div><div class="flex-1 w-full text-center md:text-right"><h2 class="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">${product.name}</h2>${product.category ? `<span class="inline-block px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-bold mb-3"><i class="fa-solid fa-tag"></i> ${product.category}</span>` : ''}<div class="grid grid-cols-2 gap-3 mt-4"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-barcode"></i> SKU</div><div class="text-white font-bold text-sm truncate" dir="ltr">${product.sku || '-'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-cube"></i> الوحدة</div><div class="text-white font-bold text-sm">${product.unit || 'قطعة'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-boxes-stacked"></i> الكمية المتوفرة</div><div class="${isLowStock ? 'text-orange-400' : 'text-emerald-400'} font-bold text-sm">${product.qty}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-triangle-exclamation"></i> حد أدنى</div><div class="text-white font-bold text-sm">${product.minLimit || 10}</div></div></div></div></div><div class="mt-6"><h4 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-dollar-sign text-gold-400"></i> الأسعار بالعملات الثلاث</h4><div class="grid grid-cols-1 md:grid-cols-3 gap-4">${costCardHtml}<div class="bg-navy-900 rounded-2xl p-4 border-2 border-gold-500/40 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center"><i class="fa-solid fa-store"></i></div><span class="text-gold-400 font-bold text-sm">سعر المفرق</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-gold-400 mb-3">${formatMoney(retailUSD)}</div><div class="space-y-1.5 text-xs"><div class="text-emerald-400 font-bold">${formatSYPValue(retailNewSYP)} ل.س جديدة</div><div class="text-slate-400 font-bold">${formatSYPValue(retailOldSYP)} ل.س قديمة</div></div></div></div><div class="bg-navy-900 rounded-2xl p-4 border-2 border-purple-500/30 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-truck-fast"></i></div><span class="text-purple-400 font-bold text-sm">سعر الجملة</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-purple-400 mb-3">${formatMoney(wholesaleUSD)}</div><div class="space-y-1.5 text-xs"><div class="text-emerald-400 font-bold">${formatSYPValue(wholesaleNewSYP)} ل.س جديدة</div><div class="text-slate-400 font-bold">${formatSYPValue(wholesaleOldSYP)} ل.س قديمة</div></div></div></div></div></div>${product.notes ? `<div class="mt-6 bg-navy-900 rounded-2xl p-4 border border-navy-700"><div class="text-slate-400 text-xs mb-2 flex items-center gap-2"><i class="fa-solid fa-note-sticky text-gold-400"></i> ملاحظات</div><p class="text-white text-sm leading-relaxed">${product.notes}</p></div>` : ''}${product.barcode ? `<div class="mt-6 bg-white rounded-2xl p-4 border-2 border-navy-700"><div class="text-center mb-3 text-gray-500 text-xs font-bold uppercase tracking-wider">الباركود</div><div class="flex items-center justify-center min-h-[100px] overflow-hidden"><svg id="inquiryBarcodeSvg" class="max-w-full"></svg></div><div class="text-center mt-3 text-gray-900 font-bold tracking-wider text-sm" dir="ltr">${product.barcode}</div></div>` : ''}<div class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-3">${product.barcode ? `<button onclick="copyInquiryBarcode('${product.barcode}')" class="bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-copy"></i> نسخ الباركود</button>` : ''}<button onclick="openScanner('inquirySearch')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-camera"></i> مسح آخر</button><button onclick="jumpToPosFromInquiry(${product.id})" class="col-span-2 md:col-span-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"><i class="fa-solid fa-cart-plus"></i> إضافة للسلة</button></div></div></div>`;
             try { if (typeof JsBarcode !== 'undefined' && product.barcode) { JsBarcode('#inquiryBarcodeSvg', product.barcode, { format: 'CODE128', textMargin: 2, fontOptions: 'bold', width: 2, height: 80, displayValue: false, margin: 8 }); } } catch(e) {}
         }
         function copyInquiryBarcode(barcode) {
@@ -3142,31 +3137,118 @@
             } catch(e) {}
         }
 
-        // ✅ دالة التقارير: حساب جميع الفواتير + رسم بياني حقيقي للأداء الشهري
-        function renderReports() {
-            let totalRevenue = 0, totalCost = 0, totalProfit = 0;
-            // حساب الإيرادات والأرباح من جميع الفواتير
-            state.invoices.forEach(inv => {
-                const invTotal = parseFloat(inv.totalUSD) || 0;
-                const invProfit = parseFloat(inv.profit) || 0;
-                const invCost = invTotal - invProfit;
-                totalRevenue += invTotal;
-                totalProfit += invProfit;
-                totalCost += invCost;
+        // ============ التقارير المالية مع الفلاتر الزمنية ============
+        let currentReportFilter = '30d';
+        let currentReportDate = null;
+
+        function setReportFilter(type, customDate) {
+            currentReportFilter = type;
+            if (type === 'custom') {
+                const dateVal = customDate || document.getElementById('reportCustomDate').value;
+                if (!dateVal) { showToast('⚠️ اختر تاريخاً أولاً', 'warning'); return; }
+                currentReportDate = dateVal;
+                document.getElementById('reportCustomDateBox').classList.remove('hidden');
+                document.getElementById('reportCustomDateBox').classList.add('flex');
+            } else {
+                document.getElementById('reportCustomDateBox').classList.add('hidden');
+                document.getElementById('reportCustomDateBox').classList.remove('flex');
+            }
+            document.querySelectorAll('.report-filter-btn').forEach(btn => {
+                btn.className = 'report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 border border-navy-700 text-slate-300';
             });
-            // حساب المصروفات
-            let totalExpenses = state.expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+            const activeBtn = document.getElementById('repFilter' + (type === '24h' ? '24h' : type === '7d' ? '7d' : type === '30d' ? '30d' : type === '6m' ? '6m' : 'Custom'));
+            if (activeBtn) activeBtn.className = 'report-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-gold-500 text-navy-900 border border-gold-500';
+            renderReports();
+        }
+
+        function getReportDateRange() {
+            const now = new Date();
+            let start = null, end = null, label = '';
+            if (currentReportFilter === '24h') {
+                start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                end = now;
+                label = 'آخر 24 ساعة';
+            } else if (currentReportFilter === '7d') {
+                start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                end = now;
+                label = 'آخر أسبوع';
+            } else if (currentReportFilter === '30d') {
+                start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                end = now;
+                label = 'آخر شهر';
+            } else if (currentReportFilter === '6m') {
+                start = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+                end = now;
+                label = 'آخر 6 أشهر';
+            } else if (currentReportFilter === 'custom' && currentReportDate) {
+                start = new Date(currentReportDate + 'T00:00:00');
+                end = new Date(currentReportDate + 'T23:59:59');
+                label = 'يوم: ' + currentReportDate;
+            } else {
+                start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                end = now;
+                label = 'آخر شهر';
+            }
+            return { start, end, label };
+        }
+
+        function parseInvoiceDate(dateStr) {
+            if (!dateStr) return null;
+            const str = String(dateStr);
+            const match = str.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+            if (!match) return null;
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1;
+            let year = parseInt(match[3]);
+            if (year < 100) year += 2000;
+            const timeMatch = str.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(ص|م|AM|PM)?/i);
+            let hours = 0, minutes = 0, seconds = 0;
+            if (timeMatch) {
+                hours = parseInt(timeMatch[1]);
+                minutes = parseInt(timeMatch[2]);
+                seconds = timeMatch[3] ? parseInt(timeMatch[3]) : 0;
+                if (timeMatch[4] && (timeMatch[4] === 'م' || timeMatch[4].toUpperCase() === 'PM') && hours < 12) hours += 12;
+                if (timeMatch[4] && (timeMatch[4] === 'ص' || timeMatch[4].toUpperCase() === 'AM') && hours === 12) hours = 0;
+            }
+            return new Date(year, month, day, hours, minutes, seconds);
+        }
+
+        function filterByRange(items, dateField) {
+            const { start, end } = getReportDateRange();
+            return items.filter(item => {
+                const d = parseInvoiceDate(item[dateField]);
+                if (!d) return false;
+                return d >= start && d <= end;
+            });
+        }
+
+        function renderReports() {
+            const { label } = getReportDateRange();
+            const labelEl = document.getElementById('reportFilterLabel');
+            if (labelEl) labelEl.innerText = label;
+            const rangeEl = document.getElementById('reportActiveRange');
+            if (rangeEl) rangeEl.innerHTML = `<i class="fa-solid fa-circle-info text-gold-400"></i> يتم عرض البيانات للفترة: <span class="text-gold-400 font-bold">${label}</span>`;
+
+            const filteredInvoices = filterByRange(state.invoices, 'date');
+            const filteredExpenses = filterByRange(state.expenses, 'date');
+
+            let totalRevenue = 0, totalProfit = 0;
+            filteredInvoices.forEach(inv => {
+                totalRevenue += parseFloat(inv.totalUSD) || 0;
+                totalProfit += parseFloat(inv.profit) || 0;
+            });
+            let totalExpenses = filteredExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
             const netProfit = totalProfit - totalExpenses;
             const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
             document.getElementById('repTotalRevenue').innerText = formatMoney(totalRevenue);
             document.getElementById('repTotalRevenueSYP').innerText = formatSYP(totalRevenue * state.settings.exchangeRate);
             document.getElementById('repTotalProfit').innerText = formatMoney(totalProfit);
             document.getElementById('repProfitMargin').innerText = `${profitMargin.toFixed(1)}%`;
             document.getElementById('repTotalExpenses').innerText = formatMoney(totalExpenses);
-            document.getElementById('repExpensesCount').innerText = state.expenses.length;
+            document.getElementById('repExpensesCount').innerText = filteredExpenses.length;
             document.getElementById('repNetProfit').innerText = formatMoney(netProfit);
 
-            // رسم بياني حقيقي للأداء الشهري (آخر 6 أشهر)
             setTimeout(() => {
                 try {
                     const ctx = document.getElementById('monthlyPerformanceChart').getContext('2d');
@@ -3176,34 +3258,20 @@
                     const revenueData = [];
                     const expenseData = [];
                     const profitData = [];
-                    // آخر 6 أشهر
                     for (let i = 5; i >= 0; i--) {
                         const d = new Date();
                         d.setMonth(d.getMonth() - i);
                         const year = d.getFullYear();
                         const month = d.getMonth();
                         labels.push(monthNames[month] + ' ' + year);
-
-                        let monthRevenue = 0;
-                        let monthProfit = 0;
+                        let monthRevenue = 0, monthProfit = 0;
                         state.invoices.forEach(inv => {
-                            if (!inv.date) return;
-                            const dateStr = String(inv.date);
-                            let invDate = null;
-                            const match = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-                            if (match) {
-                                const day = parseInt(match[1]);
-                                const m = parseInt(match[2]) - 1;
-                                let y = parseInt(match[3]);
-                                if (y < 100) y += 2000;
-                                invDate = new Date(y, m, day);
-                            }
+                            const invDate = parseInvoiceDate(inv.date);
                             if (invDate && invDate.getFullYear() === year && invDate.getMonth() === month) {
                                 monthRevenue += parseFloat(inv.totalUSD) || 0;
                                 monthProfit += parseFloat(inv.profit) || 0;
                             }
                         });
-
                         let monthExpenses = 0;
                         state.expenses.forEach(e => {
                             if (!e.date) return;
@@ -3211,17 +3279,13 @@
                             if (parts.length === 3) {
                                 const y = parseInt(parts[0]);
                                 const m = parseInt(parts[1]) - 1;
-                                if (y === year && m === month) {
-                                    monthExpenses += parseFloat(e.amount) || 0;
-                                }
+                                if (y === year && m === month) monthExpenses += parseFloat(e.amount) || 0;
                             }
                         });
-
                         revenueData.push(monthRevenue);
                         expenseData.push(monthExpenses);
                         profitData.push(monthProfit - monthExpenses);
                     }
-
                     monthlyChartInstance = new Chart(ctx, {
                         type: 'bar',
                         data: {
@@ -3236,6 +3300,166 @@
                     });
                 } catch(e) {}
             }, 100);
+        }
+
+        function exportReportsExcel() {
+            if (typeof XLSX === 'undefined') { showToast('⚠️ مكتبة Excel غير محملة', 'warning'); return; }
+            const { label, start, end } = getReportDateRange();
+            const filteredInvoices = filterByRange(state.invoices, 'date');
+            const filteredExpenses = filterByRange(state.expenses, 'date');
+
+            if (filteredInvoices.length === 0 && filteredExpenses.length === 0) {
+                showToast('⚠️ لا توجد بيانات في هذه الفترة', 'warning');
+                return;
+            }
+
+            const workbook = XLSX.utils.book_new();
+
+            const infoData = [
+                ['تقرير مالي - ' + (state.settings.storeName || 'الحسن للمحاسبة')],
+                [''],
+                ['الفترة المختارة', label],
+                ['من', start.toLocaleString('ar-EG')],
+                ['إلى', end.toLocaleString('ar-EG')],
+                ['تاريخ التقرير', new Date().toLocaleString('ar-EG')],
+                [''],
+                ['عدد الفواتير', filteredInvoices.length],
+                ['عدد المصروفات', filteredExpenses.length],
+                ['إجمالي الإيرادات (دولار)', parseFloat(filteredInvoices.reduce((s, i) => s + (parseFloat(i.totalUSD) || 0), 0).toFixed(2))],
+                ['إجمالي الأرباح (دولار)', parseFloat(filteredInvoices.reduce((s, i) => s + (parseFloat(i.profit) || 0), 0).toFixed(2))],
+                ['إجمالي المصروفات (دولار)', parseFloat(filteredExpenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0).toFixed(2))],
+                ['صافي الربح (دولار)', parseFloat((filteredInvoices.reduce((s, i) => s + (parseFloat(i.profit) || 0), 0) - filteredExpenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0)).toFixed(2))],
+                ['سعر صرف الدولار (ل.س جديدة)', state.settings.exchangeRate || 0],
+                ['سعر صرف الدولار (ل.س قديمة)', state.settings.oldExchangeRate || 0]
+            ];
+            const infoSheet = XLSX.utils.aoa_to_sheet(infoData);
+            setColumnWidths(infoSheet, [40, 40]);
+            setRTLView(infoSheet);
+            XLSX.utils.book_append_sheet(workbook, infoSheet, 'ملخص التقرير');
+
+            if (filteredInvoices.length > 0) {
+                const invoiceHeaders = ['#', 'رقم الفاتورة', 'التاريخ', 'العميل', 'طريقة الدفع', 'نوع البيع', 'حالة الفاتورة', 'اسم المنتج', 'SKU', 'الباركود', 'الكمية', 'الوحدة', 'سعر الوحدة ($)', 'إجمالي الصنف ($)', 'تكلفة الوحدة ($)', 'إجمالي التكلفة ($)', 'ربح الصنف ($)', 'إجمالي الفاتورة ($)', 'الخصم (%)', 'ربح الفاتورة ($)', 'عدد القطع'];
+                const invoiceRows = [invoiceHeaders];
+                const sortedInvoices = [...filteredInvoices].sort((a, b) => String(b.id || '').localeCompare(String(a.id || '')));
+                let rowNum = 1;
+                sortedInvoices.forEach(inv => {
+                    const invoiceId = inv.id || '';
+                    const invoiceDate = inv.date || '';
+                    const customerName = inv.customerName || 'زبون نقدي';
+                    const paymentMethod = inv.paymentMethod || 'نقدي';
+                    const saleType = inv.isWholesale ? 'بيع جملة' : 'بيع مفرق';
+                    const status = inv.status === 'Pending' ? 'دين (غير مدفوع)' : 'مدفوع';
+                    const invoiceTotal = parseFloat((inv.totalUSD || 0).toFixed(2));
+                    const discountPercent = parseFloat(inv.discount || 0);
+                    const invoiceProfit = parseFloat((inv.profit || 0).toFixed(2));
+                    const itemsCount = inv.itemsCount || 0;
+                    if (Array.isArray(inv.items) && inv.items.length > 0) {
+                        inv.items.forEach(item => {
+                            const qty = parseFloat(item.qty || 0);
+                            const price = parseFloat((item.price || 0).toFixed(2));
+                            const cost = parseFloat((item.cost || 0).toFixed(2));
+                            invoiceRows.push([
+                                rowNum++, invoiceId, invoiceDate, customerName, paymentMethod, saleType, status,
+                                item.name || '', item.sku || '', item.barcode || '', qty, item.unit || 'قطعة',
+                                price, parseFloat((price * qty).toFixed(2)),
+                                cost, parseFloat((cost * qty).toFixed(2)),
+                                parseFloat(((price * qty) - (cost * qty)).toFixed(2)),
+                                invoiceTotal, discountPercent, invoiceProfit, itemsCount
+                            ]);
+                        });
+                    } else {
+                        invoiceRows.push([rowNum++, invoiceId, invoiceDate, customerName, paymentMethod, saleType, status, '(لا توجد أصناف)', '', '', 0, '', 0, 0, 0, 0, 0, invoiceTotal, discountPercent, invoiceProfit, itemsCount]);
+                    }
+                });
+                const invoiceSheet = XLSX.utils.aoa_to_sheet(invoiceRows);
+                setColumnWidths(invoiceSheet, [6, 16, 22, 16, 12, 12, 16, 22, 14, 16, 8, 10, 14, 14, 14, 14, 14, 14, 10, 14, 12]);
+                setRTLView(invoiceSheet);
+                XLSX.utils.book_append_sheet(workbook, invoiceSheet, 'الفواتير');
+            }
+
+            if (filteredExpenses.length > 0) {
+                const expenseHeaders = ['#', 'التصنيف', 'الوصف', 'المبلغ ($)', 'التاريخ', 'طريقة الدفع', 'ملاحظات'];
+                const expenseRows = [expenseHeaders];
+                filteredExpenses.forEach((e, i) => {
+                    expenseRows.push([i + 1, e.category || '', e.description || '', parseFloat((e.amount || 0).toFixed(2)), e.date || '', e.paymentMethod || 'نقدي', e.notes || '']);
+                });
+                const expenseSheet = XLSX.utils.aoa_to_sheet(expenseRows);
+                setColumnWidths(expenseSheet, [6, 14, 30, 14, 14, 14, 30]);
+                setRTLView(expenseSheet);
+                XLSX.utils.book_append_sheet(workbook, expenseSheet, 'المصروفات');
+            }
+
+            const fileName = `report_${currentReportFilter}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            if (saveExcelWorkbook(workbook, fileName)) {
+                showToast('✅ تم تصدير التقرير للفترة: ' + label, 'success');
+            }
+        }
+
+        function exportInventoryExcel() {
+            if (typeof XLSX === 'undefined') { showToast('⚠️ مكتبة Excel غير محملة', 'warning'); return; }
+            if (!Array.isArray(state.products) || state.products.length === 0) {
+                showToast('⚠️ لا توجد منتجات للتصدير', 'warning');
+                return;
+            }
+            try {
+                const workbook = XLSX.utils.book_new();
+                const headers = ['#', 'اسم المنتج', 'SKU', 'الباركود', 'التصنيف', 'الكمية المتبقية', 'الوحدة', 'الحد الأدنى', 'التكلفة ($)', 'سعر المفرق ($)', 'سعر الجملة ($)', 'إجمالي التكلفة ($)', 'إجمالي المفرق ($)', 'إجمالي الجملة ($)', 'ملاحظات'];
+                const rows = [headers];
+                let totalQty = 0, totalCost = 0, totalRetail = 0, totalWholesale = 0;
+                const sortedProducts = [...state.products].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+                sortedProducts.forEach((p, i) => {
+                    const qty = parseFloat(p.qty) || 0;
+                    const cost = parseFloat(p.cost) || 0;
+                    const retail = parseFloat(p.retailPrice) || 0;
+                    const wholesale = parseFloat(p.wholesalePrice) || 0;
+                    const rowCost = cost * qty;
+                    const rowRetail = retail * qty;
+                    const rowWholesale = wholesale * qty;
+                    totalQty += qty;
+                    totalCost += rowCost;
+                    totalRetail += rowRetail;
+                    totalWholesale += rowWholesale;
+                    rows.push([
+                        i + 1, p.name || '', p.sku || '', p.barcode || '', p.category || '',
+                        qty, p.unit || 'قطعة', parseFloat(p.minLimit || 10),
+                        parseFloat(cost.toFixed(2)), parseFloat(retail.toFixed(2)), parseFloat(wholesale.toFixed(2)),
+                        parseFloat(rowCost.toFixed(2)), parseFloat(rowRetail.toFixed(2)), parseFloat(rowWholesale.toFixed(2)),
+                        p.notes || ''
+                    ]);
+                });
+                rows.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+                rows.push(['الإجمالي', '', '', '', '', totalQty, '', '', '', '', '', parseFloat(totalCost.toFixed(2)), parseFloat(totalRetail.toFixed(2)), parseFloat(totalWholesale.toFixed(2)), '']);
+                const worksheet = XLSX.utils.aoa_to_sheet(rows);
+                setColumnWidths(worksheet, [6, 25, 14, 16, 14, 14, 10, 12, 14, 14, 14, 16, 16, 16, 25]);
+                setRTLView(worksheet);
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'المنتجات المتبقية');
+
+                const infoData = [
+                    ['تقرير المنتجات والمخزون - ' + (state.settings.storeName || 'الحسن للمحاسبة')],
+                    [''],
+                    ['تاريخ التقرير', new Date().toLocaleString('ar-EG')],
+                    ['عدد المنتجات', state.products.length],
+                    ['إجمالي القطع المتبقية', totalQty],
+                    ['إجمالي قيمة المخزون بالتكلفة ($)', parseFloat(totalCost.toFixed(2))],
+                    ['إجمالي قيمة المخزون بسعر المفرق ($)', parseFloat(totalRetail.toFixed(2))],
+                    ['إجمالي قيمة المخزون بسعر الجملة ($)', parseFloat(totalWholesale.toFixed(2))],
+                    [''],
+                    ['الربح المتوقع عند البيع بسعر المفرق ($)', parseFloat((totalRetail - totalCost).toFixed(2))],
+                    ['الربح المتوقع عند البيع بسعر الجملة ($)', parseFloat((totalWholesale - totalCost).toFixed(2))]
+                ];
+                const infoSheet = XLSX.utils.aoa_to_sheet(infoData);
+                setColumnWidths(infoSheet, [45, 40]);
+                setRTLView(infoSheet);
+                XLSX.utils.book_append_sheet(workbook, infoSheet, 'ملخص المخزون');
+
+                const fileName = `inventory_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                if (saveExcelWorkbook(workbook, fileName)) {
+                    showToast('✅ تم تصدير المنتجات والمخزون بصيغة Excel', 'success');
+                }
+            } catch (err) {
+                console.error('Export Inventory error:', err);
+                showToast('❌ فشل التصدير: ' + (err.message || 'خطأ غير معروف'), 'error');
+            }
         }
 
         let html5QrCode = null;
