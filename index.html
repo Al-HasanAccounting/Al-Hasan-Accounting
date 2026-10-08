@@ -430,12 +430,12 @@
         <div id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
         <aside id="appSidebar" class="w-64 bg-gradient-to-b from-navy-900 to-navy-800 border-l border-navy-700 flex flex-col no-print shadow-2xl z-20">
             <div class="p-5 flex items-center gap-3 border-b border-navy-700 bg-navy-900/50">
-                <img id="sidebarLogo" src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Logo" class="w-12 h-12 rounded-xl shadow-lg object-cover border border-navy-600">
-                <div class="min-w-0 flex-1">
-                    <h1 id="sidebarStoreName" class="text-sm font-bold text-gold-400 leading-tight truncate">الحسن</h1>
-                    <span id="sidebarStoreSub" class="text-xs text-slate-400 truncate block">للمحاسبة</span>
-                </div>
-            </div>
+    <img id="sidebarLogo" src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Logo" class="w-12 h-12 rounded-xl shadow-lg object-cover border border-navy-600">
+    <div class="min-w-0 flex-1">
+        <h1 id="sidebarStoreName" class="font-bold text-gold-400 leading-tight truncate" style="font-size: 1rem;">الحسن</h1>
+        <span id="sidebarStoreSub" class="font-semibold text-slate-300 truncate block" style="font-size: 0.875rem; line-height: 1.4;">للمحاسبة</span>
+    </div>
+</div>
             <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
                 <div>
                     <p class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">الرئيسية</p>
@@ -1251,34 +1251,44 @@
 
         // ========== دوال الهوية التجارية ==========
         function updateSidebarIdentity() {
-            try {
-                const logoEl = document.getElementById('sidebarLogo');
-                const nameEl = document.getElementById('sidebarStoreName');
-                const subEl = document.getElementById('sidebarStoreSub');
-                
-                if (nameEl) {
-                    const fullName = (state.settings.storeName || 'الحسن للمحاسبة').trim();
-                    const parts = fullName.split(' ').filter(p => p.length > 0);
-                    if (parts.length >= 2) {
-                        nameEl.innerText = parts[0];
-                        subEl.innerText = parts.slice(1).join(' ');
-                    } else {
-                        nameEl.innerText = fullName;
-                        subEl.innerText = 'للمحاسبة';
-                    }
-                }
-                
-                if (logoEl) {
-                    const customLogo = state.settings.storeLogo;
-                    if (customLogo && typeof customLogo === 'string' && customLogo.length > 0) {
-                        logoEl.src = customLogo;
-                    } else {
-                        logoEl.src = 'icon.png';
-                    }
-                    logoEl.onerror = function() { this.src = 'https://img.icons8.com/fluency/96/accounting.png'; };
-                }
-            } catch (e) { console.warn('updateSidebarIdentity error:', e); }
+    try {
+        const logoEl = document.getElementById('sidebarLogo');
+        const nameEl = document.getElementById('sidebarStoreName');
+        const subEl = document.getElementById('sidebarStoreSub');
+        
+        if (nameEl && subEl) {
+            const fullName = (state.settings.storeName || 'الحسن للمحاسبة').trim();
+            const parts = fullName.split(/\s+/).filter(p => p.length > 0);
+            
+            if (parts.length >= 3) {
+                // 3 كلمات أو أكثر: أول كلمتين في السطر الأول، والباقي في السطر الثاني
+                nameEl.innerText = parts[0] + ' ' + parts[1];
+                subEl.innerText = parts.slice(2).join(' ');
+            } else if (parts.length === 2) {
+                // كلمتان: الأولى ذهبية، الثانية فضية
+                nameEl.innerText = parts[0];
+                subEl.innerText = parts[1];
+            } else if (parts.length === 1) {
+                // كلمة واحدة: تُعرض في السطر الأول، ويظهر "للمحاسبة" تحت
+                nameEl.innerText = parts[0];
+                subEl.innerText = 'للمحاسبة';
+            } else {
+                nameEl.innerText = 'الحسن';
+                subEl.innerText = 'للمحاسبة';
+            }
         }
+        
+        if (logoEl) {
+            const customLogo = state.settings.storeLogo;
+            if (customLogo && typeof customLogo === 'string' && customLogo.length > 0) {
+                logoEl.src = customLogo;
+            } else {
+                logoEl.src = 'icon.png';
+            }
+            logoEl.onerror = function() { this.src = 'https://img.icons8.com/fluency/96/accounting.png'; };
+        }
+    } catch (e) { console.warn('updateSidebarIdentity error:', e); }
+}
 
         function updateStoreLogoPreview() {
             const preview = document.getElementById('storeLogoPreview');
