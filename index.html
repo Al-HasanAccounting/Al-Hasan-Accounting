@@ -356,6 +356,10 @@
 </head>
 <body>
     <div id="toastContainer" class="fixed top-1/2 left-1/2 z-[10001] flex flex-col items-center gap-3 pointer-events-none" style="transform: translate(-50%, -50%);"></div>
+    <!-- زر تحديث عائم -->
+<button onclick="forceReloadApp()" id="floatingReloadBtn" title="تحديث التطبيق" class="fixed bottom-6 left-6 z-[9998] w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 active:scale-95 text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 no-print" style="box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);">
+    <i class="fa-solid fa-arrows-rotate text-lg"></i>
+</button>
 
     <div id="splash-screen">
         <img src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Logo" class="w-32 h-32 mb-6 rounded-3xl shadow-2xl object-cover">
@@ -453,6 +457,7 @@
                     <div class="nav-item active flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('dashboard', this)"><i class="fa-solid fa-chart-pie w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">لوحة التحكم</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('pos', this)"><i class="fa-solid fa-cash-register w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">نقطة البيع (POS)</span></div>
                 </div>
+                <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors" onclick="forceReloadApp()"><i class="fa-solid fa-arrows-rotate w-5 text-center"></i><span class="font-semibold text-sm">تحديث</span></div>
                 <div>
                     <p class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">المبيعات والمخزون</p>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('inventory', this)"><i class="fa-solid fa-boxes-stacked w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">المنتجات والمخزون</span></div>
@@ -2003,7 +2008,68 @@
             errorText.innerText = 'اسم المستخدم أو كلمة المرور غير صحيحة';
             showToast('❌ بيانات الدخول غير صحيحة', 'warning');
         }
-
+// ========== إعادة تحميل التطبيق وتحديث الكاش (بدون تأكيد) ==========
+function forceReloadApp() {
+    try {
+        showToast('⏳ جاري تحديث التطبيق...', 'info');
+    } catch(e) {}
+    
+    // تدوير الأيقونات إن وُجدت
+    try {
+        const icons = [
+            document.getElementById('reloadIconSidebar'),
+            document.getElementById('floatingReloadIcon')
+        ];
+        icons.forEach(icon => {
+            if (icon) {
+                icon.style.transition = 'transform 0.6s linear';
+                icon.style.transform = 'rotate(360deg)';
+            }
+        });
+    } catch(e) {}
+    
+    // تجهيز إعادة التحميل
+    let reloadStarted = false;
+    const doReload = () => {
+        if (reloadStarted) return;
+        reloadStarted = true;
+        try {
+            window.location.reload();
+        } catch(e) {
+            try { window.location.href = window.location.href; } catch(e2) {}
+        }
+    };
+    
+    // محاولة مسح الكاش وService Worker (بدون انتظار النتيجة)
+    try {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                regs.forEach(reg => { try { reg.unregister(); } catch(e) {} });
+            }).catch(() => {});
+        }
+    } catch(e) {}
+    
+    try {
+        if ('caches' in window && caches.keys) {
+            caches.keys().then(names => {
+                names.forEach(name => { try { caches.delete(name); } catch(e) {} });
+            }).catch(() => {});
+        }
+    } catch(e) {}
+    
+    try { localStorage.removeItem('app_version'); } catch(e) {}
+    
+    // إعادة التحميل بعد 600ms (بغض النظر عن نجاح العمليات السابقة)
+    setTimeout(() => {
+        try {
+            showToast('✅ جاري إعادة التحميل...', 'success');
+        } catch(e) {}
+        setTimeout(doReload, 400);
+    }, 600);
+    
+    // شبكة أمان: إعادة تحميل إجبارية بعد 2.5 ثانية
+    setTimeout(doReload, 2500);
+}
         function logout() {
             if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
                 sessionStorage.removeItem('alhasan_logged_in');
