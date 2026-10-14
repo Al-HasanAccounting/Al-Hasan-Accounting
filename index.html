@@ -156,14 +156,48 @@ input[type="number"]:focus {
         #reader video { width: 100% !important; height: auto !important; border-radius: 12px; }
         #reader__scan_region { min-height: 250px; }
         #reader__dashboard { display: none !important; }
-        @page { size: auto; margin: 0; }
+        /* ===== طباعة الفاتورة على طابعة حرارية 80mm (مساحة الطباعة الفعلية 72mm) ===== */
+        @page { size: auto; size: 72mm auto; margin: 0; }
         @media print {
-            body * { visibility: hidden; }
+            html, body { width: 72mm !important; max-width: 72mm !important; margin: 0 !important; padding: 0 !important; height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; }
+            body > *:not(#receiptModal) { display: none !important; }
+            #receiptModal { position: static !important; display: block !important; width: 72mm !important; max-width: 72mm !important; height: auto !important; margin: 0 !important; padding: 0 1.5mm !important; background: #fff !important; backdrop-filter: none !important; box-sizing: border-box !important; overflow: visible !important; }
             #receiptModal, #receiptModal * { visibility: visible; }
-            #receiptModal { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; background: white !important; padding: 12mm 10mm !important; display: block !important; backdrop-filter: none !important; box-sizing: border-box !important; }
-            #receiptModal > div { max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
+            #receiptModal * { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; }
             .no-print, #receiptModal .no-print { display: none !important; }
             aside, header, .sidebar, .nav-item { display: none !important; }
+
+            #receiptModal .rc-card { width: 100% !important; max-width: 100% !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; margin: 0 !important; }
+
+            #receiptModal .rc-head { padding: 1mm 0 1.2mm !important; text-align: center; }
+            #receiptModal .rc-logo { width: 11mm !important; height: 11mm !important; margin: 0 auto 0.8mm !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; display: block; }
+            #receiptModal .rc-name { font-size: 12pt !important; line-height: 1.25 !important; margin: 0 0 0.4mm !important; font-weight: 800 !important; word-break: break-word; }
+            #receiptModal .rc-sub { font-size: 8pt !important; line-height: 1.2 !important; margin: 0 !important; }
+
+            #receiptModal .rc-meta { padding: 1mm 0 !important; border-top: 1px dashed #000 !important; border-bottom: 1px dashed #000 !important; border-left: 0 !important; border-right: 0 !important; }
+            #receiptModal .rc-meta .grid { gap: 0.8mm 2mm !important; }
+            #receiptModal .rc-meta * { font-size: 8pt !important; line-height: 1.3 !important; word-break: break-word; }
+            #receiptModal .rc-meta .mb-1 { margin-bottom: 0 !important; }
+            #receiptModal .rc-meta .text-gray-500 { font-size: 7pt !important; }
+
+            #receiptModal .rc-items { padding: 1mm 0 !important; max-height: none !important; overflow: visible !important; }
+            #receiptModal .rc-items table { width: 100% !important; table-layout: auto; border-collapse: collapse; }
+            #receiptModal .rc-items th { font-size: 7.5pt !important; padding: 0.6mm 0.5mm !important; line-height: 1.2 !important; border-bottom: 1px solid #000 !important; white-space: nowrap; }
+            #receiptModal .rc-items td { font-size: 8pt !important; padding: 0.8mm 0.5mm !important; line-height: 1.25 !important; border-bottom: 0.5px dotted #000 !important; vertical-align: top; }
+            #receiptModal .rc-items td:first-child { word-break: break-word; }
+            #receiptModal .rc-items td:not(:first-child) { white-space: nowrap; }
+            #receiptModal .rc-items tr { break-inside: avoid; page-break-inside: avoid; border: 0 !important; }
+
+            #receiptModal .rc-totals { padding: 1mm 0 !important; border-top: 1px dashed #000 !important; border-bottom: 0 !important; break-inside: avoid; page-break-inside: avoid; }
+            #receiptModal .rc-totals .text-sm { font-size: 8pt !important; }
+            #receiptModal .rc-totals .mb-2 { margin-bottom: 0.6mm !important; }
+            #receiptModal .rc-totals .border-t { margin: 0.8mm 0 !important; border-top: 1px solid #000 !important; }
+            #receiptModal .rc-total-row { margin: 0 !important; }
+            #receiptModal .rc-total-row span:first-child { font-size: 10pt !important; font-weight: 800 !important; }
+            #receiptModal #receiptTotal { font-size: 13pt !important; line-height: 1.2 !important; font-weight: 800 !important; }
+
+            #receiptModal .rc-foot { padding: 1.2mm 0 4mm !important; border-top: 1px dashed #000 !important; text-align: center; break-inside: avoid; page-break-inside: avoid; }
+            #receiptModal .rc-foot p { font-size: 7.5pt !important; line-height: 1.3 !important; margin: 0 !important; }
         }
         * { -webkit-tap-highlight-color: transparent; }
         .mobile-menu-btn { display: none !important; }
@@ -1198,13 +1232,13 @@ input[type="number"]:focus {
         </div>
     </div>
     <div id="receiptModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
-        <div class="bg-white text-black rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
-            <div class="bg-gradient-to-r from-navy-900 to-navy-800 p-4 text-center">
-                <img id="receiptStoreLogo" src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Store Logo" class="w-16 h-16 mx-auto mb-2 rounded-xl shadow-lg object-contain border-2 border-gold-500/40 bg-navy-900 p-1">
-                <h2 id="receiptStoreName" class="text-xl font-bold text-gold-400 mb-1">اسم المتجر</h2>
-                <p class="text-slate-400 text-xs" id="receiptStoreInfo">فاتورة مبيعات</p>
+        <div class="rc-card bg-white text-black rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
+            <div class="rc-head bg-gradient-to-r from-navy-900 to-navy-800 p-4 text-center">
+                <img id="receiptStoreLogo" src="icon.png" onerror="this.src='https://img.icons8.com/fluency/96/accounting.png'" alt="Store Logo" class="rc-logo w-16 h-16 mx-auto mb-2 rounded-xl shadow-lg object-contain border-2 border-gold-500/40 bg-navy-900 p-1">
+                <h2 id="receiptStoreName" class="rc-name text-xl font-bold text-gold-400 mb-1">اسم المتجر</h2>
+                <p class="rc-sub text-slate-400 text-xs" id="receiptStoreInfo">فاتورة مبيعات</p>
             </div>
-            <div class="p-5 border-b border-dashed border-gray-300 bg-gray-50">
+            <div class="rc-meta p-5 border-b border-dashed border-gray-300 bg-gray-50">
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div><div class="text-gray-500 text-xs mb-1">رقم الفاتورة</div><div class="font-bold text-gray-900" id="receiptInvoiceId">-</div></div>
                     <div class="text-left"><div class="text-gray-500 text-xs mb-1">التاريخ</div><div class="font-bold text-gray-900 text-xs" id="receiptDate">-</div></div>
@@ -1212,18 +1246,13 @@ input[type="number"]:focus {
                     <div class="text-left"><div class="text-gray-500 text-xs mb-1">طريقة الدفع</div><div class="font-bold text-gray-900" id="receiptPayment">-</div></div>
                 </div>
             </div>
-            <div class="p-5 max-h-60 overflow-y-auto"><table class="w-full text-sm"><thead><tr class="border-b-2 border-gray-300"><th class="text-right py-2 text-gray-600 font-semibold">الصنف</th><th class="text-center py-2 text-gray-600 font-semibold">الكمية</th><th class="text-center py-2 text-gray-600 font-semibold">السعر</th><th class="text-left py-2 text-gray-600 font-semibold">الإجمالي</th></tr></thead><tbody id="receiptItems"></tbody></table></div>
-            <div class="p-5 bg-gray-50 border-t-2 border-dashed border-gray-300">
-                <div class="flex justify-between items-center mb-2 text-sm"><span class="text-gray-600">المجموع:</span><span class="font-bold text-gray-900" id="receiptSubtotal">$0.00</span></div>
+            <div class="rc-items p-5 max-h-60 overflow-y-auto"><table class="w-full text-sm"><thead><tr class="border-b-2 border-gray-300"><th class="text-right py-2 text-gray-600 font-semibold">الصنف</th><th class="text-center py-2 text-gray-600 font-semibold">الكمية</th><th class="text-center py-2 text-gray-600 font-semibold">السعر</th><th class="text-left py-2 text-gray-600 font-semibold">الإجمالي</th></tr></thead><tbody id="receiptItems"></tbody></table></div>
+            <div class="rc-totals p-5 bg-gray-50 border-t-2 border-dashed border-gray-300">
                 <div id="receiptDiscountRow" class="flex justify-between items-center mb-2 text-sm hidden"><span class="text-gray-600">الخصم (<span id="receiptDiscountPercent">0</span>%):</span><span class="font-bold text-red-600" id="receiptDiscount">-$0.00</span></div>
                 <div class="border-t border-gray-300 my-3"></div>
-                <div class="flex justify-between items-center mb-3"><span class="text-gray-900 font-bold text-base">الإجمالي:</span><span class="text-navy-900 font-bold text-2xl" id="receiptTotal">$0.00</span></div>
-                <div class="bg-white rounded-xl p-3 border border-gray-200 space-y-2">
-                    <div class="flex justify-between items-center text-sm"><span class="text-gray-600"><i class="fa-solid fa-coins text-gold-500 ml-1"></i> بالليرة الجديدة:</span><span class="font-bold text-emerald-600" id="receiptTotalNewSYP">0 ل.س</span></div>
-                    <div class="flex justify-between items-center text-sm"><span class="text-gray-600"><i class="fa-solid fa-coins text-gray-400 ml-1"></i> بالليرة القديمة:</span><span class="font-bold text-gray-600" id="receiptTotalOldSYP">0 ل.س</span></div>
-                </div>
+                <div class="rc-total-row flex justify-between items-center"><span class="text-gray-900 font-bold text-base">الإجمالي:</span><span class="text-navy-900 font-bold text-2xl" id="receiptTotal">$0.00</span></div>
             </div>
-            <div class="p-4 text-center border-t border-gray-200 bg-gray-50"><p class="text-gray-500 text-xs mb-1">شكراً لتعاملكم معنا!</p><p class="text-gray-400 text-xs" id="receiptStorePhone">-</p></div>
+            <div class="rc-foot p-4 text-center border-t border-gray-200 bg-gray-50"><p class="text-gray-500 text-xs mb-1">شكراً لتعاملكم معنا!</p><p class="text-gray-400 text-xs" id="receiptStorePhone">-</p></div>
             <div class="flex gap-2 p-4 no-print bg-white"><button onclick="printReceipt()" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i class="fa-solid fa-print"></i> طباعة</button><button onclick="closeModal('receiptModal')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl">إغلاق</button></div>
         </div>
     </div>
@@ -3065,7 +3094,6 @@ input[type="number"]:focus {
             const discountAmountUSD = subtotalUSD * (discountPercent / 100);
             const finalTotalUSD = invoice.totalUSD || (subtotalUSD - discountAmountUSD);
             const invoiceCurrency = invoice.invoiceCurrency || 'USD';
-            document.getElementById('receiptSubtotal').innerText = formatMoney(subtotalUSD);
             const discountRow = document.getElementById('receiptDiscountRow');
             if (discountPercent > 0) {
                 discountRow.classList.remove('hidden');
@@ -3078,8 +3106,6 @@ input[type="number"]:focus {
             } else {
                 document.getElementById('receiptTotal').innerText = formatMoney(finalTotalUSD);
             }
-            document.getElementById('receiptTotalNewSYP').innerText = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(finalTotalUSD * state.settings.exchangeRate) + ' ل.س جديدة';
-            document.getElementById('receiptTotalOldSYP').innerText = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(finalTotalUSD * state.settings.oldExchangeRate) + ' ل.س قديمة';
             openModal('receiptModal');
         }
 
