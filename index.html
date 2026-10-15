@@ -1382,6 +1382,18 @@ input[type="number"]:focus {
         </div>
     </div>
 
+    <div id="subRenewedModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[10000] backdrop-blur-sm p-4">
+        <div class="bg-navy-800 p-6 rounded-2xl w-full max-w-md border-2 border-emerald-500 shadow-2xl text-center">
+            <div class="w-20 h-20 mx-auto mb-4 bg-emerald-500 rounded-full flex items-center justify-center text-white text-4xl shadow-lg"><i class="fa-solid fa-circle-check"></i></div>
+            <h3 class="text-2xl font-bold text-emerald-400 mb-2">تم تمديد اشتراكك بنجاح 🎉</h3>
+            <p class="text-slate-300 text-sm mb-5">تم تمديد اشتراكك في تطبيق الحسن للمحاسبة</p>
+            <div class="grid grid-cols-2 gap-3 mb-5">
+                <div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1">تاريخ الانتهاء الجديد</div><div id="subRenewedEndDate" class="text-gold-400 font-bold">-</div></div>
+                <div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1">الأيام المتبقية</div><div id="subRenewedDays" class="text-emerald-400 font-bold">-</div></div>
+            </div>
+            <button onclick="closeModal('subRenewedModal')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg">حسناً</button>
+        </div>
+    </div>
     <script>
     (function registerPWAServiceWorker() {
         if (!('serviceWorker' in navigator)) return;
@@ -2118,14 +2130,360 @@ input[type="number"]:focus {
             });
         }
 
-        function saveStateToCloud() {
+        // ========== مزامنة السحابة الآمنة ==========
+        // (حفظ مؤكد + منع الكتابة فوق بيانات أحدث + حذف نهائي للفواتير + تحديث الاشتراك مباشرة)
+        const SYNC_SESSION_ID = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+        const CLOUD_DIRTY_KEY = 'alhasan_cloud_dirty';
+        const PENDING_TOMBS_KEY = 'alhasan_pending_tombstones';
+        let cloudPendingWrites = 0;
+        let lastKnownCloudRev = 0;
+        let lastCloudErrorToastAt = 0;
+        let cloudRetryTimer = null;
+        let stateListenerRef = null, stateListenerFn = null, stateListenerScope = null;
+        let tombListenerRef = null, tombListenerFn = null, tombListenerScope = null;
+        let subListenerRef = null, subListenerFn = null;
+        let invoiceTombstones = {};
+        let tombScope = null;
+
+        function getScopeKey() {
+            if (isMasterUser()) return 'main';
+            if (isClientUser()) {
+                const k = localStorage.getItem('alhasan_client_db_key');
+                if (k) return 'c_' + k;
+            }
+            return 'main';
+        }
+        function setCloudDirty(on) {
             try {
-                const plainData = JSON.parse(JSON.stringify(state));
-                plainData.cart = [];
-                const ref = getActiveRef();
-                return ref.set(plainData).then(() => {}).catch((error) => {});
+                if (on) localStorage.setItem(CLOUD_DIRTY_KEY, JSON.stringify({ scope: getScopeKey(), rev: parseInt(state._rev) || 0, at: parseInt(state._savedAt) || Date.now() }));
+                else localStorage.removeItem(CLOUD_DIRTY_KEY);
             } catch(e) {}
         }
+        function getCloudDirty() {
+            try { return safeJsonParse(localStorage.getItem(CLOUD_DIRTY_KEY), null); } catch(e) { return null; }
+        }
+        function notifyCloudSaveFailure() {
+            try {
+                const now = Date.now();
+                if (now - lastCloudErrorToastAt > 15000) {
+                    lastCloudErrorToastAt = now;
+                    showToast('⚠️ تعذّر حفظ التغييرات على السحابة، سنعيد المحاولة تلقائياً', 'warning');
+                }
+            } catch(e) {}
+        }
+        function scheduleCloudRetry() {
+            if (cloudRetryTimer) return;
+            cloudRetryTimer = setTimeout(function() {
+                cloudRetryTimer = null;
+                const d = getCloudDirty();
+                if (cloudPendingWrites === 0 && d && d.scope === getScopeKey()) { try { saveStateToCloud(); } catch(e) {} }
+            }, 8000);
+        }
+        window.addEventListener('online', function() {
+            try {
+                const d = getCloudDirty();
+                if (cloudPendingWrites === 0 && d && d.scope === getScopeKey()) saveStateToCloud();
+                flushPendingTombstones();
+            } catch(e) {}
+        });
+
+        function saveStateToCloud() {
+            try {
+                state._rev = Math.max(parseInt(state._rev) || 0, lastKnownCloudRev) + 1;
+                lastKnownCloudRev = state._rev;
+                state._savedAt = Date.now();
+                state._writer = SYNC_SESSION_ID;
+                const json = JSON.stringify(state);
+                try { localStorage.setItem('ALHASAN_ACCOUNTING', json); } catch(e) {}
+                const plainData = JSON.parse(json);
+                plainData.cart = [];
+                setCloudDirty(true);
+                cloudPendingWrites++;
+                return getActiveRef().set(plainData).then(function() {
+                    cloudPendingWrites = Math.max(0, cloudPendingWrites - 1);
+                    if (cloudPendingWrites === 0) setCloudDirty(false);
+                }).catch(function(error) {
+                    cloudPendingWrites = Math.max(0, cloudPendingWrites - 1);
+                    notifyCloudSaveFailure(error);
+                    scheduleCloudRetry();
+                });
+            } catch(e) {
+                try { notifyCloudSaveFailure(e); } catch(e2) {}
+            }
+        }
+        // إذا كان هناك تعديل محلي لم يصل للسحابة (انقطاع/إغلاق) وأحدث من نسخة السحابة: نحتفظ به ونرفعه بدل أن نخسره
+        function shouldKeepLocalOverCloud(cloudData) {
+            try {
+                const dirty = getCloudDirty();
+                if (!dirty || dirty.scope !== getScopeKey()) return false;
+                if ((parseInt(state._rev) || 0) !== (parseInt(dirty.rev) || 0)) return false;
+                return (parseInt(state._savedAt) || 0) > (parseInt(cloudData._savedAt) || 0);
+            } catch(e) { return false; }
+        }
+        function keepLocalStateAndPush(cloudData) {
+            state.cart = [];
+            lastKnownCloudRev = Math.max(lastKnownCloudRev, parseInt(cloudData._rev) || 0);
+            try { mergeEmbeddedTombstones(); } catch(e) {}
+            saveStateToCloud();
+        }
+
+        // ---------- الحذف النهائي للفواتير (شواهد الحذف) ----------
+        function ensureTombScope() {
+            const sc = getScopeKey();
+            if (tombScope !== sc) { tombScope = sc; invoiceTombstones = {}; }
+        }
+        function tombKeyFor(id, stamp) { return encodeKey(String(id) + '__' + String(stamp || '')); }
+        function mergeEmbeddedTombstones() {
+            ensureTombScope();
+            if (!state || !Array.isArray(state.deletedInvoices)) return;
+            state.deletedInvoices.forEach(function(t) {
+                if (!t || !t.id) return;
+                const key = t.key || tombKeyFor(t.id, t.iso || t.date);
+                if (!invoiceTombstones[key]) invoiceTombstones[key] = { id: String(t.id), iso: t.iso || '', date: t.date || '', at: t.at || 0 };
+            });
+        }
+        function syncEmbeddedTombstones() {
+            state.deletedInvoices = Object.keys(invoiceTombstones).map(function(k) {
+                return Object.assign({ key: k }, invoiceTombstones[k]);
+            }).sort(function(a, b) { return (a.at || 0) - (b.at || 0); }).slice(-500);
+        }
+        function isInvoiceTombstoned(inv, byId) {
+            if (!inv) return false;
+            const list = byId[String(inv.id)];
+            if (!list) return false;
+            return list.some(function(t) {
+                return (inv.isoDate && t.iso && inv.isoDate === t.iso) || (inv.date && t.date && inv.date === t.date) || (!t.iso && !t.date);
+            });
+        }
+        function isDebtTombstoned(d, byId) {
+            if (!d || d.invoiceId === undefined || d.invoiceId === null) return false;
+            const list = byId[String(d.invoiceId)];
+            if (!list) return false;
+            return list.some(function(t) {
+                return (d.isoDate && t.iso && d.isoDate === t.iso) || (d.date && t.date && d.date === t.date) || (!t.iso && !t.date);
+            });
+        }
+        function purgeDeletedFromState() {
+            ensureTombScope();
+            const keys = Object.keys(invoiceTombstones);
+            if (keys.length === 0) return 0;
+            const byId = {};
+            keys.forEach(function(k) { const t = invoiceTombstones[k]; (byId[String(t.id)] = byId[String(t.id)] || []).push(t); });
+            let removed = 0;
+            if (Array.isArray(state.invoices) && state.invoices.length) {
+                const before = state.invoices.length;
+                state.invoices = state.invoices.filter(function(inv) { return !isInvoiceTombstoned(inv, byId); });
+                removed += before - state.invoices.length;
+            }
+            if (Array.isArray(state.debtInvoices) && state.debtInvoices.length) {
+                const before = state.debtInvoices.length;
+                state.debtInvoices = state.debtInvoices.filter(function(d) { return !isDebtTombstoned(d, byId); });
+                removed += before - state.debtInvoices.length;
+            }
+            return removed;
+        }
+        function queuePendingTombstone(scope, key, t) {
+            try {
+                const list = safeJsonParse(localStorage.getItem(PENDING_TOMBS_KEY), []);
+                const arr = Array.isArray(list) ? list : [];
+                if (!arr.some(function(x) { return x && x.scope === scope && x.key === key; })) arr.push({ scope: scope, key: key, t: t });
+                localStorage.setItem(PENDING_TOMBS_KEY, JSON.stringify(arr.slice(-200)));
+            } catch(e) {}
+        }
+        function writeTombstoneToCloud(scope, key, t) {
+            try {
+                db.ref('appData/deletedInvoices/' + scope + '/' + key).set(t).catch(function() { queuePendingTombstone(scope, key, t); });
+            } catch(e) { queuePendingTombstone(scope, key, t); }
+        }
+        function flushPendingTombstones() {
+            try {
+                const list = safeJsonParse(localStorage.getItem(PENDING_TOMBS_KEY), []);
+                if (!Array.isArray(list) || list.length === 0) return;
+                localStorage.removeItem(PENDING_TOMBS_KEY);
+                list.forEach(function(x) { if (x && x.scope && x.key && x.t) writeTombstoneToCloud(x.scope, x.key, x.t); });
+            } catch(e) {}
+        }
+        function registerInvoiceTombstone(inv) {
+            if (!inv) return;
+            ensureTombScope();
+            const key = tombKeyFor(inv.id, inv.isoDate || inv.date);
+            const t = { id: String(inv.id), iso: inv.isoDate || '', date: inv.date || '', at: Date.now() };
+            invoiceTombstones[key] = t;
+            syncEmbeddedTombstones();
+            writeTombstoneToCloud(getScopeKey(), key, t);
+        }
+        function handleTombstoneSnapshot(snap) {
+            try {
+                if (getScopeKey() !== tombListenerScope) return;
+                const t = snap.val();
+                if (!t || typeof t !== 'object' || !t.id) return;
+                ensureTombScope();
+                if (!invoiceTombstones[snap.key]) invoiceTombstones[snap.key] = { id: String(t.id), iso: t.iso || '', date: t.date || '', at: t.at || 0 };
+                if (purgeDeletedFromState() > 0) {
+                    syncEmbeddedTombstones();
+                    saveStateToCloud();
+                    refreshAfterRemoteChange();
+                }
+            } catch(e) {}
+        }
+        function attachTombstoneListener() {
+            const scope = getScopeKey();
+            if (tombListenerRef && tombListenerScope === scope) return;
+            detachTombstoneListener();
+            ensureTombScope();
+            try {
+                tombListenerScope = scope;
+                tombListenerRef = db.ref('appData/deletedInvoices/' + scope);
+                tombListenerFn = tombListenerRef.on('child_added', handleTombstoneSnapshot, function() {});
+            } catch(e) { tombListenerRef = null; tombListenerFn = null; }
+        }
+        function detachTombstoneListener() {
+            try { if (tombListenerRef && tombListenerFn) tombListenerRef.off('child_added', tombListenerFn); } catch(e) {}
+            tombListenerRef = null; tombListenerFn = null; tombListenerScope = null;
+        }
+        function finalizeAdoptedState() {
+            try {
+                lastKnownCloudRev = Math.max(lastKnownCloudRev, parseInt(state._rev) || 0);
+                if (!Array.isArray(state.deletedInvoices)) state.deletedInvoices = [];
+                mergeEmbeddedTombstones();
+                syncEmbeddedTombstones();
+                if (purgeDeletedFromState() > 0) {
+                    try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+                    saveStateToCloud();
+                }
+            } catch(e) {}
+        }
+
+        // ---------- متابعة التغييرات القادمة من أجهزة أخرى (حتى لا تُكتب نسخة قديمة فوق الجديدة) ----------
+        function refreshAfterRemoteChange() {
+            try {
+                if (isMasterUser()) {
+                    const ap = document.getElementById('adminPanel');
+                    if (ap && ap.classList.contains('active')) renderAdminPanel();
+                    return;
+                }
+                const appEl = document.getElementById('app');
+                if (appEl && appEl.classList.contains('active')) renderAll();
+            } catch(e) {}
+        }
+        function handleRemoteStateSnapshot(snap) {
+            try {
+                if (getScopeKey() !== stateListenerScope) return;
+                const remote = normalizeCloudData(snap.val());
+                if (!remote || typeof remote !== 'object') return;
+                const remoteRev = parseInt(remote._rev) || 0;
+                if (remoteRev > lastKnownCloudRev) lastKnownCloudRev = remoteRev;
+                if (remote._writer === SYNC_SESSION_ID) return;
+                if (cloudPendingWrites > 0) return;
+                const localRev = parseInt(state._rev) || 0;
+                const newer = remoteRev > localRev || (remoteRev === localRev && (parseInt(remote._savedAt) || 0) > (parseInt(state._savedAt) || 0));
+                if (!newer) return;
+                const keepCart = Array.isArray(state.cart) ? state.cart : [];
+                const clientMode = isClientUser();
+                const keepSub = clientMode && state.subscription && state.subscription.endDate ? state.subscription : null;
+                if (clientMode) adoptClientCloudData(remote); else adoptMainCloudData(remote);
+                if (keepSub) state.subscription = keepSub;
+                state.cart = keepCart;
+                refreshAfterRemoteChange();
+            } catch(e) {}
+        }
+        function attachStateListener() {
+            const scope = getScopeKey();
+            if (stateListenerRef && stateListenerScope === scope) return;
+            detachStateListener();
+            try {
+                stateListenerScope = scope;
+                stateListenerRef = getActiveRef();
+                stateListenerFn = stateListenerRef.on('value', handleRemoteStateSnapshot, function() {});
+            } catch(e) { stateListenerRef = null; stateListenerFn = null; }
+        }
+        function detachStateListener() {
+            try { if (stateListenerRef && stateListenerFn) stateListenerRef.off('value', stateListenerFn); } catch(e) {}
+            stateListenerRef = null; stateListenerFn = null; stateListenerScope = null;
+        }
+
+        // ---------- تحديث الاشتراك فور تمديده من الإدارة ----------
+        function findMyClientRecord(list) {
+            if (!Array.isArray(list)) return null;
+            const cid = localStorage.getItem('alhasan_client_id');
+            const uname = localStorage.getItem('alhasan_client_username');
+            let rec = null;
+            if (cid) rec = list.find(function(c) { return c && String(c.id) === String(cid); }) || null;
+            if (!rec && uname) rec = list.find(function(c) { return c && (c.username || 'admin') === uname; }) || null;
+            return rec;
+        }
+        function showSubscriptionRenewedModal(endDate) {
+            const e1 = document.getElementById('subRenewedEndDate');
+            const e2 = document.getElementById('subRenewedDays');
+            if (e1) e1.innerText = endDate || '-';
+            if (e2) e2.innerText = getDaysRemaining() + ' يوم';
+            openModal('subRenewedModal');
+        }
+        function announceSubscriptionExtended(endDate) {
+            try { updateSubscriptionUI(); } catch(e) {}
+            try {
+                addNotification('subscription_renewed', '✅ تم تمديد اشتراكك بنجاح حتى ' + endDate + ' (متبقي ' + getDaysRemaining() + ' يوم). شكراً لثقتك بنا.', { dedupeKey: 'sub_renewed_' + endDate });
+            } catch(e) {}
+            try { showToast('🎉 تم تمديد اشتراكك حتى ' + endDate, 'success'); } catch(e) {}
+            setTimeout(function() { try { showSubscriptionRenewedModal(endDate); } catch(e) {} }, 1200);
+        }
+        function applyClientRecord(rec, prevEndHint) {
+            if (!rec || !rec.endDate) return false;
+            const old = (state.subscription && typeof state.subscription === 'object') ? state.subscription : {};
+            const uname = rec.username || localStorage.getItem('alhasan_client_username') || 'admin';
+            const seenKey = 'alhasan_seen_end_' + encodeKey(uname);
+            let seen = null;
+            try { seen = localStorage.getItem(seenKey); } catch(e) {}
+            if (!seen) seen = prevEndHint || old.endDate || rec.endDate;
+            const changed = old.endDate !== rec.endDate || old.startDate !== (rec.startDate || old.startDate);
+            state.subscription = {
+                startDate: rec.startDate || old.startDate,
+                endDate: rec.endDate,
+                username: rec.username || old.username,
+                password: rec.password || old.password,
+                providerPhone: old.providerPhone || ADMIN_WHATSAPP
+            };
+            const extended = !!seen && String(rec.endDate) > String(seen);
+            try { localStorage.setItem(seenKey, rec.endDate); } catch(e) {}
+            if (changed) {
+                saveStateToCloud();
+                try { updateSubscriptionUI(); } catch(e) {}
+            }
+            if (extended) announceSubscriptionExtended(rec.endDate);
+            return extended;
+        }
+        function handleAdminClientsSnapshot(raw) {
+            if (!isClientUser()) return false;
+            let list = raw;
+            if (list && !Array.isArray(list) && typeof list === 'object') list = Object.keys(list).map(function(k) { return list[k]; });
+            const rec = findMyClientRecord(list);
+            if (!rec || !rec.endDate) return false;
+            return applyClientRecord(rec, null);
+        }
+        function syncClientSubscriptionOnLoad() {
+            if (!isClientUser()) return Promise.resolve(false);
+            return db.ref('appData/mainState/adminClients').once('value').then(function(snap) {
+                return handleAdminClientsSnapshot(snap.val());
+            }).catch(function() { return false; });
+        }
+        function attachSubscriptionListener() {
+            if (!isClientUser() || subListenerRef) return;
+            try {
+                subListenerRef = db.ref('appData/mainState/adminClients');
+                subListenerFn = subListenerRef.on('value', function(snap) {
+                    try { handleAdminClientsSnapshot(snap.val()); } catch(e) {}
+                }, function() {});
+            } catch(e) { subListenerRef = null; subListenerFn = null; }
+        }
+        function startCloudSync() {
+            try { mergeEmbeddedTombstones(); } catch(e) {}
+            try { attachStateListener(); } catch(e) {}
+            try { attachTombstoneListener(); } catch(e) {}
+            try { attachSubscriptionListener(); } catch(e) {}
+            try { flushPendingTombstones(); } catch(e) {}
+        }
+        // ========== نهاية مزامنة السحابة الآمنة ==========
+
         function loadStateFromCloud() {
             if (isMasterUser()) return loadMainState();
             if (isClientUser()) {
@@ -2134,11 +2492,7 @@ input[type="number"]:focus {
             }
             return loadMainState();
         }
-        function loadMainState() {
-            return db.ref('appData/mainState').once('value').then((snapshot) => {
-                const raw = snapshot.val();
-                const cloudData = normalizeCloudData(raw);
-                if (cloudData && typeof cloudData === 'object') {
+        function adoptMainCloudData(cloudData) {
                     state = cloudData;
                     state.cart = [];
                     requiredKeys.forEach(k => { if (!state[k] || (k !== 'settings' && k !== 'subscription' && !Array.isArray(state[k]))) { state[k] = JSON.parse(JSON.stringify(defaultState[k])); } });
@@ -2153,6 +2507,15 @@ input[type="number"]:focus {
                     // ترحيل المنتجات
                     if (Array.isArray(state.products)) state.products.forEach(p => { if (!p.pricingCurrency) p.pricingCurrency = 'USD'; });
                     try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+            finalizeAdoptedState();
+        }
+        function loadMainState() {
+            return db.ref('appData/mainState').once('value').then((snapshot) => {
+                const raw = snapshot.val();
+                const cloudData = normalizeCloudData(raw);
+                if (cloudData && typeof cloudData === 'object') {
+                    if (shouldKeepLocalOverCloud(cloudData)) { keepLocalStateAndPush(cloudData); return true; }
+                    adoptMainCloudData(cloudData);
                     return true;
                 } else {
                     const initial = getFreshDefault();
@@ -2160,11 +2523,7 @@ input[type="number"]:focus {
                 }
             }).catch((error) => { return false; });
         }
-        function loadClientData(encodedUsername) {
-            return db.ref('appData/clientData/' + encodedUsername).once('value').then((snapshot) => {
-                const raw = snapshot.val();
-                const cloudData = normalizeCloudData(raw);
-                if (cloudData && typeof cloudData === 'object') {
+        function adoptClientCloudData(cloudData) {
                     state = cloudData;
                     state.cart = [];
                     state.adminClients = [];
@@ -2181,6 +2540,15 @@ input[type="number"]:focus {
                     if (Array.isArray(state.products)) state.products.forEach(p => { if (!p.pricingCurrency) p.pricingCurrency = 'USD'; });
                     state.cart = [];
                     try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+            finalizeAdoptedState();
+        }
+        function loadClientData(encodedUsername) {
+            return db.ref('appData/clientData/' + encodedUsername).once('value').then((snapshot) => {
+                const raw = snapshot.val();
+                const cloudData = normalizeCloudData(raw);
+                if (cloudData && typeof cloudData === 'object') {
+                    if (shouldKeepLocalOverCloud(cloudData)) { keepLocalStateAndPush(cloudData); return true; }
+                    adoptClientCloudData(cloudData);
                     return true;
                 } else {
                     const initial = getFreshDefault();
@@ -2244,7 +2612,9 @@ input[type="number"]:focus {
                 localStorage.setItem('alhasan_client_db_key', encodedUsername);
                 localStorage.setItem('alhasan_client_id', client.id);
                 await loadClientData(encodedUsername);
+                const prevCloudEnd = (state.subscription && state.subscription.endDate) || null;
                 state.subscription = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: state.subscription.providerPhone || ADMIN_WHATSAPP };
+                try { applyClientRecord(client, prevCloudEnd); } catch(e) {}
                 if (!state.settings.storeName || state.settings.storeName === 'الحسن للمحاسبة') {
                     state.settings.storeName = client.store || 'متجري';
                     state.settings.phone = client.phone || state.settings.phone;
@@ -2308,7 +2678,7 @@ input[type="number"]:focus {
                 closeModal('masterLoginModal');
                 document.getElementById('loginScreen').classList.remove('active');
                 document.getElementById('adminPanel').classList.add('active');
-                loadMainState().then(() => { renderAdminPanel(); });
+                loadMainState().then(() => { renderAdminPanel(); try { startCloudSync(); } catch(e) {} });
                 showToast('👑 مرحباً بك في لوحة المدير', 'success');
             } else {
                 document.getElementById('masterLoginError').classList.remove('hidden');
@@ -2567,6 +2937,7 @@ input[type="number"]:focus {
             state.cart = [];
             renderAll();
             setTimeout(() => { try { generateAutoNotifications(); } catch(e) {} }, 800);
+            try { startCloudSync(); } catch(e) {}
         }
 
         window.addEventListener('load', () => {
@@ -2576,12 +2947,13 @@ input[type="number"]:focus {
                 if (splashStatus) splashStatus.innerText = 'جاري الاتصال بالسحابة...';
                 try { await loadStateFromCloud(); } catch(e) {}
                 state.cart = [];
+                try { if (isClientUser()) await syncClientSubscriptionOnLoad(); } catch(e) {}
                 if (splashStatus) splashStatus.innerText = 'جاري تحميل النظام...';
                 if (splash) {
                     splash.style.opacity = '0';
                     setTimeout(() => {
                         splash.style.display = 'none';
-                        if (isMasterUser()) { document.getElementById('adminPanel').classList.add('active'); renderAdminPanel(); }
+                        if (isMasterUser()) { document.getElementById('adminPanel').classList.add('active'); renderAdminPanel(); try { startCloudSync(); } catch(e) {} }
                         else if (localStorage.getItem('alhasan_logged_in') === 'true') startApp();
                         else { document.getElementById('loginScreen').classList.add('active'); setTimeout(() => document.getElementById('loginUsername').focus(), 300); }
                     }, 500);
@@ -3258,8 +3630,10 @@ input[type="number"]:focus {
             let productId;
             if (isEdit) {
                 productId = editingProductId;
-                const index = state.products.findIndex(p => p.id === editingProductId);
-                if (index !== -1) state.products[index] = { id: editingProductId, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency };
+                let index = state.products.findIndex(p => p.id === editingProductId);
+                if (index === -1) index = state.products.findIndex(p => String(p.id) === String(editingProductId));
+                if (index !== -1) state.products[index] = { id: state.products[index].id, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency };
+                else state.products.push({ id: editingProductId, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency });
             } else {
                 productId = Date.now();
                 state.products.push({ id: productId, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency });
@@ -3338,7 +3712,9 @@ input[type="number"]:focus {
             if (!checkSubscription()) return;
             const invoice = state.invoices.find(inv => inv.id === invoiceId);
             if (!invoice) { showToast('⚠️ الفاتورة غير موجودة', 'warning'); return; }
-            if (!confirm(`⚠️ حذف الفاتورة ${invoiceId}؟\nسيتم إرجاع كميات المنتجات إلى المخزون.\n\nهل أنت متأكد؟`)) return;
+            if (!confirm(`⚠️ حذف الفاتورة ${invoiceId} نهائياً؟\nسيتم إرجاع كميات المنتجات إلى المخزون وحذف الفاتورة من جميع السجلات ولا يمكن استرجاعها.\n\nهل أنت متأكد؟`)) return;
+            // تسجيل الحذف بشكل دائم حتى لا تعود الفاتورة من أي نسخة قديمة أو جهاز آخر
+            try { state.invoices.filter(inv => inv.id === invoiceId).forEach(inv => registerInvoiceTombstone(inv)); } catch(e) {}
             if (Array.isArray(invoice.items)) invoice.items.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty = (product.qty || 0) + (item.qty || 0); });
             const linkedDebt = (state.debtInvoices || []).some(d => d.invoiceId === invoice.id);
             if (linkedDebt) state.debtInvoices = state.debtInvoices.filter(d => d.invoiceId !== invoice.id);
