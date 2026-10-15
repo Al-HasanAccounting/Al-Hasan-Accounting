@@ -1940,9 +1940,21 @@ input[type="number"]:focus {
         }
 
         function printReceipt() {
+            let closed = false;
+            const closeReceiptAfterPrint = () => {
+                if (closed) return;
+                closed = true;
+                window.removeEventListener('afterprint', closeReceiptAfterPrint);
+                try { closeModal('receiptModal'); } catch(e) {}
+            };
+            window.addEventListener('afterprint', closeReceiptAfterPrint);
             try { window.print(); } catch(e) {
+                window.removeEventListener('afterprint', closeReceiptAfterPrint);
                 showToast('⚠️ تعذر فتح نافذة الطباعة', 'warning');
+                return;
             }
+            // احتياطاً للمتصفحات التي لا تُطلق حدث انتهاء الطباعة
+            setTimeout(closeReceiptAfterPrint, 2500);
         }
 
         const defaultState = {
