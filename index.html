@@ -556,6 +556,7 @@ input[type="number"]:focus {
                     <p class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">الرئيسية</p>
                     <div class="nav-item active flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('dashboard', this)"><i class="fa-solid fa-chart-pie w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">لوحة التحكم</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('pos', this)"><i class="fa-solid fa-cash-register w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">نقطة البيع (POS)</span></div>
+                    <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('calculator', this)"><i class="fa-solid fa-calculator w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">الآلة الحاسبة</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors" onclick="forceReloadApp()" id="reloadBtnSidebar"><i class="fa-solid fa-arrows-rotate w-5 text-center" id="reloadIconSidebar"></i><span class="font-semibold text-sm">تحديث</span></div>
                 </div>
                 <div>
@@ -691,6 +692,68 @@ input[type="number"]:focus {
                                 </div>
                             </div>
                             <div class="p-4 pt-0"><button onclick="checkout()" class="w-full bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg"><i class="fa-solid fa-receipt"></i> إتمام البيع</button></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="calculator" class="page">
+                    <style>
+                        #calculator .calc-btn { height: 58px; border-radius: 14px; font-weight: 700; font-size: 20px !important; font-family: 'Cairo', sans-serif; cursor: pointer; border: 1px solid transparent; transition: transform .08s ease, background-color .15s ease, border-color .15s ease; user-select: none; -webkit-user-select: none; outline: none; }
+                        #calculator .calc-btn:active { transform: scale(.94); }
+                        #calculator .calc-btn:focus-visible { border-color: #facc15; }
+                        #calculator .calc-num { background: #1e293b; color: #f8fafc; border-color: #334155; }
+                        #calculator .calc-num:hover { background: #334155; }
+                        #calculator .calc-fn { background: rgba(51,65,85,.55); color: #cbd5e1; border-color: #334155; }
+                        #calculator .calc-fn:hover { background: #334155; }
+                        #calculator .calc-op { background: rgba(234,179,8,.12); color: #facc15; border-color: rgba(234,179,8,.3); font-size: 24px !important; }
+                        #calculator .calc-op:hover { background: rgba(234,179,8,.22); }
+                        #calculator .calc-clear { background: rgba(239,68,68,.14); color: #f87171; border-color: rgba(239,68,68,.3); }
+                        #calculator .calc-clear:hover { background: rgba(239,68,68,.24); }
+                        #calculator .calc-eq { background: #eab308; color: #0a1120; box-shadow: 0 6px 18px rgba(234,179,8,.25); }
+                        #calculator .calc-eq:hover { background: #ca8a04; }
+                        #calculator .calc-hist-item { transition: background-color .15s ease, border-color .15s ease; }
+                        #calculator .calc-hist-item:hover { background: rgba(234,179,8,.08); border-color: rgba(234,179,8,.3); }
+                        #calcResult { transition: font-size .12s ease; }
+                    </style>
+                    <div class="mb-6">
+                        <h2 class="text-3xl font-bold text-white mb-1">الآلة الحاسبة</h2>
+                        <p class="text-slate-400 text-sm">احسب بسرعة — يمكنك استخدام لوحة المفاتيح أيضاً</p>
+                    </div>
+                    <div class="flex flex-wrap gap-6 items-start">
+                        <div class="w-full max-w-[380px] bg-navy-800 border border-navy-700 rounded-2xl shadow-xl p-4" dir="ltr">
+                            <div class="bg-navy-900 border border-navy-700 rounded-xl p-4 mb-4 relative">
+                                <button type="button" id="calcCopyBtn" title="نسخ النتيجة" class="absolute top-3 left-3 text-slate-500 hover:text-gold-400 transition-colors" style="font-size:14px !important;"><i class="fa-solid fa-copy"></i></button>
+                                <div id="calcExpr" class="text-slate-400 text-sm text-right min-h-[22px] pl-8 overflow-hidden whitespace-nowrap"></div>
+                                <div id="calcResult" class="text-white font-bold text-right overflow-hidden whitespace-nowrap mt-1" style="font-size:38px; line-height:1.25;">0</div>
+                            </div>
+                            <div id="calcKeys" class="grid grid-cols-4 gap-2.5">
+                                <button type="button" data-k="C" class="calc-btn calc-clear">AC</button>
+                                <button type="button" data-k="B" class="calc-btn calc-fn" title="مسح رقم"><i class="fa-solid fa-delete-left" style="font-size:18px;"></i></button>
+                                <button type="button" data-k="%" class="calc-btn calc-fn">%</button>
+                                <button type="button" data-k="÷" class="calc-btn calc-op">÷</button>
+                                <button type="button" data-k="7" class="calc-btn calc-num">7</button>
+                                <button type="button" data-k="8" class="calc-btn calc-num">8</button>
+                                <button type="button" data-k="9" class="calc-btn calc-num">9</button>
+                                <button type="button" data-k="×" class="calc-btn calc-op">×</button>
+                                <button type="button" data-k="4" class="calc-btn calc-num">4</button>
+                                <button type="button" data-k="5" class="calc-btn calc-num">5</button>
+                                <button type="button" data-k="6" class="calc-btn calc-num">6</button>
+                                <button type="button" data-k="-" class="calc-btn calc-op">−</button>
+                                <button type="button" data-k="1" class="calc-btn calc-num">1</button>
+                                <button type="button" data-k="2" class="calc-btn calc-num">2</button>
+                                <button type="button" data-k="3" class="calc-btn calc-num">3</button>
+                                <button type="button" data-k="+" class="calc-btn calc-op">+</button>
+                                <button type="button" data-k="0" class="calc-btn calc-num">0</button>
+                                <button type="button" data-k="00" class="calc-btn calc-num">00</button>
+                                <button type="button" data-k="." class="calc-btn calc-num">.</button>
+                                <button type="button" data-k="=" class="calc-btn calc-eq">=</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-[260px] max-w-[380px] bg-navy-800 border border-navy-700 rounded-2xl shadow-xl overflow-hidden">
+                            <div class="flex justify-between items-center p-4 border-b border-navy-700">
+                                <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gold-400"></i> سجل العمليات</h3>
+                                <button type="button" id="calcHistClear" class="text-red-400 hover:text-red-300 text-sm flex items-center gap-1"><i class="fa-solid fa-trash"></i> مسح</button>
+                            </div>
+                            <div id="calcHistory" class="p-3 space-y-2 max-h-[420px] overflow-y-auto"></div>
                         </div>
                     </div>
                 </div>
@@ -2555,7 +2618,7 @@ input[type="number"]:focus {
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             element.classList.add('active');
-            const titles = { dashboard: 'لوحة التحكم', pos: 'نقطة البيع', inventory: 'المنتجات والمخزون', invoices: 'سجل المبيعات', customers: 'فواتير الدَّين', productInquiry: 'استفسار عن منتج', expenses: 'المصروفات', reports: 'التقارير المالية', settings: 'الإعدادات', aiAssistant: 'المساعد الذكي', contactAdmin: 'التواصل مع الإدارة' };
+            const titles = { dashboard: 'لوحة التحكم', pos: 'نقطة البيع', inventory: 'المنتجات والمخزون', invoices: 'سجل المبيعات', customers: 'فواتير الدَّين', productInquiry: 'استفسار عن منتج', expenses: 'المصروفات', reports: 'التقارير المالية', settings: 'الإعدادات', aiAssistant: 'المساعد الذكي', contactAdmin: 'التواصل مع الإدارة', calculator: 'الآلة الحاسبة' };
             document.getElementById('page-title').innerText = titles[pageId];
             if (pageId === 'reports') renderReports();
             if (pageId === 'settings') {
@@ -4380,6 +4443,252 @@ input[type="number"]:focus {
             if (box) box.innerHTML = '';
             welcome();
         };
+    })();
+    </script>
+    <script>
+    (function () {
+        'use strict';
+        var root = document.getElementById('calculator');
+        if (!root) return;
+        var elExpr = document.getElementById('calcExpr');
+        var elRes = document.getElementById('calcResult');
+        var elKeys = document.getElementById('calcKeys');
+        var elHist = document.getElementById('calcHistory');
+        var elHistClear = document.getElementById('calcHistClear');
+        var elCopy = document.getElementById('calcCopyBtn');
+        var expr = '', done = false, eqLine = '', err = '', history = [];
+        var OPS = '+-×÷';
+        function isOp(c) { return OPS.indexOf(c) !== -1; }
+        function lastNum() { var m = /(\d*\.?\d*)$/.exec(expr); return m ? m[1] : ''; }
+
+        function fix(v) { return parseFloat(v.toPrecision(12)); }
+        function toStr(v) {
+            var s = fix(v).toFixed(10).replace(/\.?0+$/, '');
+            return (s === '-0' || s === '') ? '0' : s;
+        }
+        // محرك الحساب: أولوية للضرب والقسمة، ونسبة مئوية ذكية (200+10% = 220)
+        function calc(e) {
+            var toks = [], re = /(\d+\.?\d*|\.\d+)(%?)|([+\-×÷])/g, m;
+            while ((m = re.exec(e))) {
+                if (m[3]) toks.push({ op: m[3] });
+                else toks.push({ n: parseFloat(m[1]), p: m[2] === '%' });
+            }
+            while (toks.length && toks[toks.length - 1].op) toks.pop();
+            if (!toks.length) return { v: null };
+            var i = 0, sum = 0, first = true;
+            function plain() { var t = toks[i++]; if (!t || t.op) throw 'BAD'; return t; }
+            function signed() {
+                var neg = 1;
+                if (toks[i] && toks[i].op === '-') { neg = -1; i++; }
+                var t = plain();
+                return { v: neg * t.n, p: t.p };
+            }
+            try {
+                while (i < toks.length) {
+                    var s = 1;
+                    if (toks[i].op === '+' || toks[i].op === '-') { s = toks[i].op === '-' ? -1 : 1; i++; }
+                    var a = plain(), value, chained = false;
+                    value = a.n / (a.p ? 100 : 1);
+                    while (i < toks.length && (toks[i].op === '×' || toks[i].op === '÷')) {
+                        var o = toks[i++].op; chained = true;
+                        var b = signed(), bv = b.v / (b.p ? 100 : 1);
+                        if (o === '×') value = value * bv;
+                        else { if (bv === 0) throw 'DIV0'; value = value / bv; }
+                    }
+                    if (!first && !chained && a.p) value = sum * a.n / 100;
+                    sum += s * value;
+                    first = false;
+                }
+            } catch (x) {
+                return { err: x === 'DIV0' ? 'DIV0' : 'BAD' };
+            }
+            if (!isFinite(sum) || Math.abs(sum) >= 1e15) return { err: 'BIG' };
+            return { v: sum };
+        }
+
+        function group(m) {
+            var p = m.split('.');
+            p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return p.join('.');
+        }
+        function fmt(e) {
+            var s = String(e).replace(/\d+(\.\d*)?/g, group);
+            s = s.replace(/([+×÷])/g, ' $1 ').replace(/(\d|%)-/g, '$1 − ').replace(/-/g, '−');
+            return s.replace(/\s+/g, ' ').trim();
+        }
+        function hasOp(e) { return /[+×÷%]/.test(e) || /.-/.test(e); }
+
+        function render() {
+            var line = '', res = '', isErr = false;
+            if (err) {
+                line = fmt(expr);
+                res = err === 'DIV0' ? 'لا يمكن القسمة على صفر' : (err === 'BIG' ? 'الرقم كبير جداً' : 'خطأ في العملية');
+                isErr = true;
+            } else if (done) {
+                line = fmt(eqLine) + ' =';
+                res = fmt(expr);
+            } else {
+                var r = calc(expr);
+                if (r.err) { line = fmt(expr); res = '—'; }
+                else if (hasOp(expr) && r.v !== null) { line = fmt(expr); res = fmt(toStr(r.v)); }
+                else { line = ''; res = expr ? fmt(expr) : '0'; }
+            }
+            if (line.length > 34) line = '…' + line.slice(-33);
+            elExpr.textContent = line;
+            elRes.textContent = res;
+            elRes.style.color = isErr ? '#f87171' : '';
+            var n = res.length;
+            elRes.style.fontSize = isErr ? '20px' : (n <= 10 ? '38px' : n <= 13 ? '32px' : n <= 17 ? '26px' : '21px');
+        }
+
+        function renderHistory() {
+            elHist.innerHTML = '';
+            if (!history.length) {
+                var empty = document.createElement('div');
+                empty.className = 'text-center text-slate-500 text-sm py-10';
+                empty.innerHTML = '<i class="fa-solid fa-calculator text-3xl mb-3 opacity-40 block"></i>لا توجد عمليات بعد';
+                elHist.appendChild(empty);
+                return;
+            }
+            history.forEach(function (h, idx) {
+                var d = document.createElement('div');
+                d.className = 'calc-hist-item cursor-pointer bg-navy-900 border border-navy-700 rounded-xl p-3 text-right';
+                d.setAttribute('dir', 'ltr');
+                d.setAttribute('data-i', String(idx));
+                var a = document.createElement('div');
+                a.className = 'text-slate-400 text-xs break-all';
+                a.textContent = fmt(h.e) + ' =';
+                var b = document.createElement('div');
+                b.className = 'text-gold-400 font-bold text-lg break-all';
+                b.textContent = fmt(h.r);
+                d.appendChild(a); d.appendChild(b);
+                elHist.appendChild(d);
+            });
+        }
+
+        function digit(k) {
+            if (done) { expr = ''; done = false; }
+            if (expr.length >= 60) return;
+            if (expr.slice(-1) === '%') return;
+            var n = lastNum();
+            if (n === '0') {
+                if (k === '00') return;
+                expr = expr.slice(0, -1) + k; return;
+            }
+            if (k === '00' && n === '') k = '0';
+            if (n.replace('.', '').length + k.length > 15) return;
+            expr += k;
+        }
+        function dot() {
+            if (done) { expr = '0.'; done = false; return; }
+            if (expr.slice(-1) === '%' || expr.length >= 60) return;
+            var n = lastNum();
+            if (n.indexOf('.') !== -1) return;
+            expr += (n === '' ? '0.' : '.');
+        }
+        function op(k) {
+            done = false;
+            if (expr === '') { if (k === '-') expr = '-'; return; }
+            if (expr === '-') return;
+            var last = expr.slice(-1);
+            if (isOp(last)) {
+                if (k === '-' && (last === '×' || last === '÷')) { expr += '-'; return; }
+                while (expr.length && isOp(expr.slice(-1))) expr = expr.slice(0, -1);
+                if (expr === '') { if (k === '-') expr = '-'; return; }
+            }
+            if (expr.length >= 60) return;
+            expr += k;
+        }
+        function percent() {
+            done = false;
+            if (/\d$/.test(expr)) expr += '%';
+        }
+        function back() { done = false; expr = expr.slice(0, -1); }
+        function clearAll() { expr = ''; done = false; eqLine = ''; }
+        function equals() {
+            if (done || !expr) return;
+            var r = calc(expr);
+            if (r.err) { err = r.err; return; }
+            if (r.v === null) return;
+            var s = toStr(r.v);
+            if (!hasOp(expr)) return;
+            history.unshift({ e: expr, r: s });
+            if (history.length > 20) history.pop();
+            eqLine = expr; expr = s; done = true;
+            renderHistory();
+        }
+
+        function press(k) {
+            err = '';
+            if (/^\d$/.test(k) || k === '00') digit(k);
+            else if (k === '.') dot();
+            else if (k === '+' || k === '-' || k === '×' || k === '÷') op(k);
+            else if (k === '%') percent();
+            else if (k === 'B') back();
+            else if (k === 'C') clearAll();
+            else if (k === '=') equals();
+            render();
+        }
+
+        function currentRaw() {
+            if (done) return expr;
+            var r = calc(expr);
+            return (!r.err && r.v !== null && hasOp(expr)) ? toStr(r.v) : (expr || '0');
+        }
+        function copyResult() {
+            var txt = currentRaw();
+            function ok() { if (typeof showToast === 'function') { try { showToast('✅ تم نسخ النتيجة', 'success'); } catch (e) {} } }
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(txt).then(ok, function () {});
+                } else {
+                    var ta = document.createElement('textarea');
+                    ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+                    document.body.appendChild(ta); ta.select();
+                    document.execCommand('copy'); document.body.removeChild(ta); ok();
+                }
+            } catch (e) {}
+        }
+
+        elKeys.addEventListener('click', function (e) {
+            var b = e.target.closest ? e.target.closest('button[data-k]') : null;
+            if (!b) return;
+            press(b.getAttribute('data-k'));
+            b.blur();
+        });
+        elHist.addEventListener('click', function (e) {
+            var d = e.target.closest ? e.target.closest('[data-i]') : null;
+            if (!d) return;
+            var h = history[parseInt(d.getAttribute('data-i'), 10)];
+            if (!h) return;
+            err = ''; eqLine = h.e; expr = h.r; done = true; render();
+        });
+        elHistClear.addEventListener('click', function () { history = []; renderHistory(); });
+        elCopy.addEventListener('click', function () { copyResult(); elCopy.blur(); });
+
+        document.addEventListener('keydown', function (e) {
+            if (!root.classList.contains('active')) return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            var t = e.target, tag = t && t.tagName ? t.tagName.toUpperCase() : '';
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+            var k = e.key, map = null;
+            if (/^\d$/.test(k)) map = k;
+            else if (k === '.' || k === ',') map = '.';
+            else if (k === '+') map = '+';
+            else if (k === '-') map = '-';
+            else if (k === '*' || k === 'x' || k === 'X') map = '×';
+            else if (k === '/') map = '÷';
+            else if (k === '%') map = '%';
+            else if (k === 'Enter' || k === '=') map = '=';
+            else if (k === 'Backspace') map = 'B';
+            else if (k === 'Escape' || k === 'Delete') map = 'C';
+            if (map === null) return;
+            e.preventDefault();
+            press(map);
+        });
+
+        render();
+        renderHistory();
     })();
     </script>
 </body>
