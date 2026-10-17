@@ -3209,7 +3209,7 @@ input[type="number"]:focus {
                 if (isSameDay(d, now)) { todayRev += total; todayProfit += profit; todayTransactions++; }
             });
             const extToday = extSumToday(), extAll = extSumAll();
-            const netProfit = totalProfit + extAll;
+            const netProfit = totalProfit + extAll - expSumAll();
             const inventoryCostValue = state.products.reduce((sum, p) => sum + (getProductCostUSD(p) * (p.qty || 0)), 0);
             const inventoryRetailValue = state.products.reduce((sum, p) => sum + (getProductRetailUSD(p) * (p.qty || 0)), 0);
             const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
@@ -3220,7 +3220,7 @@ input[type="number"]:focus {
             document.getElementById('dashProfitMargin').innerText = `${profitMargin.toFixed(1)}%`;
             document.getElementById('dashTodaySales').innerText = formatMoney(todayRev);
             document.getElementById('dashTodaySalesSYP').innerText = formatSYP(todayRev * state.settings.exchangeRate);
-            document.getElementById('dashTodayProfit').innerText = formatMoney(todayProfit + extToday);
+            document.getElementById('dashTodayProfit').innerText = formatMoney(todayProfit + extToday - expSumToday());
             document.getElementById('dashTodayTransactions').innerText = `${todayTransactions} عملية بيع`;
             const lowStockProducts = state.products.filter(p => p.qty <= (p.minLimit || 10));
             document.getElementById('dashLowStockCount').innerText = lowStockProducts.length;
@@ -3263,7 +3263,7 @@ input[type="number"]:focus {
                             const invD = getInvoiceDate(inv);
                             if (isSameDay(invD, d)) { dS += parseFloat(inv.totalUSD)||0; dP += parseFloat(inv.profit)||0; }
                         });
-                        salesData.push(dS); profitData.push(dP + extSumDays(extDayStart(d), extNextDay(d)));
+                        salesData.push(dS); profitData.push(dP + extSumDays(extDayStart(d), extNextDay(d)) - expSumDays(extDayStart(d), extNextDay(d)));
                     }
                     dashboardChartInstance = new Chart(ctx, {
                         type: 'line',
@@ -4246,6 +4246,18 @@ input[type="number"]:focus {
         }
         function extSumToday() { const t = extDayStart(new Date()); return extSumDays(t, extNextDay(t)); }
         function extSumAll() { return getExtProfits().reduce((s, p) => s + (parseFloat(p.amount) || 0), 0); }
+        function expSumDays(fromDay, toDayExclusive) {
+            let s = 0;
+            (state.expenses || []).forEach(e => {
+                const d = getExpenseDate(e);
+                if (!d) return;
+                const day = extDayStart(d);
+                if (day >= fromDay && day < toDayExclusive) s += parseFloat(e.amount) || 0;
+            });
+            return s;
+        }
+        function expSumToday() { const t = extDayStart(new Date()); return expSumDays(t, extNextDay(t)); }
+        function expSumAll() { return (state.expenses || []).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0); }
         function filterExtProfitsByRange() {
             const { start, end } = getReportDateRange();
             const from = extCeilDay(start), toEx = extNextDay(end);
@@ -4537,7 +4549,7 @@ input[type="number"]:focus {
 
             rpTxt('repTotalRevenue', formatMoney(totalRevenue));
             rpTxt('repTotalRevenueSYP', formatSYP(totalRevenue * state.settings.exchangeRate));
-            rpTxt('repTotalProfit', formatMoney(totalProfit));
+            rpTxt('repTotalProfit', formatMoney(netProfit));
             rpTxt('repProfitMargin', profitMargin.toFixed(1) + '%');
             rpTxt('repTotalExpenses', formatMoney(totalExpenses));
             rpTxt('repExpensesCount', filteredExpenses.length);
@@ -4545,7 +4557,7 @@ input[type="number"]:focus {
             rpTxt('repItemsSold', cur.items);
             rpTxt('repInvCount', filteredInvoices.length);
             rpHtml('repRevDelta', rpDelta(totalRevenue, prev.rev));
-            rpHtml('repProfitDelta', rpDelta(totalProfit, prev.prof + prevExt));
+            rpHtml('repProfitDelta', rpDelta(netProfit, prevNet));
             rpHtml('repExpDelta', rpDelta(totalExpenses, prevExpTotal, true));
             rpHtml('repItemsDelta', rpDelta(cur.items, prev.items));
             rpHtml('repNetDelta', rpDelta(netProfit, prevNet));
@@ -4997,7 +5009,7 @@ input[type="number"]:focus {
             if (has(q, ['تواصل', 'اداره', 'واتساب', 'whatsapp', 'رقم الاداره', 'الدعم'])) return '📞 <b>التواصل مع الإدارة:</b>\nرقم الواتساب: <b dir="ltr">' + ADMIN_WHATSAPP + '</b>';
             if (has(q, ['سعر الصرف', 'صرف الدولار', 'سعر الدولار', 'الدولار']))
                 return '💱 <b>سعر الصرف الحالي:</b>\nالليرة الجديدة: <b>' + new Intl.NumberFormat('en-US').format(st.settings.exchangeRate || 0) + '</b> ل.س\nالليرة القديمة: <b>' + new Intl.NumberFormat('en-US').format(st.settings.oldExchangeRate || 0) + '</b> ل.س';
-            if (has(q, ['اليوم']) && has(q, ['ربح', 'ارباح'])) { var ti = todayInvoices(), tp = sum(ti, function (i) { return parseFloat(i.profit)||0; }) + extSumToday(); return '💰 أرباح اليوم: <b>' + money(tp) + '</b>\nمن ' + ti.length + ' عملية بيع.'; }
+            if (has(q, ['اليوم']) && has(q, ['ربح', 'ارباح'])) { var ti = todayInvoices(), tp = sum(ti, function (i) { return parseFloat(i.profit)||0; }) + extSumToday() - expSumToday(); return '💰 أرباح اليوم: <b>' + money(tp) + '</b>\nمن ' + ti.length + ' عملية بيع.'; }
             if (has(q, ['اليوم']) && has(q, ['مبيعات', 'بيع', 'ايراد', 'دخل', 'بعنا', 'فواتير', 'فاتوره'])) { var ti2 = todayInvoices(), rev = sum(ti2, function (i) { return parseFloat(i.totalUSD)||0; }); return '📈 مبيعات اليوم: <b>' + money(rev) + '</b>\nعدد العمليات: <b>' + ti2.length + '</b>'; }
             if (has(q, ['ناقص', 'نقص', 'ينفذ', 'نفذ', 'منخفض', 'قارب', 'تنبيهات المخزون', 'نفاد'])) { var low = (st.products || []).filter(function (p) { return p.qty <= (p.minLimit || 10); }); if (!low.length) return '✅ لا توجد منتجات ناقصة.'; return '⚠️ <b>منتجات قاربت على النفاد (' + low.length + '):</b>\n' + low.slice(0, 10).map(function (p) { return '• ' + esc(p.name) + ' — المتبقي: <b>' + esc(p.qty) + '</b>'; }).join('\n'); }
             if (has(q, ['قيمه المخزون', 'قيمه البضاعه', 'راس المال'])) { var cost = sum(st.products || [], function (p) { return getProductCostUSD(p) * p.qty; }), retail = sum(st.products || [], function (p) { return getProductRetailUSD(p) * p.qty; }); return '🏬 <b>قيمة المخزون:</b>\nبالتكلفة: <b>' + money(cost) + '</b>\nبسعر المفرق: <b>' + money(retail) + '</b>'; }
@@ -5005,7 +5017,7 @@ input[type="number"]:focus {
             if (has(q, ['مصروف'])) { var d30 = new Date(Date.now() - 30 * 864e5); var all = sum(st.expenses || [], function (e) { return parseFloat(e.amount)||0; }); var m = sum((st.expenses || []).filter(function (e) { var d = getExpenseDate(e); return d && d >= d30; }), function (e) { return parseFloat(e.amount)||0; }); return '💸 <b>المصروفات:</b>\nآخر 30 يوم: <b>' + money(m) + '</b>\nالإجمالي: <b>' + money(all) + '</b>'; }
             if (has(q, ['عدد العملاء', 'كم عميل', 'كم زبون', 'العملاء', 'الزبائن'])) return '👥 عدد العملاء: <b>' + (st.customers || []).length + '</b>';
             if (has(q, ['اكثر', 'الاكثر مبيعا', 'اكثر مبيعا', 'الاعلى مبيعا', 'الاكثر طلبا'])) { var ps = {}; (st.invoices || []).forEach(function (inv) { (inv.items || []).forEach(function (it) { ps[it.id] = (ps[it.id] || 0) + (it.qty || 0); }); }); var top = Object.keys(ps).sort(function (a, b) { return ps[b] - ps[a]; }).slice(0, 5).map(function (id) { var p = (st.products || []).find(function (x) { return String(x.id) === String(id); }); return p ? '• ' + esc(p.name) + ' — ' + ps[id] + ' مباع' : null; }).filter(Boolean); return top.length ? '🏆 <b>الأكثر مبيعاً:</b>\n' + top.join('\n') : 'لا توجد مبيعات كافية.'; }
-            if (has(q, ['ربح', 'ارباح', 'صافي'])) { var tpAll = sum(st.invoices || [], function (i) { return parseFloat(i.profit)||0; }) + extSumAll(), rv = sum(st.invoices || [], function (i) { return parseFloat(i.totalUSD)||0; }); return '💰 <b>إجمالي الأرباح:</b> ' + money(tpAll) + '\nإجمالي الإيرادات: ' + money(rv); }
+            if (has(q, ['ربح', 'ارباح', 'صافي'])) { var tpAll = sum(st.invoices || [], function (i) { return parseFloat(i.profit)||0; }) + extSumAll() - expSumAll(), rv = sum(st.invoices || [], function (i) { return parseFloat(i.totalUSD)||0; }); return '💰 <b>إجمالي الأرباح:</b> ' + money(tpAll) + '\nإجمالي الإيرادات: ' + money(rv); }
             if (has(q, ['ايرادات', 'مبيعات', 'اجمالي', 'الدخل', 'فواتير'])) { var rvAll = sum(st.invoices || [], function (i) { return parseFloat(i.totalUSD)||0; }); return '📈 <b>إجمالي الإيرادات:</b> ' + money(rvAll) + '\nعدد الفواتير: <b>' + (st.invoices || []).length + '</b>'; }
             if (has(q, ['كم منتج', 'عدد المنتجات', 'عدد الاصناف'])) return '📦 عدد المنتجات: <b>' + (st.products || []).length + '</b>';
             if (has(q, ['اشتراك', 'ينتهي', 'تجديد', 'صلاحيه'])) { var sub = st.subscription || {}; if (!sub.endDate) return 'لا تتوفر معلومات اشتراك.'; var days = Math.ceil((new Date(sub.endDate) - new Date()) / 864e5); return '👑 <b>الاشتراك:</b>\nينتهي في: <b>' + esc(sub.endDate) + '</b>\n' + (days >= 0 ? 'المتبقي: <b>' + days + '</b> يوم' : '<span class="text-red-400">الاشتراك منتهٍ - تواصل مع الإدارة: ' + ADMIN_WHATSAPP + '</span>'); }
