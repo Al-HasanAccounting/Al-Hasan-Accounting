@@ -3209,7 +3209,8 @@ input[type="number"]:focus {
                 if (isSameDay(d, now)) { todayRev += total; todayProfit += profit; todayTransactions++; }
             });
             const extToday = extSumToday(), extAll = extSumAll();
-            const netProfit = totalProfit + extAll - expSumAll();
+            const expToday = expSumToday(), expAll = expSumUpToToday();
+            const netProfit = totalProfit + extAll - expAll;
             const inventoryCostValue = state.products.reduce((sum, p) => sum + (getProductCostUSD(p) * (p.qty || 0)), 0);
             const inventoryRetailValue = state.products.reduce((sum, p) => sum + (getProductRetailUSD(p) * (p.qty || 0)), 0);
             const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
@@ -3220,8 +3221,8 @@ input[type="number"]:focus {
             document.getElementById('dashProfitMargin').innerText = `${profitMargin.toFixed(1)}%`;
             document.getElementById('dashTodaySales').innerText = formatMoney(todayRev);
             document.getElementById('dashTodaySalesSYP').innerText = formatSYP(todayRev * state.settings.exchangeRate);
-            document.getElementById('dashTodayProfit').innerText = formatMoney(todayProfit + extToday - expSumToday());
-            document.getElementById('dashTodayTransactions').innerText = `${todayTransactions} عملية بيع`;
+            document.getElementById('dashTodayProfit').innerText = formatMoney(todayProfit + extToday - expToday);
+            document.getElementById('dashTodayTransactions').innerText = `${todayTransactions} عملية بيع` + (expToday > 0 ? ` • بعد خصم مصروفات ${formatMoney(expToday)}` : '');
             const lowStockProducts = state.products.filter(p => p.qty <= (p.minLimit || 10));
             document.getElementById('dashLowStockCount').innerText = lowStockProducts.length;
             document.getElementById('dashRateNewSYP').innerText = new Intl.NumberFormat('en-US').format(state.settings.exchangeRate);
@@ -4246,6 +4247,7 @@ input[type="number"]:focus {
         }
         function extSumToday() { const t = extDayStart(new Date()); return extSumDays(t, extNextDay(t)); }
         function extSumAll() { return getExtProfits().reduce((s, p) => s + (parseFloat(p.amount) || 0), 0); }
+        // مجموع المصروفات (بالدولار) ليوم معيّن / حتى اليوم — تُخصم مباشرة من الأرباح
         function expSumDays(fromDay, toDayExclusive) {
             let s = 0;
             (state.expenses || []).forEach(e => {
@@ -4257,7 +4259,7 @@ input[type="number"]:focus {
             return s;
         }
         function expSumToday() { const t = extDayStart(new Date()); return expSumDays(t, extNextDay(t)); }
-        function expSumAll() { return (state.expenses || []).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0); }
+        function expSumUpToToday() { return expSumDays(new Date(1970, 0, 1), extNextDay(extDayStart(new Date()))); }
         function filterExtProfitsByRange() {
             const { start, end } = getReportDateRange();
             const from = extCeilDay(start), toEx = extNextDay(end);
@@ -4549,7 +4551,7 @@ input[type="number"]:focus {
 
             rpTxt('repTotalRevenue', formatMoney(totalRevenue));
             rpTxt('repTotalRevenueSYP', formatSYP(totalRevenue * state.settings.exchangeRate));
-            rpTxt('repTotalProfit', formatMoney(netProfit));
+            rpTxt('repTotalProfit', formatMoney(totalProfit));
             rpTxt('repProfitMargin', profitMargin.toFixed(1) + '%');
             rpTxt('repTotalExpenses', formatMoney(totalExpenses));
             rpTxt('repExpensesCount', filteredExpenses.length);
@@ -4557,7 +4559,7 @@ input[type="number"]:focus {
             rpTxt('repItemsSold', cur.items);
             rpTxt('repInvCount', filteredInvoices.length);
             rpHtml('repRevDelta', rpDelta(totalRevenue, prev.rev));
-            rpHtml('repProfitDelta', rpDelta(netProfit, prevNet));
+            rpHtml('repProfitDelta', rpDelta(totalProfit, prev.prof + prevExt));
             rpHtml('repExpDelta', rpDelta(totalExpenses, prevExpTotal, true));
             rpHtml('repItemsDelta', rpDelta(cur.items, prev.items));
             rpHtml('repNetDelta', rpDelta(netProfit, prevNet));
@@ -5017,7 +5019,7 @@ input[type="number"]:focus {
             if (has(q, ['مصروف'])) { var d30 = new Date(Date.now() - 30 * 864e5); var all = sum(st.expenses || [], function (e) { return parseFloat(e.amount)||0; }); var m = sum((st.expenses || []).filter(function (e) { var d = getExpenseDate(e); return d && d >= d30; }), function (e) { return parseFloat(e.amount)||0; }); return '💸 <b>المصروفات:</b>\nآخر 30 يوم: <b>' + money(m) + '</b>\nالإجمالي: <b>' + money(all) + '</b>'; }
             if (has(q, ['عدد العملاء', 'كم عميل', 'كم زبون', 'العملاء', 'الزبائن'])) return '👥 عدد العملاء: <b>' + (st.customers || []).length + '</b>';
             if (has(q, ['اكثر', 'الاكثر مبيعا', 'اكثر مبيعا', 'الاعلى مبيعا', 'الاكثر طلبا'])) { var ps = {}; (st.invoices || []).forEach(function (inv) { (inv.items || []).forEach(function (it) { ps[it.id] = (ps[it.id] || 0) + (it.qty || 0); }); }); var top = Object.keys(ps).sort(function (a, b) { return ps[b] - ps[a]; }).slice(0, 5).map(function (id) { var p = (st.products || []).find(function (x) { return String(x.id) === String(id); }); return p ? '• ' + esc(p.name) + ' — ' + ps[id] + ' مباع' : null; }).filter(Boolean); return top.length ? '🏆 <b>الأكثر مبيعاً:</b>\n' + top.join('\n') : 'لا توجد مبيعات كافية.'; }
-            if (has(q, ['ربح', 'ارباح', 'صافي'])) { var tpAll = sum(st.invoices || [], function (i) { return parseFloat(i.profit)||0; }) + extSumAll() - expSumAll(), rv = sum(st.invoices || [], function (i) { return parseFloat(i.totalUSD)||0; }); return '💰 <b>إجمالي الأرباح:</b> ' + money(tpAll) + '\nإجمالي الإيرادات: ' + money(rv); }
+            if (has(q, ['ربح', 'ارباح', 'صافي'])) { var tpAll = sum(st.invoices || [], function (i) { return parseFloat(i.profit)||0; }) + extSumAll() - expSumUpToToday(), rv = sum(st.invoices || [], function (i) { return parseFloat(i.totalUSD)||0; }); return '💰 <b>إجمالي الأرباح:</b> ' + money(tpAll) + '\nإجمالي الإيرادات: ' + money(rv); }
             if (has(q, ['ايرادات', 'مبيعات', 'اجمالي', 'الدخل', 'فواتير'])) { var rvAll = sum(st.invoices || [], function (i) { return parseFloat(i.totalUSD)||0; }); return '📈 <b>إجمالي الإيرادات:</b> ' + money(rvAll) + '\nعدد الفواتير: <b>' + (st.invoices || []).length + '</b>'; }
             if (has(q, ['كم منتج', 'عدد المنتجات', 'عدد الاصناف'])) return '📦 عدد المنتجات: <b>' + (st.products || []).length + '</b>';
             if (has(q, ['اشتراك', 'ينتهي', 'تجديد', 'صلاحيه'])) { var sub = st.subscription || {}; if (!sub.endDate) return 'لا تتوفر معلومات اشتراك.'; var days = Math.ceil((new Date(sub.endDate) - new Date()) / 864e5); return '👑 <b>الاشتراك:</b>\nينتهي في: <b>' + esc(sub.endDate) + '</b>\n' + (days >= 0 ? 'المتبقي: <b>' + days + '</b> يوم' : '<span class="text-red-400">الاشتراك منتهٍ - تواصل مع الإدارة: ' + ADMIN_WHATSAPP + '</span>'); }
