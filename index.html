@@ -1290,7 +1290,8 @@ input[type="number"]:focus {
             <div class="space-y-4">
                 <div><label class="block text-sm text-slate-300 mb-1">الفئة *</label><select id="expCategory" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"><option value="إيجار">إيجار</option><option value="رواتب">رواتب</option><option value="كهرباء">كهرباء</option><option value="ماء">ماء</option><option value="إنترنت">إنترنت</option><option value="صيانة">صيانة</option><option value="تسويق">تسويق</option><option value="أخرى">أخرى</option></select></div>
                 <div><label class="block text-sm text-slate-300 mb-1">الوصف *</label><input type="text" id="expDescription" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="مثال: فاتورة كهرباء"></div>
-                <div><label class="block text-sm text-slate-300 mb-1">المبلغ ($) *</label><input type="number" id="expAmount" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="$"></div>
+                <div id="expCurrencyBox" class="bg-navy-900 p-3 rounded-xl border border-gold-500/40" data-amount="expAmount" data-label="expAmountLabel" data-hint="expAmountHint"><label class="block text-slate-300 font-bold mb-2 text-sm"><i class="fa-solid fa-coins text-gold-400 ml-1"></i> عملة التسعير *</label><div class="grid grid-cols-2 gap-2"><button type="button" data-cur="USD" onclick="setEntryCurrency('expCurrencyBox', 'USD')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-blue-500 text-white border-blue-500"><i class="fa-solid fa-dollar-sign ml-1"></i> دولار أمريكي</button><button type="button" data-cur="SYP_NEW" onclick="setEntryCurrency('expCurrencyBox', 'SYP_NEW')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-navy-800 text-slate-300 border-navy-600 hover:border-gold-400"><i class="fa-solid fa-money-bill-wave ml-1"></i> ليرة سورية جديدة</button></div><input type="hidden" id="expCurrency" value="USD"></div>
+                <div><label class="block text-sm text-slate-300 mb-1">المبلغ (<span id="expAmountLabel">$</span>) *</label><input type="number" id="expAmount" oninput="refreshCurrencyHint('expCurrencyBox')" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="$"><p id="expAmountHint" class="hidden text-xs text-emerald-400 mt-1"></p></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-sm text-slate-300 mb-1">التاريخ</label><input type="date" id="expDate" lang="en" dir="ltr" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                     <div><label class="block text-sm text-slate-300 mb-1">طريقة الدفع</label><select id="expPaymentMethod" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"><option value="نقدي">نقدي</option><option value="شام كاش">شام كاش</option><option value="دين">دين</option></select></div>
@@ -1305,7 +1306,8 @@ input[type="number"]:focus {
             <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-white" id="extProfitModalTitle">إضافة ربح خارجي</h3><button onclick="closeModal('addExtProfitModal')" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
             <div class="space-y-4">
                 <div><label class="block text-sm text-slate-300 mb-1">الوصف</label><input type="text" id="extProfitDescription" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="مثال: ربح من حوالة"></div>
-                <div><label class="block text-sm text-slate-300 mb-1">مبلغ الربح ($) *</label><input type="number" id="extProfitAmount" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="$"></div>
+                <div id="extProfitCurrencyBox" class="bg-navy-900 p-3 rounded-xl border border-gold-500/40" data-amount="extProfitAmount" data-label="extProfitAmountLabel" data-hint="extProfitAmountHint"><label class="block text-slate-300 font-bold mb-2 text-sm"><i class="fa-solid fa-coins text-gold-400 ml-1"></i> عملة التسعير *</label><div class="grid grid-cols-2 gap-2"><button type="button" data-cur="USD" onclick="setEntryCurrency('extProfitCurrencyBox', 'USD')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-blue-500 text-white border-blue-500"><i class="fa-solid fa-dollar-sign ml-1"></i> دولار أمريكي</button><button type="button" data-cur="SYP_NEW" onclick="setEntryCurrency('extProfitCurrencyBox', 'SYP_NEW')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-navy-800 text-slate-300 border-navy-600 hover:border-gold-400"><i class="fa-solid fa-money-bill-wave ml-1"></i> ليرة سورية جديدة</button></div><input type="hidden" id="extProfitCurrency" value="USD"></div>
+                <div><label class="block text-sm text-slate-300 mb-1">مبلغ الربح (<span id="extProfitAmountLabel">$</span>) *</label><input type="number" id="extProfitAmount" oninput="refreshCurrencyHint('extProfitCurrencyBox')" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="$"><p id="extProfitAmountHint" class="hidden text-xs text-emerald-400 mt-1"></p></div>
                 <div><label class="block text-sm text-slate-300 mb-1">يُضاف إلى أرباح يوم *</label><input type="date" id="extProfitDate" lang="en" dir="ltr" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                 <div><label class="block text-sm text-slate-300 mb-1">ملاحظات</label><textarea id="extProfitNotes" rows="2" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></textarea></div>
             </div>
@@ -1327,7 +1329,8 @@ input[type="number"]:focus {
                 <div class="flex justify-between items-center"><span class="text-slate-400 text-sm">المتبقي من الدين:</span><span class="text-gold-400 font-bold" id="payDebtCurrentLimit">$0.00</span></div>
             </div>
             <div class="space-y-4">
-                <div><label class="block text-sm text-slate-300 mb-1">المبلغ المدفوع ($) *</label><input type="number" id="payDebtAmount" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none text-center text-2xl font-bold" placeholder="0.00" min="0.01" step="0.01"></div>
+                <div id="payDebtCurrencyBox" class="bg-navy-900 p-3 rounded-xl border border-gold-500/40" data-amount="payDebtAmount" data-label="payDebtAmountLabel" data-hint="payDebtAmountHint" data-ph="0.00"><label class="block text-slate-300 font-bold mb-2 text-sm"><i class="fa-solid fa-coins text-gold-400 ml-1"></i> عملة التسعير *</label><div class="grid grid-cols-2 gap-2"><button type="button" data-cur="USD" onclick="setEntryCurrency('payDebtCurrencyBox', 'USD')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-blue-500 text-white border-blue-500"><i class="fa-solid fa-dollar-sign ml-1"></i> دولار أمريكي</button><button type="button" data-cur="SYP_NEW" onclick="setEntryCurrency('payDebtCurrencyBox', 'SYP_NEW')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-navy-800 text-slate-300 border-navy-600 hover:border-gold-400"><i class="fa-solid fa-money-bill-wave ml-1"></i> ليرة سورية جديدة</button></div><input type="hidden" id="payDebtCurrency" value="USD"></div>
+                <div><label class="block text-sm text-slate-300 mb-1">المبلغ المدفوع (<span id="payDebtAmountLabel">$</span>) *</label><input type="number" id="payDebtAmount" oninput="refreshCurrencyHint('payDebtCurrencyBox')" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none text-center text-2xl font-bold" placeholder="0.00" min="0.01" step="0.01"><p id="payDebtAmountHint" class="hidden text-xs text-emerald-400 mt-1 text-center"></p></div>
                 <div><label class="block text-sm text-slate-300 mb-1">ملاحظة (اختياري)</label><input type="text" id="payDebtNote" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none text-sm" placeholder="دفعة جزئية..."></div>
             </div>
             <div class="flex gap-3 mt-6"><button onclick="closeModal('payDebtModal')" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button><button onclick="confirmPayDebt()" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-check-circle"></i> تأكيد الدفع</button></div>
@@ -3977,7 +3980,8 @@ input[type="number"]:focus {
             if (d.status === 'paid') { showToast('الفاتورة مسدَّدة ومغلقة', 'warning'); return; }
             currentPayDebtCustomerId = id;
             document.getElementById('payDebtCustomerName').innerText = d.name;
-            document.getElementById('payDebtCurrentLimit').innerText = formatMoney(d.remaining || 0);
+            document.getElementById('payDebtCurrentLimit').innerText = formatMoney(d.remaining || 0) + ' (≈ ' + formatSYP((d.remaining || 0) * (parseFloat(state.settings.exchangeRate) || 1)) + ')';
+            setEntryCurrency('payDebtCurrencyBox', d.invoiceCurrency === 'SYP_NEW' ? 'SYP_NEW' : 'USD');
             document.getElementById('payDebtAmount').value = '';
             document.getElementById('payDebtNote').value = '';
             openModal('payDebtModal');
@@ -3988,18 +3992,23 @@ input[type="number"]:focus {
             if (!currentPayDebtCustomerId) return;
             const d = (state.debtInvoices || []).find(x => x.id === currentPayDebtCustomerId);
             if (!d || d.status === 'paid') return;
-            const amount = debtRound(parseFloat(document.getElementById('payDebtAmount').value));
+            const payCur = document.getElementById('payDebtCurrency').value === 'SYP_NEW' ? 'SYP_NEW' : 'USD';
+            const payRate = parseFloat(state.settings.exchangeRate) || 1;
+            const enteredPay = parseFloat(toEnglishDigits(document.getElementById('payDebtAmount').value));
+            let amount = debtRound(payCur === 'SYP_NEW' ? enteredPay / payRate : enteredPay);
             const note = document.getElementById('payDebtNote').value.trim();
             if (isNaN(amount) || amount <= 0) { showToast('أدخل مبلغ صحيح', 'warning'); return; }
             const oldRemaining = debtRound(d.remaining);
-            if (amount > oldRemaining + 0.001) { showToast(`⚠️ المبلغ أكبر من المتبقي (${formatMoney(oldRemaining)})`, 'warning'); return; }
+            if (payCur === 'SYP_NEW' && Math.abs(amount - oldRemaining) < 0.01) amount = oldRemaining;
+            if (amount > oldRemaining + 0.001) { showToast(`⚠️ المبلغ أكبر من المتبقي (${payCur === 'SYP_NEW' ? formatSYP(oldRemaining * payRate) : formatMoney(oldRemaining)})`, 'warning'); return; }
+            const payText = payCur === 'SYP_NEW' ? `${formatSYP(enteredPay)} (≈ ${formatMoney(amount)})` : formatMoney(amount);
             const newRemaining = debtRound(oldRemaining - amount);
             d.paid = debtRound((d.paid || 0) + amount);
             d.remaining = newRemaining < 0.005 ? 0 : newRemaining;
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-GB');
             const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            let newNote = `💰 [${dateStr} - ${timeStr}] تم تسديد دفعة ${formatMoney(amount)}`;
+            let newNote = `💰 [${dateStr} - ${timeStr}] تم تسديد دفعة ${payText}`;
             if (d.remaining > 0) newNote += ` — المتبقي: ${formatMoney(d.remaining)}`;
             if (note) newNote += `\n    📝 ${note}`;
             if (d.remaining === 0) {
@@ -4011,7 +4020,7 @@ input[type="number"]:focus {
             }
             d.notes = d.notes ? d.notes + '\n\n' + newNote : newNote;
             closeModal('payDebtModal'); saveState();
-            showToast(d.status === 'paid' ? `✅ تم التسديد بالكامل` : `✅ تم استلام ${formatMoney(amount)}`, 'success');
+            showToast(d.status === 'paid' ? `✅ تم التسديد بالكامل` : `✅ تم استلام ${payText}`, 'success');
             currentPayDebtCustomerId = null;
         }
 
@@ -4094,14 +4103,16 @@ input[type="number"]:focus {
                 container.innerHTML = filtered.map(e => {
                     const catInfo = categoryColors[e.category] || categoryColors['أخرى'];
                     const notesHtml = `<div class="expense-notes-box"><div class="notes-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</div><div class="notes-content ${e.notes && e.notes.trim() ? '' : 'empty'}">${e.notes && e.notes.trim() ? e.notes.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'لم تُكتب ملاحظة'}</div></div>`;
-                    return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteExpense(${e.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button><button onclick="editExpense(${e.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button></div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl ${catInfo.bg} ${catInfo.text} flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid ${catInfo.icon}"></i></div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-base truncate">${e.description}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${catInfo.bg} ${catInfo.text}">${e.category}</span></div></div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المبلغ</div><div class="text-red-400 font-bold text-base">${formatMoney(e.amount)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">التاريخ</div><div class="text-white font-bold text-xs">${e.date}</div></div></div>${notesHtml}<div class="flex justify-between items-center text-xs py-2 border-t border-navy-700"><span class="text-slate-400">الدفع</span><span class="px-2 py-1 rounded-md ${e.paymentMethod === 'دين' ? 'bg-red-500/20 text-red-400' : e.paymentMethod === 'شام كاش' ? 'bg-purple-500/20 text-purple-400' : 'bg-emerald-500/20 text-emerald-400'} font-bold">${e.paymentMethod || 'نقدي'}</span></div></div>`;
+                    return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteExpense(${e.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button><button onclick="editExpense(${e.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button></div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl ${catInfo.bg} ${catInfo.text} flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid ${catInfo.icon}"></i></div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-base truncate">${e.description}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${catInfo.bg} ${catInfo.text}">${e.category}</span></div></div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المبلغ</div><div class="text-red-400 font-bold text-base">${formatEntryAmount(e)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">التاريخ</div><div class="text-white font-bold text-xs">${e.date}</div></div></div>${notesHtml}<div class="flex justify-between items-center text-xs py-2 border-t border-navy-700"><span class="text-slate-400">الدفع</span><span class="px-2 py-1 rounded-md ${e.paymentMethod === 'دين' ? 'bg-red-500/20 text-red-400' : e.paymentMethod === 'شام كاش' ? 'bg-purple-500/20 text-purple-400' : 'bg-emerald-500/20 text-emerald-400'} font-bold">${e.paymentMethod || 'نقدي'}</span></div></div>`;
                 }).join('');
             }
         }
         function addExpense() {
             if (!checkSubscription()) return;
             const description = document.getElementById('expDescription').value.trim();
-            const amount = parseFloat(document.getElementById('expAmount').value);
+            const oldExpense = editingExpenseId ? state.expenses.find(e => e.id === editingExpenseId) : null;
+            const entry = readEntryAmount('expAmount', 'expCurrency', oldExpense);
+            const amount = entry ? entry.amount : NaN;
             const date = document.getElementById('expDate').value;
             if (!description || isNaN(amount) || amount <= 0 || !date) { showToast('أدخل الحقول المطلوبة', 'warning'); return; }
             const isEdit = !!editingExpenseId;
@@ -4109,10 +4120,10 @@ input[type="number"]:focus {
             const formattedDate = formatLatinDate(isoDate, false);
             if (isEdit) {
                 const index = state.expenses.findIndex(e => e.id === editingExpenseId);
-                if (index !== -1) state.expenses[index] = { id: editingExpenseId, category: document.getElementById('expCategory').value, description, amount, date: formattedDate, isoDate, paymentMethod: document.getElementById('expPaymentMethod').value, notes: document.getElementById('expNotes').value.trim() };
+                if (index !== -1) state.expenses[index] = { id: editingExpenseId, category: document.getElementById('expCategory').value, description, amount, currency: entry.currency, originalAmount: entry.originalAmount, exchangeRateAtEntry: entry.exchangeRateAtEntry, date: formattedDate, isoDate, paymentMethod: document.getElementById('expPaymentMethod').value, notes: document.getElementById('expNotes').value.trim() };
                 showToast(`تم تعديل "${description}"`, 'edit');
             } else {
-                state.expenses.push({ id: Date.now(), category: document.getElementById('expCategory').value, description, amount, date: formattedDate, isoDate, paymentMethod: document.getElementById('expPaymentMethod').value, notes: document.getElementById('expNotes').value.trim() });
+                state.expenses.push({ id: Date.now(), category: document.getElementById('expCategory').value, description, amount, currency: entry.currency, originalAmount: entry.originalAmount, exchangeRateAtEntry: entry.exchangeRateAtEntry, date: formattedDate, isoDate, paymentMethod: document.getElementById('expPaymentMethod').value, notes: document.getElementById('expNotes').value.trim() });
                 showToast(`تم إضافة "${description}"`, 'success');
             }
             closeModal('addExpenseModal'); saveState();
@@ -4124,7 +4135,9 @@ input[type="number"]:focus {
             editingExpenseId = id;
             document.getElementById('expCategory').value = expense.category || 'أخرى';
             document.getElementById('expDescription').value = expense.description || '';
-            document.getElementById('expAmount').value = expense.amount || 0;
+            setEntryCurrency('expCurrencyBox', expense.currency || 'USD');
+            document.getElementById('expAmount').value = (expense.currency === 'SYP_NEW' && expense.originalAmount !== undefined) ? expense.originalAmount : (expense.amount || 0);
+            refreshCurrencyHint('expCurrencyBox');
             document.getElementById('expDate').value = expense.isoDate ? expense.isoDate.slice(0,10) : (expense.date || new Date().toISOString().slice(0, 10));
             document.getElementById('expPaymentMethod').value = expense.paymentMethod || 'نقدي';
             document.getElementById('expNotes').value = expense.notes || '';
@@ -4140,6 +4153,7 @@ input[type="number"]:focus {
             document.getElementById('expCategory').value = 'أخرى';
             document.getElementById('expDescription').value = '';
             document.getElementById('expAmount').value = '';
+            setEntryCurrency('expCurrencyBox', 'USD');
             document.getElementById('expDate').value = '';
             document.getElementById('expPaymentMethod').value = 'نقدي';
             document.getElementById('expNotes').value = '';
@@ -4150,6 +4164,66 @@ input[type="number"]:focus {
             if (!expense) return;
             if (confirm(`حذف "${expense.description}"؟`)) { state.expenses = state.expenses.filter(e => e.id !== id); saveState(); showToast('تم الحذف', 'delete'); }
         }
+        // ========== اختيار عملة الإدخال (دولار / ليرة سورية جديدة) ==========
+        function setEntryCurrency(boxId, currency) {
+            const box = document.getElementById(boxId);
+            if (!box) return;
+            const cur = currency === 'SYP_NEW' ? 'SYP_NEW' : 'USD';
+            const input = box.querySelector('input[type="hidden"]');
+            if (input) input.value = cur;
+            box.querySelectorAll('button[data-cur]').forEach(btn => {
+                const on = btn.getAttribute('data-cur') === cur;
+                const activeClass = cur === 'SYP_NEW' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-blue-500 text-white border-blue-500';
+                btn.className = 'px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all ' + (on ? activeClass : 'bg-navy-800 text-slate-300 border-navy-600 hover:border-gold-400');
+            });
+            const label = document.getElementById(box.getAttribute('data-label'));
+            if (label) label.innerText = cur === 'SYP_NEW' ? 'ل.س' : '$';
+            const amountEl = document.getElementById(box.getAttribute('data-amount'));
+            if (amountEl) amountEl.placeholder = cur === 'SYP_NEW' ? 'ل.س' : (box.getAttribute('data-ph') || '$');
+            refreshCurrencyHint(boxId);
+        }
+        function refreshCurrencyHint(boxId) {
+            const box = document.getElementById(boxId);
+            if (!box) return;
+            const hint = document.getElementById(box.getAttribute('data-hint'));
+            const amountEl = document.getElementById(box.getAttribute('data-amount'));
+            const input = box.querySelector('input[type="hidden"]');
+            if (!hint || !amountEl || !input) return;
+            const v = parseFloat(toEnglishDigits(amountEl.value));
+            const rate = parseFloat(state.settings.exchangeRate) || 1;
+            if (input.value === 'SYP_NEW' && !isNaN(v) && v > 0) {
+                hint.innerText = `≈ ${formatMoney(v / rate)} بسعر الصرف ${new Intl.NumberFormat('en-US').format(rate)} ل.س`;
+                hint.classList.remove('hidden');
+            } else {
+                hint.innerText = '';
+                hint.classList.add('hidden');
+            }
+        }
+        // يقرأ المبلغ المُدخل ويحوّله للدولار (الحسابات كلها بالدولار) مع حفظ المبلغ الأصلي وعملته وسعر الصرف وقت الإدخال
+        function readEntryAmount(amountInputId, currencyInputId, oldEntry) {
+            const entered = parseFloat(toEnglishDigits(document.getElementById(amountInputId).value));
+            if (isNaN(entered) || entered <= 0) return null;
+            const currency = document.getElementById(currencyInputId).value === 'SYP_NEW' ? 'SYP_NEW' : 'USD';
+            const rate = parseFloat(state.settings.exchangeRate) || 1;
+            if (oldEntry) {
+                const oldCur = oldEntry.currency || 'USD';
+                const oldOrig = parseFloat(oldEntry.originalAmount !== undefined ? oldEntry.originalAmount : oldEntry.amount);
+                if (oldCur === currency && oldOrig === entered) {
+                    return { amount: oldEntry.amount, currency, originalAmount: entered, exchangeRateAtEntry: oldEntry.exchangeRateAtEntry || rate };
+                }
+            }
+            const amount = currency === 'SYP_NEW' ? Math.round((entered / rate) * 10000) / 10000 : entered;
+            return { amount, currency, originalAmount: entered, exchangeRateAtEntry: rate };
+        }
+        function formatEntryAmount(e) {
+            if (e && e.currency === 'SYP_NEW') {
+                const orig = e.originalAmount !== undefined ? e.originalAmount : (parseFloat(e.amount) || 0) * (parseFloat(e.exchangeRateAtEntry) || parseFloat(state.settings.exchangeRate) || 1);
+                return `${formatSYP(orig)}<div class="text-slate-400 text-xs font-normal mt-0.5">≈ ${formatMoney(e.amount)}</div>`;
+            }
+            return formatMoney(e ? e.amount : 0);
+        }
+        // ========== نهاية اختيار عملة الإدخال ==========
+
         // ============ الأرباح الخارجية ============
         let editingExtProfitId = null;
         function getExtProfits() {
@@ -4201,7 +4275,7 @@ input[type="number"]:focus {
             container.innerHTML = filtered.map(p => {
                 const hasNotes = p.notes && String(p.notes).trim();
                 const notesHtml = `<div class="expense-notes-box"><div class="notes-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</div><div class="notes-content ${hasNotes ? '' : 'empty'}">${hasNotes ? debtEsc(p.notes) : 'لم تُكتب ملاحظة'}</div></div>`;
-                return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteExtProfit(${p.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button><button onclick="editExtProfit(${p.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button></div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid fa-hand-holding-dollar"></i></div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-base truncate">${debtEsc(p.description || 'ربح خارجي')}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 bg-emerald-500/20 text-emerald-400">ربح خارجي</span></div></div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">الربح</div><div class="text-emerald-400 font-bold text-base">${formatMoney(p.amount)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">يُضاف لأرباح يوم</div><div class="text-white font-bold text-xs">${p.date}</div></div></div>${notesHtml}</div>`;
+                return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteExtProfit(${p.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button><button onclick="editExtProfit(${p.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button></div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid fa-hand-holding-dollar"></i></div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-base truncate">${debtEsc(p.description || 'ربح خارجي')}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 bg-emerald-500/20 text-emerald-400">ربح خارجي</span></div></div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">الربح</div><div class="text-emerald-400 font-bold text-base">${formatEntryAmount(p)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">يُضاف لأرباح يوم</div><div class="text-white font-bold text-xs">${p.date}</div></div></div>${notesHtml}</div>`;
             }).join('');
         }
         function resetExtProfitModal() {
@@ -4210,6 +4284,7 @@ input[type="number"]:focus {
             document.getElementById('extProfitSubmitBtn').innerHTML = '<i class="fa-solid fa-hand-holding-dollar"></i> حفظ الربح';
             document.getElementById('extProfitDescription').value = '';
             document.getElementById('extProfitAmount').value = '';
+            setEntryCurrency('extProfitCurrencyBox', 'USD');
             document.getElementById('extProfitDate').value = '';
             document.getElementById('extProfitNotes').value = '';
         }
@@ -4223,7 +4298,9 @@ input[type="number"]:focus {
         function addExtProfit() {
             if (!checkSubscription()) return;
             const description = document.getElementById('extProfitDescription').value.trim() || 'ربح خارجي';
-            const amount = parseFloat(toEnglishDigits(document.getElementById('extProfitAmount').value));
+            const oldProfit = editingExtProfitId ? getExtProfits().find(p => p.id === editingExtProfitId) : null;
+            const entry = readEntryAmount('extProfitAmount', 'extProfitCurrency', oldProfit);
+            const amount = entry ? entry.amount : NaN;
             const date = document.getElementById('extProfitDate').value;
             const notes = document.getElementById('extProfitNotes').value.trim();
             if (isNaN(amount) || amount <= 0 || !date) { showToast('أدخل مبلغ الربح والتاريخ', 'warning'); return; }
@@ -4233,10 +4310,10 @@ input[type="number"]:focus {
             const list = getExtProfits();
             if (isEdit) {
                 const index = list.findIndex(p => p.id === editingExtProfitId);
-                if (index !== -1) list[index] = { id: editingExtProfitId, description, amount, date: formattedDate, isoDate, notes };
+                if (index !== -1) list[index] = { id: editingExtProfitId, description, amount, currency: entry.currency, originalAmount: entry.originalAmount, exchangeRateAtEntry: entry.exchangeRateAtEntry, date: formattedDate, isoDate, notes };
                 showToast(`تم تعديل الربح الخارجي`, 'edit');
             } else {
-                list.push({ id: Date.now(), description, amount, date: formattedDate, isoDate, notes });
+                list.push({ id: Date.now(), description, amount, currency: entry.currency, originalAmount: entry.originalAmount, exchangeRateAtEntry: entry.exchangeRateAtEntry, date: formattedDate, isoDate, notes });
                 showToast(`تمت إضافة ${formatMoney(amount)} إلى أرباح يوم ${formattedDate}`, 'success');
             }
             closeModal('addExtProfitModal'); saveState();
@@ -4247,7 +4324,9 @@ input[type="number"]:focus {
             if (!p) return;
             editingExtProfitId = id;
             document.getElementById('extProfitDescription').value = p.description || '';
-            document.getElementById('extProfitAmount').value = p.amount || 0;
+            setEntryCurrency('extProfitCurrencyBox', p.currency || 'USD');
+            document.getElementById('extProfitAmount').value = (p.currency === 'SYP_NEW' && p.originalAmount !== undefined) ? p.originalAmount : (p.amount || 0);
+            refreshCurrencyHint('extProfitCurrencyBox');
             document.getElementById('extProfitDate').value = p.isoDate ? p.isoDate.slice(0, 10) : '';
             document.getElementById('extProfitNotes').value = p.notes || '';
             document.getElementById('extProfitModalTitle').innerText = 'تعديل الربح الخارجي';
@@ -4344,7 +4423,8 @@ input[type="number"]:focus {
         }
         function filterExpensesByRange() {
             const { start, end } = getReportDateRange();
-            return state.expenses.filter(e => { const d = getExpenseDate(e); return d && d >= start && d <= end; });
+            const from = extCeilDay(start), toEx = extNextDay(end);
+            return state.expenses.filter(e => { const d = getExpenseDate(e); if (!d) return false; const day = extDayStart(d); return day >= from && day < toEx; });
         }
 
         function setReportFilter(f) {
@@ -4448,7 +4528,8 @@ input[type="number"]:focus {
             const len = end.getTime() - start.getTime();
             const pStart = new Date(start.getTime() - len), pEnd = new Date(start.getTime());
             const prevInv = state.invoices.filter(i => { const d = getInvoiceDate(i); return d && d >= pStart && d < pEnd; });
-            const prevExp = state.expenses.filter(e => { const d = getExpenseDate(e); return d && d >= pStart && d < pEnd; });
+            const prevFrom = extCeilDay(pStart), prevTo = extCeilDay(start);
+            const prevExp = state.expenses.filter(e => { const d = getExpenseDate(e); if (!d) return false; const day = extDayStart(d); return day >= prevFrom && day < prevTo; });
             const prev = rpSumInv(prevInv);
             const prevExpTotal = prevExp.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
             const prevExt = extSumDays(extCeilDay(pStart), extCeilDay(start));
@@ -4552,7 +4633,7 @@ input[type="number"]:focus {
                             labels.push('أسبوع ' + (4 - w));
                             let r = 0, e = 0, p = 0;
                             filteredInvoices.forEach(inv => { const d = getInvoiceDate(inv); if (d && d >= wStart && d <= wEnd) { r += parseFloat(inv.totalUSD) || 0; p += parseFloat(inv.profit) || 0; } });
-                            filteredExpenses.forEach(ex => { const d = getExpenseDate(ex); if (d && d >= wStart && d <= wEnd) e += parseFloat(ex.amount) || 0; });
+                            filteredExpenses.forEach(ex => { const d = getExpenseDate(ex); if (!d) return; const age = Math.round((extDayStart(new Date()) - extDayStart(d)) / 86400000); if (Math.floor(age / 7) === w) e += parseFloat(ex.amount) || 0; });
                             filteredExt.forEach(x => { const d = extProfitDate(x); if (!d) return; const age = Math.round((extDayStart(new Date()) - extDayStart(d)) / 86400000); if (Math.floor(age / 7) === w) p += parseFloat(x.amount) || 0; });
                             revenueData.push(r); expenseData.push(e); profitData.push(p - e);
                         }
