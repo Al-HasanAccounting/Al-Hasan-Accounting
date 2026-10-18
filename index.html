@@ -514,6 +514,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 </style>
 <style id="reportPrintStyles">
 .rp-print { background: #2563eb; }
+.print-logo { display: block; width: 11mm; height: 11mm; margin: 0 auto 0.8mm; object-fit: contain; }
 .rp-print:hover { background: #1d4ed8; }
 #reportPrintArea { display: none; }
 #reportPrintArea.rpa-measure { display: block; position: absolute; left: -10000px; top: 0; width: 72mm; padding: 0 1.5mm; box-sizing: border-box; visibility: hidden; }
@@ -4381,6 +4382,28 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         // ========== نهاية اختيار عملة الإدخال ==========
 
         // ============ طباعة التقرير المالي (ورق حراري 80mm / مساحة 72mm) ============
+        // لوغو المحل في رأس أوراق الطباعة (نفس مصدر لوغو فاتورة البيع)
+        function printLogoHtml() {
+            const st = (state && state.settings) || {};
+            const src = (typeof st.storeLogo === 'string' && st.storeLogo.length > 0) ? st.storeLogo : 'icon.png';
+            return `<img class="print-logo" src="${String(src).replace(/"/g, '&quot;')}" alt="" onerror="this.style.display='none'">`;
+        }
+        function printWhenLogoReady(area, cleanup) {
+            const run = () => {
+                window.addEventListener('afterprint', cleanup);
+                try { window.print(); } catch (e) { cleanup(); showToast('⚠️ تعذر فتح نافذة الطباعة', 'warning'); return; }
+                setTimeout(cleanup, 8000);
+            };
+            const img = area.querySelector('img.print-logo');
+            if (img && !img.complete) {
+                let done = false;
+                const go = () => { if (done) return; done = true; run(); };
+                img.addEventListener('load', go);
+                img.addEventListener('error', go);
+                setTimeout(go, 1500);
+            } else run();
+        }
+
         function printReportsReceipt() {
             const area = document.getElementById('reportPrintArea');
             if (!area) return;
@@ -4407,7 +4430,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
             const block = (title, usd) => `<div class="rpa-sec"><p class="rpa-label">${title}</p><div class="rpa-line"><span>بالدولار</span><span class="rpa-big">${debtEsc(formatMoney(usd))}</span></div><div class="rpa-line"><span>بالليرة السورية</span><span>${debtEsc(formatSYP(usd * rate))}</span></div></div>`;
             const topRows = top.length ? `<table><tbody>${top.map((p, i) => `<tr><td>${i + 1}</td><td class="rpa-pn">${debtEsc(p.name)}</td><td>${debtEsc(String(Math.round(p.qty * 100) / 100))} قطعة</td></tr>`).join('')}</tbody></table>` : '<div class="rpa-line"><span>لا توجد مبيعات في هذه الفترة</span></div>';
-            area.innerHTML = `<div class="rpa-head"><p class="rpa-store">${debtEsc(store)}</p><p class="rpa-title">التقرير المالي</p><p class="rpa-sub">الفترة: ${debtEsc(label)}</p><p class="rpa-sub">${dateStr}</p></div>`
+            area.innerHTML = `<div class="rpa-head">${printLogoHtml()}<p class="rpa-store">${debtEsc(store)}</p><p class="rpa-title">التقرير المالي</p><p class="rpa-sub">الفترة: ${debtEsc(label)}</p><p class="rpa-sub">${dateStr}</p></div>`
                 + block('إجمالي الإيرادات', revenue)
                 + block('إجمالي الربح', profit)
                 + block('إجمالي الربح بعد المصروفات', net)
@@ -4430,9 +4453,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 document.body.classList.remove('printing-report');
                 area.innerHTML = '';
             };
-            window.addEventListener('afterprint', cleanup);
-            try { window.print(); } catch (e) { cleanup(); showToast('⚠️ تعذر فتح نافذة الطباعة', 'warning'); return; }
-            setTimeout(cleanup, 8000);
+            printWhenLogoReady(area, cleanup);
         }
         // ============ نهاية طباعة التقرير المالي ============
 
@@ -4445,7 +4466,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
             const rows = state.products.map(p => `<tr><td class="ip-name">${debtEsc(p.name || '')}</td><td>${debtEsc(formatProductPrice(p.retailPrice, p))}</td><td>${debtEsc(String(p.qty != null ? p.qty : 0))}</td></tr>`).join('');
-            area.innerHTML = `<div class="ip-head"><p class="ip-store">${debtEsc(store)}</p><p class="ip-title">قائمة المنتجات والأسعار</p><p class="ip-date">${dateStr}</p></div><table><thead><tr><th>المنتج</th><th>سعر المفرق</th><th>الكمية</th></tr></thead><tbody>${rows}</tbody></table><div class="ip-foot">عدد المنتجات: ${state.products.length}</div>`;
+            area.innerHTML = `<div class="ip-head">${printLogoHtml()}<p class="ip-store">${debtEsc(store)}</p><p class="ip-title">قائمة المنتجات والأسعار</p><p class="ip-date">${dateStr}</p></div><table><thead><tr><th>المنتج</th><th>سعر المفرق</th><th>الكمية</th></tr></thead><tbody>${rows}</tbody></table><div class="ip-foot">عدد المنتجات: ${state.products.length}</div>`;
             // تصغير خط اسم المنتج تلقائياً ليظهر كل منتج في سطر واحد
             area.classList.add('ip-measure');
             area.querySelectorAll('td.ip-name').forEach(td => {
@@ -4461,9 +4482,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 document.body.classList.remove('printing-inventory');
                 area.innerHTML = '';
             };
-            window.addEventListener('afterprint', cleanup);
-            try { window.print(); } catch (e) { cleanup(); showToast('⚠️ تعذر فتح نافذة الطباعة', 'warning'); return; }
-            setTimeout(cleanup, 8000);
+            printWhenLogoReady(area, cleanup);
         }
         // ============ نهاية طباعة قائمة المنتجات ============
 
