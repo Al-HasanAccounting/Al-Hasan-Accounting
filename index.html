@@ -488,6 +488,30 @@ input[type="number"]:focus {
 .ro-ghost * { pointer-events: none !important; }
 body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 </style>
+<style id="inventoryPrintStyles">
+#inventoryPrintArea { display: none; }
+#inventoryPrintArea.ip-measure { display: block; position: absolute; left: -10000px; top: 0; width: 72mm; padding: 0 1.5mm; box-sizing: border-box; visibility: hidden; }
+@media print {
+    body.printing-inventory > *:not(#inventoryPrintArea) { display: none !important; }
+    body.printing-inventory > #receiptModal { display: none !important; }
+    body.printing-inventory > #inventoryPrintArea { display: block !important; position: static !important; visibility: visible !important; width: 72mm !important; max-width: 72mm !important; margin: 0 !important; padding: 0 1.5mm 6mm !important; background: #fff !important; }
+    body.printing-inventory { background: #fff !important; }
+    #inventoryPrintArea, #inventoryPrintArea * { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+#inventoryPrintArea { direction: rtl; font-family: inherit; }
+#inventoryPrintArea .ip-head { text-align: center; padding: 1mm 0 1.2mm; border-bottom: 1px dashed #000; }
+#inventoryPrintArea .ip-store { font-size: 11pt; font-weight: 800; line-height: 1.25; margin: 0; word-break: break-word; }
+#inventoryPrintArea .ip-title { font-size: 8.5pt; font-weight: 700; margin: 0.6mm 0 0; }
+#inventoryPrintArea .ip-date { font-size: 7pt; margin: 0.4mm 0 0; }
+#inventoryPrintArea table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 1mm; }
+#inventoryPrintArea th { font-size: 7pt; font-weight: 800; padding: 0.6mm 0.4mm; border-bottom: 1px solid #000; white-space: nowrap; }
+#inventoryPrintArea td { font-size: 7.5pt; padding: 0.7mm 0.4mm; line-height: 1.2; border-bottom: 0.5px dotted #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+#inventoryPrintArea th:nth-child(1), #inventoryPrintArea td:nth-child(1) { text-align: right; }
+#inventoryPrintArea th:nth-child(2), #inventoryPrintArea td:nth-child(2) { width: 22mm; text-align: left; direction: ltr; }
+#inventoryPrintArea th:nth-child(3), #inventoryPrintArea td:nth-child(3) { width: 11mm; text-align: center; }
+#inventoryPrintArea tr { break-inside: avoid; page-break-inside: avoid; }
+#inventoryPrintArea .ip-foot { text-align: center; font-size: 7pt; padding-top: 1.2mm; border-top: 1px dashed #000; margin-top: 1mm; }
+</style>
 </head>
 <body>
     <div id="toastContainer" class="fixed top-1/2 left-1/2 z-[10001] flex flex-col items-center gap-3 pointer-events-none" style="transform: translate(-50%, -50%);"></div>
@@ -802,6 +826,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                         <div><h2 class="text-3xl font-bold text-white mb-1">المنتجات والمخزون</h2><p class="text-slate-400 text-sm">إدارة المنتجات</p></div>
                         <div class="flex gap-2 flex-wrap">
                             <button onclick="exportInventoryExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
+                            <button id="inventoryPrintBtn" type="button" onclick="printInventoryList()" title="طباعة قائمة المنتجات" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 sm:px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
                             <button id="reorderToggleBtn" type="button" onclick="toggleReorderMode()" title="ترتيب المنتجات" aria-label="ترتيب المنتجات" class="bg-navy-700 hover:bg-navy-600 border border-gold-500/60 text-gold-400 font-bold w-11 h-11 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-lg shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-pen"></i><span class="hidden sm:inline">ترتيب المنتجات</span></button>
                             <button onclick="resetProductModal(); openModal('addProductModal')" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-plus"></i> إضافة منتج</button>
                         </div>
@@ -1430,6 +1455,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             <div class="flex gap-3 mt-6"><button onclick="closeModal('payDebtModal')" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button><button onclick="confirmPayDebt()" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-check-circle"></i> تأكيد الدفع</button></div>
         </div>
     </div>
+    <div id="inventoryPrintArea" aria-hidden="true"></div>
     <div id="receiptModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="rc-card bg-white text-black rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
             <div class="rc-head bg-gradient-to-r from-navy-900 to-navy-800 p-4 text-center">
@@ -4320,6 +4346,37 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             return formatMoney(e ? e.amount : 0);
         }
         // ========== نهاية اختيار عملة الإدخال ==========
+
+        // ============ طباعة قائمة المنتجات (ورق حراري 80mm / مساحة 72mm) ============
+        function printInventoryList() {
+            if (!Array.isArray(state.products) || state.products.length === 0) { showToast('⚠️ لا توجد منتجات للطباعة', 'warning'); return; }
+            const area = document.getElementById('inventoryPrintArea');
+            if (!area) return;
+            const store = (state.settings && state.settings.storeName) || '';
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const rows = state.products.map(p => `<tr><td class="ip-name">${debtEsc(p.name || '')}</td><td>${debtEsc(formatProductPrice(p.retailPrice, p))}</td><td>${debtEsc(String(p.qty != null ? p.qty : 0))}</td></tr>`).join('');
+            area.innerHTML = `<div class="ip-head"><p class="ip-store">${debtEsc(store)}</p><p class="ip-title">قائمة المنتجات والأسعار</p><p class="ip-date">${dateStr}</p></div><table><thead><tr><th>المنتج</th><th>سعر المفرق</th><th>الكمية</th></tr></thead><tbody>${rows}</tbody></table><div class="ip-foot">عدد المنتجات: ${state.products.length}</div>`;
+            // تصغير خط اسم المنتج تلقائياً ليظهر كل منتج في سطر واحد
+            area.classList.add('ip-measure');
+            area.querySelectorAll('td.ip-name').forEach(td => {
+                let size = 7.5;
+                while (td.scrollWidth > td.clientWidth + 0.5 && size > 5) { size -= 0.25; td.style.fontSize = size + 'pt'; }
+            });
+            area.classList.remove('ip-measure');
+            document.body.classList.add('printing-inventory');
+            let cleaned = false;
+            const cleanup = () => {
+                if (cleaned) return; cleaned = true;
+                window.removeEventListener('afterprint', cleanup);
+                document.body.classList.remove('printing-inventory');
+                area.innerHTML = '';
+            };
+            window.addEventListener('afterprint', cleanup);
+            try { window.print(); } catch (e) { cleanup(); showToast('⚠️ تعذر فتح نافذة الطباعة', 'warning'); return; }
+            setTimeout(cleanup, 8000);
+        }
+        // ============ نهاية طباعة قائمة المنتجات ============
 
         // ============ ترتيب كروت المنتجات (المخزون + نقطة البيع) ============
         let reorderMode = false;
