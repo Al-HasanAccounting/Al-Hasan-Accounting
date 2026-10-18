@@ -480,6 +480,14 @@ input[type="number"]:focus {
         }
         @media (max-width: 380px) { .rp-export span { display: none; } .rp-hero { padding: 16px; } .rp-ring { width: 70px; height: 70px; } .rp-ring-in { width: 54px; height: 54px; } }
     </style>
+<style id="reorderStyles">
+#inventory.reorder-mode-active .product-card { cursor: grab; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; outline: 2px dashed rgba(251,191,36,.55); outline-offset: -2px; }
+#inventory.reorder-mode-active .product-card * { pointer-events: none !important; }
+#inventory.reorder-mode-active .product-card.ro-placeholder { opacity: .25; }
+.ro-ghost { position: fixed !important; z-index: 9999; pointer-events: none !important; margin: 0 !important; opacity: .95; transform: scale(1.04) rotate(1.5deg); box-shadow: 0 18px 40px rgba(0,0,0,.55); border-color: #fbbf24 !important; }
+.ro-ghost * { pointer-events: none !important; }
+body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
+</style>
 </head>
 <body>
     <div id="toastContainer" class="fixed top-1/2 left-1/2 z-[10001] flex flex-col items-center gap-3 pointer-events-none" style="transform: translate(-50%, -50%);"></div>
@@ -794,6 +802,7 @@ input[type="number"]:focus {
                         <div><h2 class="text-3xl font-bold text-white mb-1">المنتجات والمخزون</h2><p class="text-slate-400 text-sm">إدارة المنتجات</p></div>
                         <div class="flex gap-2 flex-wrap">
                             <button onclick="exportInventoryExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
+                            <button id="reorderToggleBtn" type="button" onclick="toggleReorderMode()" title="ترتيب المنتجات" aria-label="ترتيب المنتجات" class="bg-navy-700 hover:bg-navy-600 border border-gold-500/60 text-gold-400 font-bold w-11 h-11 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-lg shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-pen"></i><span class="hidden sm:inline">ترتيب المنتجات</span></button>
                             <button onclick="resetProductModal(); openModal('addProductModal')" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-plus"></i> إضافة منتج</button>
                         </div>
                     </div>
@@ -807,6 +816,7 @@ input[type="number"]:focus {
                         <div class="relative flex-1"><i class="fa-solid fa-search absolute right-4 top-3.5 text-slate-500"></i><input type="text" id="inventorySearch" placeholder="ابحث..." class="w-full bg-navy-800 border border-navy-700 rounded-xl py-3 pr-12 pl-4 text-white focus:border-gold-400 outline-none" oninput="renderInventory(this.value)"></div>
                         <select id="inventoryCategoryFilter" class="bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-white focus:border-gold-400 outline-none" onchange="renderInventory()"><option value="all">كل التصنيفات</option></select>
                     </div>
+                    <div id="reorderHint" class="hidden mb-4 bg-gold-500/10 border border-gold-500/40 text-gold-400 rounded-xl px-4 py-3 text-sm flex items-center gap-3"><i class="fa-solid fa-hand-pointer text-lg"></i><span>وضع الترتيب: اضغط مطوّلاً على أي كرت ثم اسحبه إلى المكان الذي تريده. يُطبَّق الترتيب تلقائياً على نقطة البيع. عند الانتهاء اضغط «تم».</span></div>
                     <div id="inventoryListContainer" class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-3"></div>
                 </div>
                 <div id="invoices" class="page">
@@ -4310,6 +4320,215 @@ input[type="number"]:focus {
             return formatMoney(e ? e.amount : 0);
         }
         // ========== نهاية اختيار عملة الإدخال ==========
+
+        // ============ ترتيب كروت المنتجات (المخزون + نقطة البيع) ============
+        let reorderMode = false;
+        const RO = { pending: null, timer: null, dragging: false, card: null, ghost: null, offX: 0, offY: 0, lastX: 0, lastY: 0, scroller: null, raf: null, startX: 0, startY: 0, isTouch: false };
+        const _renderInventoryOriginal = renderInventory;
+        renderInventory = function () {
+            const r = _renderInventoryOriginal.apply(this, arguments);
+            try { decorateReorderCards(); } catch (e) {}
+            return r;
+        };
+        function decorateReorderCards() {
+            if (!reorderMode) return;
+            const container = document.getElementById('inventoryListContainer');
+            if (!container) return;
+            const cards = Array.from(container.children).filter(el => el.classList && el.classList.contains('product-card'));
+            if (cards.length !== state.products.length) return;
+            cards.forEach((c, i) => { c.setAttribute('data-pid', String(state.products[i].id)); });
+        }
+        function setReorderButton(active) {
+            const btn = document.getElementById('reorderToggleBtn');
+            if (!btn) return;
+            if (active) {
+                btn.className = 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-400 text-white font-bold h-11 px-4 sm:h-auto sm:px-5 sm:py-2.5 rounded-lg shadow-lg flex items-center justify-center gap-2';
+                btn.innerHTML = '<i class="fa-solid fa-check"></i><span>تم</span>';
+                btn.title = 'إنهاء الترتيب';
+            } else {
+                btn.className = 'bg-navy-700 hover:bg-navy-600 border border-gold-500/60 text-gold-400 font-bold w-11 h-11 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-lg shadow-lg flex items-center justify-center gap-2';
+                btn.innerHTML = '<i class="fa-solid fa-pen"></i><span class="hidden sm:inline">ترتيب المنتجات</span>';
+                btn.title = 'ترتيب المنتجات';
+            }
+        }
+        function toggleReorderMode() {
+            const page = document.getElementById('inventory');
+            const container = document.getElementById('inventoryListContainer');
+            const searchEl = document.getElementById('inventorySearch');
+            const catEl = document.getElementById('inventoryCategoryFilter');
+            const hint = document.getElementById('reorderHint');
+            if (!reorderMode) {
+                if (!Array.isArray(state.products) || state.products.length < 2) { showToast('أضف منتجين على الأقل لترتيبهم', 'warning'); return; }
+                reorderMode = true;
+                if (searchEl) { searchEl.value = ''; searchEl.disabled = true; }
+                if (catEl) { catEl.value = 'all'; catEl.disabled = true; }
+                page.classList.add('reorder-mode-active');
+                if (hint) hint.classList.remove('hidden');
+                setReorderButton(true);
+                container.addEventListener('mousedown', roMouseDown);
+                container.addEventListener('touchstart', roTouchStart, { passive: true });
+                container.addEventListener('contextmenu', roBlock);
+                container.addEventListener('dragstart', roBlock);
+                renderInventory();
+            } else {
+                roCancel();
+                reorderMode = false;
+                if (searchEl) searchEl.disabled = false;
+                if (catEl) catEl.disabled = false;
+                page.classList.remove('reorder-mode-active');
+                if (hint) hint.classList.add('hidden');
+                setReorderButton(false);
+                container.removeEventListener('mousedown', roMouseDown);
+                container.removeEventListener('touchstart', roTouchStart, { passive: true });
+                container.removeEventListener('contextmenu', roBlock);
+                container.removeEventListener('dragstart', roBlock);
+                renderInventory();
+            }
+        }
+        function roBlock(e) { e.preventDefault(); }
+        function roFindScroller(el) {
+            let n = el.parentElement;
+            while (n && n !== document.body) {
+                const oy = getComputedStyle(n).overflowY;
+                if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight) return n;
+                n = n.parentElement;
+            }
+            return null;
+        }
+        function roCardFrom(target) {
+            const container = document.getElementById('inventoryListContainer');
+            const card = target && target.closest ? target.closest('.product-card') : null;
+            return (card && container.contains(card) && card.getAttribute('data-pid')) ? card : null;
+        }
+        function roMouseDown(e) {
+            if (e.button !== 0) return;
+            const card = roCardFrom(e.target);
+            if (!card) return;
+            e.preventDefault();
+            RO.pending = card; RO.isTouch = false; RO.startX = e.clientX; RO.startY = e.clientY;
+            document.addEventListener('mousemove', roMouseMove);
+            document.addEventListener('mouseup', roMouseUp);
+        }
+        function roMouseMove(e) {
+            if (RO.dragging) { roMove(e.clientX, e.clientY); return; }
+            if (RO.pending && Math.hypot(e.clientX - RO.startX, e.clientY - RO.startY) > 5) roStart(RO.pending, e.clientX, e.clientY);
+        }
+        function roMouseUp() { roEnd(true); }
+        function roTouchStart(e) {
+            if (e.touches.length !== 1) return;
+            const card = roCardFrom(e.target);
+            if (!card) return;
+            const t = e.touches[0];
+            RO.pending = card; RO.isTouch = true; RO.startX = t.clientX; RO.startY = t.clientY; RO.lastX = t.clientX; RO.lastY = t.clientY;
+            clearTimeout(RO.timer);
+            RO.timer = setTimeout(() => { if (RO.pending) roStart(RO.pending, RO.lastX, RO.lastY); }, 260);
+            document.addEventListener('touchmove', roTouchMove, { passive: false });
+            document.addEventListener('touchend', roTouchEnd);
+            document.addEventListener('touchcancel', roTouchCancel);
+        }
+        function roTouchMove(e) {
+            const t = e.touches[0];
+            if (!t) return;
+            RO.lastX = t.clientX; RO.lastY = t.clientY;
+            if (RO.dragging) { e.preventDefault(); roMove(t.clientX, t.clientY); return; }
+            if (RO.pending && Math.hypot(t.clientX - RO.startX, t.clientY - RO.startY) > 10) { clearTimeout(RO.timer); RO.pending = null; roUnbind(); }
+        }
+        function roTouchEnd() { roEnd(true); }
+        function roTouchCancel() { roEnd(false); }
+        function roUnbind() {
+            document.removeEventListener('mousemove', roMouseMove);
+            document.removeEventListener('mouseup', roMouseUp);
+            document.removeEventListener('touchmove', roTouchMove, { passive: false });
+            document.removeEventListener('touchend', roTouchEnd);
+            document.removeEventListener('touchcancel', roTouchCancel);
+        }
+        function roStart(card, x, y) {
+            clearTimeout(RO.timer);
+            RO.dragging = true; RO.card = card; RO.pending = null;
+            const rect = card.getBoundingClientRect();
+            RO.offX = x - rect.left; RO.offY = y - rect.top;
+            const ghost = card.cloneNode(true);
+            ghost.classList.add('ro-ghost');
+            ghost.classList.remove('ro-placeholder');
+            ghost.style.width = rect.width + 'px';
+            ghost.style.height = rect.height + 'px';
+            ghost.style.left = rect.left + 'px';
+            ghost.style.top = rect.top + 'px';
+            document.body.appendChild(ghost);
+            RO.ghost = ghost;
+            card.classList.add('ro-placeholder');
+            document.body.classList.add('ro-dragging-body');
+            RO.scroller = roFindScroller(card);
+            RO.lastX = x; RO.lastY = y;
+            try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+            const loop = () => {
+                if (!RO.dragging) return;
+                roAutoScroll();
+                RO.raf = requestAnimationFrame(loop);
+            };
+            RO.raf = requestAnimationFrame(loop);
+        }
+        function roMove(x, y) {
+            RO.lastX = x; RO.lastY = y;
+            if (RO.ghost) { RO.ghost.style.left = (x - RO.offX) + 'px'; RO.ghost.style.top = (y - RO.offY) + 'px'; }
+            roReposition(x, y);
+        }
+        function roReposition(x, y) {
+            const container = document.getElementById('inventoryListContainer');
+            const el = document.elementFromPoint(x, y);
+            const target = el && el.closest ? el.closest('.product-card') : null;
+            if (!target || target === RO.card || !container.contains(target)) return;
+            const kids = Array.from(container.children);
+            const ci = kids.indexOf(RO.card), ti = kids.indexOf(target);
+            if (ci < 0 || ti < 0) return;
+            if (ci < ti) container.insertBefore(RO.card, target.nextSibling);
+            else container.insertBefore(RO.card, target);
+        }
+        function roAutoScroll() {
+            const sc = RO.scroller;
+            const edge = 80;
+            let top = 0, bottom = window.innerHeight;
+            if (sc) { const r = sc.getBoundingClientRect(); top = Math.max(top, r.top); bottom = Math.min(bottom, r.bottom); }
+            let dy = 0;
+            if (RO.lastY < top + edge) dy = -Math.ceil((top + edge - RO.lastY) / 5);
+            else if (RO.lastY > bottom - edge) dy = Math.ceil((RO.lastY - (bottom - edge)) / 5);
+            if (!dy) return;
+            dy = Math.max(-22, Math.min(22, dy));
+            if (sc) sc.scrollTop += dy; else window.scrollBy(0, dy);
+            roReposition(RO.lastX, RO.lastY);
+        }
+        function roCleanupVisual() {
+            cancelAnimationFrame(RO.raf);
+            if (RO.ghost && RO.ghost.parentNode) RO.ghost.parentNode.removeChild(RO.ghost);
+            if (RO.card) RO.card.classList.remove('ro-placeholder');
+            document.body.classList.remove('ro-dragging-body');
+            RO.ghost = null; RO.dragging = false; RO.pending = null; RO.scroller = null;
+            clearTimeout(RO.timer);
+            roUnbind();
+        }
+        function roEnd(commit) {
+            const wasDragging = RO.dragging;
+            const container = document.getElementById('inventoryListContainer');
+            roCleanupVisual();
+            RO.card = null;
+            if (!wasDragging) return;
+            if (!commit) { renderInventory(); return; }
+            const ids = Array.from(container.children).map(el => el.getAttribute && el.getAttribute('data-pid')).filter(Boolean);
+            const byId = {};
+            state.products.forEach(p => { byId[String(p.id)] = p; });
+            const ordered = ids.map(id => byId[id]).filter(Boolean);
+            if (ordered.length !== state.products.length) { renderInventory(); return; }
+            const changed = ordered.some((p, i) => p !== state.products[i]);
+            if (!changed) return;
+            state.products = ordered;
+            saveState();
+            showToast('✅ تم حفظ ترتيب المنتجات (المخزون + نقطة البيع)', 'success');
+        }
+        function roCancel() {
+            if (RO.dragging) { roCleanupVisual(); RO.card = null; }
+            else { clearTimeout(RO.timer); RO.pending = null; roUnbind(); }
+        }
+        // ============ نهاية ترتيب الكروت ============
 
         // ============ الديون القديمة ============
         let editingOldDebtId = null;
