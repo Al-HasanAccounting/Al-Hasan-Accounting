@@ -251,6 +251,7 @@ input[type="number"]:focus {
             .stat-card .text-sm { font-size: 0.65rem !important; }
             .stat-card .text-xs { font-size: 0.6rem !important; }
             #posProductList, #inventoryListContainer, #customersListContainer, #expensesListContainer, #adminClientsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+            #posProductList, #inventoryListContainer, #oldDebtsListContainer, #expensesListContainer, #adminClientsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
             #salesListContainer { overflow-x: auto !important; }
             #salesListContainer > table { min-width: 800px; }
             .grid.gap-4 { gap: 8px !important; }
@@ -302,36 +303,65 @@ input[type="number"]:focus {
             #expensesListContainer .expense-notes-box .notes-content { font-size: 10px !important; line-height: 1.3 !important; }
 
             #customersListContainer > div { padding: 10px !important; border-radius: 14px !important; gap: 5px !important; overflow: hidden !important; }
+            #oldDebtsListContainer > div { padding: 10px !important; border-radius: 14px !important; gap: 5px !important; overflow: hidden !important; }
             #customersListContainer > div > .absolute.top-4.left-4 { top: 8px !important; left: 8px !important; gap: 4px !important; }
+            #oldDebtsListContainer > div > .absolute.top-4.left-4 { top: 8px !important; left: 8px !important; gap: 4px !important; }
             #customersListContainer > div > .absolute.top-4.left-4 button { width: 26px !important; height: 26px !important; border-radius: 7px !important; }
+            #oldDebtsListContainer > div > .absolute.top-4.left-4 button { width: 26px !important; height: 26px !important; border-radius: 7px !important; }
             #customersListContainer > div > .absolute.top-4.left-4 button i { font-size: 11px !important; }
+            #oldDebtsListContainer > div > .absolute.top-4.left-4 button i { font-size: 11px !important; }
             #customersListContainer > div > .flex.items-center.gap-3 { gap: 8px !important; margin-bottom: 8px !important; padding-left: 58px !important; align-items: flex-start !important; }
+            #oldDebtsListContainer > div > .flex.items-center.gap-3 { gap: 8px !important; margin-bottom: 8px !important; padding-left: 58px !important; align-items: flex-start !important; }
             #customersListContainer > div > .flex.items-center.gap-3 > div:first-child { width: 40px !important; height: 40px !important; border-radius: 10px !important; font-size: 16px !important; flex-shrink: 0 !important; }
+            #oldDebtsListContainer > div > .flex.items-center.gap-3 > div:first-child { width: 40px !important; height: 40px !important; border-radius: 10px !important; font-size: 16px !important; flex-shrink: 0 !important; }
             #customersListContainer h3.text-white { font-size: 0.8rem !important; line-height: 1.25 !important; margin-bottom: 3px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; max-width: 100% !important; display: block !important; }
+            #oldDebtsListContainer h3.text-white { font-size: 0.8rem !important; line-height: 1.25 !important; margin-bottom: 3px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; max-width: 100% !important; display: block !important; }
             #customersListContainer span.inline-block { font-size: 0.6rem !important; padding: 2px 8px !important; border-radius: 7px !important; margin-top: 0 !important; line-height: 1.2 !important; }
+            #oldDebtsListContainer span.inline-block { font-size: 0.6rem !important; padding: 2px 8px !important; border-radius: 7px !important; margin-top: 0 !important; line-height: 1.2 !important; }
             #customersListContainer .space-y-2.text-sm { gap: 5px !important; margin-bottom: 8px !important; }
+            #oldDebtsListContainer .space-y-2.text-sm { gap: 5px !important; margin-bottom: 8px !important; }
             #customersListContainer .space-y-2.text-sm > div { font-size: 0.65rem !important; gap: 5px !important; }
+            #oldDebtsListContainer .space-y-2.text-sm > div { font-size: 0.65rem !important; gap: 5px !important; }
             #customersListContainer .space-y-2.text-sm > div i { font-size: 0.65rem !important; width: 12px !important; }
+            #oldDebtsListContainer .space-y-2.text-sm > div i { font-size: 0.65rem !important; width: 12px !important; }
             #customersListContainer > div > .grid.grid-cols-2 { gap: 5px !important; margin-bottom: 5px !important; }
+            #oldDebtsListContainer > div > .grid.grid-cols-2 { gap: 5px !important; margin-bottom: 5px !important; }
             #customersListContainer > div > .grid.grid-cols-2 > div { padding: 6px 4px !important; border-radius: 9px !important; min-width: 0 !important; overflow: hidden !important; }
+            #oldDebtsListContainer > div > .grid.grid-cols-2 > div { padding: 6px 4px !important; border-radius: 9px !important; min-width: 0 !important; overflow: hidden !important; }
             #customersListContainer > div > .grid.grid-cols-2 > div > div:first-child { font-size: 0.55rem !important; margin-bottom: 2px !important; line-height: 1 !important; }
+            #oldDebtsListContainer > div > .grid.grid-cols-2 > div > div:first-child { font-size: 0.55rem !important; margin-bottom: 2px !important; line-height: 1 !important; }
             #customersListContainer > div > .grid.grid-cols-2 > div > div:last-child { font-size: 0.7rem !important; line-height: 1.15 !important; word-break: break-all !important; }
+            #oldDebtsListContainer > div > .grid.grid-cols-2 > div > div:last-child { font-size: 0.7rem !important; line-height: 1.15 !important; word-break: break-all !important; }
             #customersListContainer > div > .flex.justify-between.items-center.text-xs { padding: 4px 0 !important; gap: 4px !important; font-size: 0.6rem !important; margin-bottom: 6px !important; }
+            #oldDebtsListContainer > div > .flex.justify-between.items-center.text-xs { padding: 4px 0 !important; gap: 4px !important; font-size: 0.6rem !important; margin-bottom: 6px !important; }
             #customersListContainer > div > .flex.justify-between.items-center.text-xs > span:first-child { font-size: 0.6rem !important; }
+            #oldDebtsListContainer > div > .flex.justify-between.items-center.text-xs > span:first-child { font-size: 0.6rem !important; }
             #customersListContainer > div > .flex.justify-between.items-center.text-xs > span:last-child { font-size: 0.6rem !important; white-space: nowrap !important; }
+            #oldDebtsListContainer > div > .flex.justify-between.items-center.text-xs > span:last-child { font-size: 0.6rem !important; white-space: nowrap !important; }
             #customersListContainer button.w-full { font-size: 0.7rem !important; padding: 8px 6px !important; border-radius: 9px !important; }
+            #oldDebtsListContainer button.w-full { font-size: 0.7rem !important; padding: 8px 6px !important; border-radius: 9px !important; }
             #customersListContainer button.w-full i { font-size: 0.75rem !important; }
+            #oldDebtsListContainer button.w-full i { font-size: 0.75rem !important; }
             #customersListContainer .customer-notes-box { padding: 6px 8px !important; margin-bottom: 6px !important; min-height: 55px !important; max-height: 55px !important; border-radius: 8px !important; }
+            #oldDebtsListContainer .customer-notes-box { padding: 6px 8px !important; margin-bottom: 6px !important; min-height: 55px !important; max-height: 55px !important; border-radius: 8px !important; }
             #customersListContainer .customer-notes-box .notes-label { font-size: 9px !important; margin-bottom: 3px !important; }
+            #oldDebtsListContainer .customer-notes-box .notes-label { font-size: 9px !important; margin-bottom: 3px !important; }
             #customersListContainer .customer-notes-box .notes-content { font-size: 10px !important; line-height: 1.3 !important; }
+            #oldDebtsListContainer .customer-notes-box .notes-content { font-size: 10px !important; line-height: 1.3 !important; }
 
             @media (max-width: 480px) {
                 #customersListContainer > div { padding: 8px !important; }
+                #oldDebtsListContainer > div { padding: 8px !important; }
                 #customersListContainer > div > .flex.items-center.gap-3 > div:first-child { width: 36px !important; height: 36px !important; font-size: 14px !important; }
+                #oldDebtsListContainer > div > .flex.items-center.gap-3 > div:first-child { width: 36px !important; height: 36px !important; font-size: 14px !important; }
                 #customersListContainer h3.text-white { font-size: 0.75rem !important; }
+                #oldDebtsListContainer h3.text-white { font-size: 0.75rem !important; }
                 #customersListContainer .space-y-2.text-sm > div { font-size: 0.6rem !important; }
+                #oldDebtsListContainer .space-y-2.text-sm > div { font-size: 0.6rem !important; }
                 #customersListContainer > div > .grid.grid-cols-2 > div > div:first-child { font-size: 0.5rem !important; }
+                #oldDebtsListContainer > div > .grid.grid-cols-2 > div > div:first-child { font-size: 0.5rem !important; }
                 #customersListContainer > div > .grid.grid-cols-2 > div > div:last-child { font-size: 0.65rem !important; }
+                #oldDebtsListContainer > div > .grid.grid-cols-2 > div > div:last-child { font-size: 0.65rem !important; }
                 #expensesListContainer > div { padding: 10px !important; }
                 #expensesListContainer h3.text-white { font-size: 0.75rem !important; }
                 #expensesListContainer > div > .grid.grid-cols-2 > div > div:last-child { font-size: 0.65rem !important; }
@@ -570,6 +600,7 @@ input[type="number"]:focus {
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('productInquiry', this)"><i class="fa-solid fa-magnifying-glass-dollar w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">استفسار عن منتج</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('expenses', this)"><i class="fa-solid fa-wallet w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">المصروفات</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('externalProfits', this)"><i class="fa-solid fa-hand-holding-dollar w-5 text-center text-emerald-400"></i><span class="font-semibold text-sm">إضافة أرباح خارجية</span></div>
+                    <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('oldDebts', this)"><i class="fa-solid fa-clock-rotate-left w-5 text-center text-red-400"></i><span class="font-semibold text-sm">إضافة ديون قديمة</span></div>
                     <div class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-slate-300 hover:bg-navy-700 hover:text-white" onclick="switchPage('reports', this)"><i class="fa-solid fa-chart-line w-5 text-center text-slate-400"></i><span class="font-semibold text-sm">التقارير المالية</span></div>
                 </div>
                 <div>
@@ -810,6 +841,23 @@ input[type="number"]:focus {
                         <select id="customerTypeFilter" class="bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-white focus:border-gold-400 outline-none" onchange="renderCustomers()"><option value="all">كل الفواتير</option><option value="open">مفتوحة</option><option value="paid">مسدَّدة</option></select>
                     </div>
                     <div id="customersListContainer" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
+                </div>
+                <div id="oldDebts" class="page">
+                    <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
+                        <div><h2 class="text-3xl font-bold text-white mb-1">الديون القديمة</h2><p class="text-slate-400 text-sm">ديون سابقة لك عند العملاء — وكل دفعة يتم تسديدها تُضاف إلى أرباح يوم استلامها</p></div>
+                        <button onclick="openAddOldDebtModal()" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-plus"></i> إضافة دين قديم</button>
+                    </div>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي الديون</h3><div class="text-2xl font-bold text-white" id="statOldDebtCount">0</div></div><div class="stat-card-icon bg-blue-500/10 text-blue-400"><i class="fa-solid fa-users"></i></div></div>
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">ديون مفتوحة</h3><div class="text-2xl font-bold text-white" id="statOldDebtOpen">0</div></div><div class="stat-card-icon bg-purple-500/10 text-purple-400"><i class="fa-solid fa-user-tie"></i></div></div>
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي قيمة الدَّين</h3><div class="text-2xl font-bold text-emerald-400" id="statOldDebtTotal">$0.00</div></div><div class="stat-card-icon bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-chart-line"></i></div></div>
+                        <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">المتبقي للتحصيل</h3><div class="text-2xl font-bold text-red-400" id="statOldDebtRemaining">$0.00</div></div><div class="stat-card-icon bg-red-500/10 text-red-400"><i class="fa-solid fa-hand-holding-dollar"></i></div></div>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-4 mb-6">
+                        <div class="relative flex-1"><i class="fa-solid fa-search absolute right-4 top-3.5 text-slate-500"></i><input type="text" id="oldDebtSearch" placeholder="ابحث..." class="w-full bg-navy-800 border border-navy-700 rounded-xl py-3 pr-12 pl-4 text-white focus:border-gold-400 outline-none" oninput="renderOldDebts()"></div>
+                        <select id="oldDebtStatusFilter" class="bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-white focus:border-gold-400 outline-none" onchange="renderOldDebts()"><option value="all">كل الديون</option><option value="open">مفتوحة</option><option value="paid">مسدَّدة</option></select>
+                    </div>
+                    <div id="oldDebtsListContainer" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
                 </div>
                 <div id="productInquiry" class="page">
                     <div class="flex justify-between items-start mb-6 flex-wrap gap-2">
@@ -1299,6 +1347,42 @@ input[type="number"]:focus {
                 <div><label class="block text-sm text-slate-300 mb-1">ملاحظات</label><textarea id="expNotes" rows="2" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></textarea></div>
             </div>
             <div class="flex gap-3 mt-6"><button onclick="closeModal('addExpenseModal')" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button><button onclick="addExpense()" id="expenseSubmitBtn" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> حفظ المصروف</button></div>
+        </div>
+    </div>
+    <div id="addOldDebtModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-navy-800 p-6 rounded-2xl w-full max-w-md border border-navy-700 shadow-2xl max-h-[95vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-white" id="oldDebtModalTitle">إضافة دين قديم</h3><button onclick="closeModal('addOldDebtModal'); resetOldDebtModal();" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
+            <div class="space-y-4">
+                <div><label class="block text-sm text-slate-300 mb-1">اسم العميل *</label><input type="text" id="oldDebtName" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm text-slate-300 mb-1">نوع العميل</label><select id="oldDebtType" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"><option value="retail">مفرق</option><option value="wholesale">جملة</option></select></div>
+                    <div><label class="block text-sm text-slate-300 mb-1">رقم الهاتف</label><input type="text" id="oldDebtPhone" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
+                </div>
+                <div><label class="block text-sm text-slate-300 mb-1">الموقع</label><input type="text" id="oldDebtAddress" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
+                <div id="oldDebtAmountSection" class="space-y-4">
+                    <div id="oldDebtCurrencyBox" class="bg-navy-900 p-3 rounded-xl border border-gold-500/40" data-amount="oldDebtAmount" data-label="oldDebtAmountLabel" data-hint="oldDebtAmountHint"><label class="block text-slate-300 font-bold mb-2 text-sm"><i class="fa-solid fa-coins text-gold-400 ml-1"></i> عملة الدَّين *</label><div class="grid grid-cols-2 gap-2"><button type="button" data-cur="USD" onclick="setEntryCurrency('oldDebtCurrencyBox', 'USD')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-blue-500 text-white border-blue-500"><i class="fa-solid fa-dollar-sign ml-1"></i> دولار أمريكي</button><button type="button" data-cur="SYP_NEW" onclick="setEntryCurrency('oldDebtCurrencyBox', 'SYP_NEW')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-navy-800 text-slate-300 border-navy-600 hover:border-gold-400"><i class="fa-solid fa-money-bill-wave ml-1"></i> ليرة سورية جديدة</button></div><input type="hidden" id="oldDebtCurrency" value="USD"></div>
+                    <div><label class="block text-sm text-slate-300 mb-1">المبلغ المطلوب لك (<span id="oldDebtAmountLabel">$</span>) *</label><input type="number" id="oldDebtAmount" oninput="refreshCurrencyHint('oldDebtCurrencyBox')" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="$"><p id="oldDebtAmountHint" class="hidden text-xs text-emerald-400 mt-1"></p></div>
+                </div>
+                <div><label class="block text-sm text-slate-300 mb-1">تاريخ الدَّين *</label><input type="date" id="oldDebtDate" lang="en" dir="ltr" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
+                <div><label class="block text-sm text-slate-300 mb-1">ملاحظات</label><textarea id="oldDebtNotes" rows="2" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></textarea></div>
+            </div>
+            <div class="flex gap-3 mt-6"><button onclick="closeModal('addOldDebtModal'); resetOldDebtModal();" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button><button onclick="addOldDebt()" id="oldDebtSubmitBtn" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-save"></i> حفظ الدَّين</button></div>
+        </div>
+    </div>
+    <div id="payOldDebtModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-navy-800 p-6 rounded-2xl w-full max-w-md border border-gold-500 shadow-2xl">
+            <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-gold-400"><i class="fa-solid fa-money-bill-wave"></i> تسديد دفعة</h3><button onclick="closeModal('payOldDebtModal')" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
+            <div class="bg-navy-900 p-4 rounded-xl border border-navy-700 mb-4">
+                <div class="flex justify-between items-center mb-2"><span class="text-slate-400 text-sm">اسم العميل:</span><span class="text-white font-bold" id="payOldDebtCustomerName">-</span></div>
+                <div class="flex justify-between items-center"><span class="text-slate-400 text-sm">المتبقي من الدين:</span><span class="text-gold-400 font-bold" id="payOldDebtCurrentLimit">$0.00</span></div>
+            </div>
+            <div class="space-y-4">
+                <div id="payOldDebtCurrencyBox" class="bg-navy-900 p-3 rounded-xl border border-gold-500/40" data-amount="payOldDebtAmount" data-label="payOldDebtAmountLabel" data-hint="payOldDebtAmountHint" data-ph="0.00"><label class="block text-slate-300 font-bold mb-2 text-sm"><i class="fa-solid fa-coins text-gold-400 ml-1"></i> عملة التسعير *</label><div class="grid grid-cols-2 gap-2"><button type="button" data-cur="USD" onclick="setEntryCurrency('payOldDebtCurrencyBox', 'USD')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-blue-500 text-white border-blue-500"><i class="fa-solid fa-dollar-sign ml-1"></i> دولار أمريكي</button><button type="button" data-cur="SYP_NEW" onclick="setEntryCurrency('payOldDebtCurrencyBox', 'SYP_NEW')" class="px-3 py-2 rounded-xl font-bold text-sm border-2 transition-all bg-navy-800 text-slate-300 border-navy-600 hover:border-gold-400"><i class="fa-solid fa-money-bill-wave ml-1"></i> ليرة سورية جديدة</button></div><input type="hidden" id="payOldDebtCurrency" value="USD"></div>
+                <div><label class="block text-sm text-slate-300 mb-1">المبلغ المدفوع (<span id="payOldDebtAmountLabel">$</span>) *</label><input type="number" id="payOldDebtAmount" oninput="refreshCurrencyHint('payOldDebtCurrencyBox')" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none text-center text-2xl font-bold" placeholder="0.00" min="0.01" step="0.01"><p id="payOldDebtAmountHint" class="hidden text-xs text-emerald-400 mt-1 text-center"></p></div>
+                <div><label class="block text-sm text-slate-300 mb-1">ملاحظة (اختياري)</label><input type="text" id="payOldDebtNote" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none text-sm" placeholder="دفعة جزئية..."></div>
+                <p class="text-xs text-emerald-400 text-center"><i class="fa-solid fa-circle-info ml-1"></i> تُضاف الدفعة إلى أرباح اليوم الذي تم فيه التسديد</p>
+            </div>
+            <div class="flex gap-3 mt-6"><button onclick="closeModal('payOldDebtModal')" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button><button onclick="confirmPayOldDebt()" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-check-circle"></i> تأكيد الدفع</button></div>
         </div>
     </div>
     <div id="addExtProfitModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 backdrop-blur-sm">
@@ -3021,6 +3105,7 @@ input[type="number"]:focus {
             try { renderInventory(); } catch(e) {}
             try { renderSalesLog(); } catch(e) {}
             try { renderCustomers(); } catch(e) {}
+            try { renderOldDebts(); } catch(e) {}
             try { renderExpenses(); } catch(e) {}
             try { renderExternalProfits(); } catch(e) {}
             try { renderReports(); } catch(e) {}
@@ -3035,7 +3120,7 @@ input[type="number"]:focus {
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             element.classList.add('active');
-            const titles = { dashboard: 'لوحة التحكم', pos: 'نقطة البيع', inventory: 'المنتجات والمخزون', invoices: 'سجل المبيعات', customers: 'فواتير الدَّين', productInquiry: 'استفسار عن منتج', expenses: 'المصروفات', externalProfits: 'الأرباح الخارجية', reports: 'التقارير المالية', settings: 'الإعدادات', aiAssistant: 'المساعد الذكي', contactAdmin: 'التواصل مع الإدارة', calculator: 'الآلة الحاسبة' };
+            const titles = { dashboard: 'لوحة التحكم', pos: 'نقطة البيع', inventory: 'المنتجات والمخزون', invoices: 'سجل المبيعات', customers: 'فواتير الدَّين', productInquiry: 'استفسار عن منتج', expenses: 'المصروفات', externalProfits: 'الأرباح الخارجية', oldDebts: 'الديون القديمة', reports: 'التقارير المالية', settings: 'الإعدادات', aiAssistant: 'المساعد الذكي', contactAdmin: 'التواصل مع الإدارة', calculator: 'الآلة الحاسبة' };
             document.getElementById('page-title').innerText = titles[pageId];
             if (pageId === 'reports') renderReports();
             if (pageId === 'settings') {
@@ -3061,6 +3146,7 @@ input[type="number"]:focus {
             if (pageId === 'productInquiry') { renderInquiryRate(); const searchEl = document.getElementById('inquirySearch'); if (searchEl) renderInquirySearch(searchEl.value); }
             if (pageId === 'expenses') renderExpenses();
             if (pageId === 'externalProfits') renderExternalProfits();
+            if (pageId === 'oldDebts') renderOldDebts();
             if (pageId === 'invoices') renderSalesLog();
             if (pageId === 'inventory') renderInventory();
             if (pageId === 'pos') { renderPosCategories(); renderPOSProducts(); }
@@ -3154,7 +3240,7 @@ input[type="number"]:focus {
             if (!checkSubscription()) return;
             if (confirm('تحذير! حذف كل البيانات. متأكد؟')) {
                 const sub = state.subscription; const adminClients = state.adminClients;
-                state.products = []; state.invoices = []; state.customers = []; state.debtInvoices = []; state.expenses = []; state.externalProfits = []; state.cart = [];
+                state.products = []; state.invoices = []; state.customers = []; state.debtInvoices = []; state.expenses = []; state.externalProfits = []; state.oldDebts = []; state.cart = [];
                 state.productImages = {};
                 state.subscription = sub; state.adminClients = adminClients;
                 saveState(); renderAll(); showToast('تم الحذف', 'delete');
@@ -4224,6 +4310,194 @@ input[type="number"]:focus {
             return formatMoney(e ? e.amount : 0);
         }
         // ========== نهاية اختيار عملة الإدخال ==========
+
+        // ============ الديون القديمة ============
+        let editingOldDebtId = null;
+        let currentPayOldDebtId = null;
+        function getOldDebts() {
+            if (!Array.isArray(state.oldDebts)) state.oldDebts = [];
+            return state.oldDebts;
+        }
+        function oldDebtTodayStr() {
+            const t = new Date(), pad = n => String(n).padStart(2, '0');
+            return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+        }
+        function resetOldDebtModal() {
+            editingOldDebtId = null;
+            document.getElementById('oldDebtModalTitle').innerText = 'إضافة دين قديم';
+            document.getElementById('oldDebtSubmitBtn').innerHTML = '<i class="fa-solid fa-save"></i> حفظ الدَّين';
+            document.getElementById('oldDebtName').value = '';
+            document.getElementById('oldDebtType').value = 'retail';
+            document.getElementById('oldDebtPhone').value = '';
+            document.getElementById('oldDebtAddress').value = '';
+            document.getElementById('oldDebtAmount').value = '';
+            setEntryCurrency('oldDebtCurrencyBox', 'USD');
+            document.getElementById('oldDebtDate').value = '';
+            document.getElementById('oldDebtNotes').value = '';
+            document.getElementById('oldDebtAmountSection').style.display = '';
+        }
+        function openAddOldDebtModal() {
+            resetOldDebtModal();
+            document.getElementById('oldDebtDate').value = oldDebtTodayStr();
+            openModal('addOldDebtModal');
+            try { forceDateInputLocale(); } catch(e) {}
+        }
+        function addOldDebt() {
+            if (!checkSubscription()) return;
+            const name = document.getElementById('oldDebtName').value.trim();
+            if (!name) { showToast('أدخل اسم العميل', 'warning'); return; }
+            const date = document.getElementById('oldDebtDate').value;
+            if (!date) { showToast('أدخل تاريخ الدَّين', 'warning'); return; }
+            const type = document.getElementById('oldDebtType').value === 'wholesale' ? 'wholesale' : 'retail';
+            const phone = document.getElementById('oldDebtPhone').value.trim();
+            const address = document.getElementById('oldDebtAddress').value.trim();
+            const notes = document.getElementById('oldDebtNotes').value.trim();
+            const isoDate = date + 'T23:59:59';
+            const formattedDate = formatLatinDate(isoDate, false);
+            const list = getOldDebts();
+            if (editingOldDebtId) {
+                const d = list.find(x => x.id === editingOldDebtId);
+                if (d) { d.name = name; d.type = type; d.phone = phone; d.address = address; d.notes = notes; d.date = formattedDate; d.isoDate = isoDate; }
+                showToast(`تم تعديل "${name}"`, 'edit');
+            } else {
+                const entry = readEntryAmount('oldDebtAmount', 'oldDebtCurrency', null);
+                if (!entry || !(entry.amount > 0)) { showToast('أدخل مبلغ الدَّين', 'warning'); return; }
+                const total = debtRound(entry.amount);
+                if (!(total > 0)) { showToast('المبلغ صغير جداً', 'warning'); return; }
+                list.push({
+                    id: Date.now(), name, type, phone, address, notes,
+                    total, paid: 0, remaining: total, status: 'open',
+                    amount: total, currency: entry.currency, originalAmount: entry.originalAmount, exchangeRateAtEntry: entry.exchangeRateAtEntry,
+                    date: formattedDate, isoDate
+                });
+                showToast(`تمت إضافة دين قديم على "${name}"`, 'success');
+            }
+            closeModal('addOldDebtModal'); saveState();
+            resetOldDebtModal();
+        }
+        function editOldDebt(id) {
+            const d = getOldDebts().find(x => x.id === id);
+            if (!d) return;
+            if (d.status === 'paid') { showToast('الدَّين مسدَّد ومغلق', 'warning'); return; }
+            editingOldDebtId = id;
+            document.getElementById('oldDebtName').value = d.name || '';
+            document.getElementById('oldDebtType').value = d.type === 'wholesale' ? 'wholesale' : 'retail';
+            document.getElementById('oldDebtPhone').value = d.phone || '';
+            document.getElementById('oldDebtAddress').value = d.address || '';
+            document.getElementById('oldDebtNotes').value = d.notes || '';
+            document.getElementById('oldDebtDate').value = (d.isoDate || '').slice(0, 10) || oldDebtTodayStr();
+            document.getElementById('oldDebtAmountSection').style.display = 'none';
+            document.getElementById('oldDebtModalTitle').innerText = 'تعديل الدَّين القديم';
+            document.getElementById('oldDebtSubmitBtn').innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
+            openModal('addOldDebtModal');
+            try { forceDateInputLocale(); } catch(e) {}
+        }
+        function deleteOldDebt(id) {
+            if (!checkSubscription()) return;
+            const d = getOldDebts().find(x => x.id === id);
+            if (!d) return;
+            if (confirm(`حذف الدَّين القديم الخاص بـ "${d.name}"؟\n(الدفعات التي سبق تسديدها تبقى مسجلة في الأرباح)`)) {
+                state.oldDebts = getOldDebts().filter(x => x.id !== id);
+                saveState(); showToast('تم الحذف', 'delete');
+            }
+        }
+        function renderOldDebts() {
+            const container = document.getElementById('oldDebtsListContainer');
+            if (!container) return;
+            const all = getOldDebts();
+            const openList = all.filter(d => d.status !== 'paid');
+            const setT = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+            setT('statOldDebtCount', all.length);
+            setT('statOldDebtOpen', openList.length);
+            setT('statOldDebtTotal', formatMoney(all.reduce((s, d) => s + (d.total || 0), 0)));
+            setT('statOldDebtRemaining', formatMoney(openList.reduce((s, d) => s + (d.remaining || 0), 0)));
+            const searchEl = document.getElementById('oldDebtSearch');
+            const filter = searchEl ? searchEl.value : '';
+            const statusEl = document.getElementById('oldDebtStatusFilter');
+            const statusFilter = statusEl ? statusEl.value : 'all';
+            let filtered = all.filter(d => (d.name || '').includes(filter) || (d.phone || '').includes(filter) || (d.address || '').includes(filter));
+            if (statusFilter === 'open') filtered = filtered.filter(d => d.status !== 'paid');
+            else if (statusFilter === 'paid') filtered = filtered.filter(d => d.status === 'paid');
+            filtered = filtered.slice().sort((a, b) => ((a.status === 'paid') - (b.status === 'paid')) || (b.id - a.id));
+            const avatarColors = ['linear-gradient(135deg, #8b5cf6, #6d28d9)','linear-gradient(135deg, #3b82f6, #1e40af)','linear-gradient(135deg, #10b981, #047857)','linear-gradient(135deg, #f59e0b, #b45309)','linear-gradient(135deg, #ec4899, #be185d)','linear-gradient(135deg, #06b6d4, #0e7490)'];
+            if (filtered.length === 0) {
+                container.className = 'bg-navy-800 rounded-2xl border border-navy-700 overflow-hidden shadow-xl';
+                container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-slate-500"><i class="fa-solid fa-clock-rotate-left text-6xl mb-4 opacity-50"></i><p class="text-lg">لا توجد ديون قديمة</p></div>`;
+                return;
+            }
+            container.className = 'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6';
+            container.innerHTML = filtered.map((c, index) => {
+                const isPaid = c.status === 'paid';
+                const avatarColor = isPaid ? 'linear-gradient(135deg, #10b981, #047857)' : avatarColors[index % avatarColors.length];
+                const firstLetter = (c.name || '؟').trim().charAt(0);
+                const typeLabel = c.type === 'wholesale' ? 'جملة' : 'مفرق';
+                const typeClass = c.type === 'wholesale' ? 'bg-purple-500/20 text-purple-400' : 'bg-emerald-500/20 text-emerald-400';
+                const remaining = c.remaining || 0;
+                const debtColor = isPaid ? 'text-emerald-400' : 'text-red-400';
+                const debtStatus = isPaid ? 'تم التسديد ✅' : 'مفتوحة ⏳';
+                const notesHtml = `<div class="customer-notes-box"><div class="notes-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</div><div class="notes-content ${c.notes && c.notes.trim() ? '' : 'empty'}">${c.notes && c.notes.trim() ? debtEsc(c.notes) : 'لم تُكتب ملاحظة'}</div></div>`;
+                const editBtn = isPaid ? '' : `<button onclick="editOldDebt(${c.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button>`;
+                const actionBtn = isPaid ? `<button disabled class="w-full bg-emerald-500/10 text-emerald-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-emerald-500/30 cursor-not-allowed"><i class="fa-solid fa-circle-check"></i> تم التسديد</button>` : `<button onclick="openPayOldDebtModal(${c.id})" class="w-full bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-gold-500/30"><i class="fa-solid fa-money-bill-wave"></i> تسديد دفعة</button>`;
+                return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteOldDebt(${c.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button>${editBtn}</div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style="background: ${avatarColor}">${debtEsc(firstLetter)}</div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-lg truncate">${debtEsc(c.name)}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${typeClass}">${typeLabel}</span></div></div><div class="space-y-2 text-sm mb-4">${c.phone ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-phone text-slate-500 w-4 text-center"></i><span dir="ltr">${debtEsc(c.phone)}</span></div>` : ''}${c.address ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-location-dot text-slate-500 w-4 text-center"></i><span class="truncate">${debtEsc(c.address)}</span></div>` : ''}${c.date ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-calendar-day text-slate-500 w-4 text-center"></i><span>${debtEsc(c.date)}</span></div>` : ''}</div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">قيمة الدَّين</div><div class="text-emerald-400 font-bold text-sm">${formatEntryAmount(c)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المتبقي</div><div class="${debtColor} font-bold text-sm">${formatMoney(remaining)}</div></div></div><div class="flex justify-between items-center text-xs py-2 border-t border-navy-700 mb-3"><span class="text-slate-400">حالة الدَّين</span><span class="${debtColor} font-bold">${debtStatus}</span></div>${notesHtml}${actionBtn}</div>`;
+            }).join('');
+        }
+        function openPayOldDebtModal(id) {
+            const d = getOldDebts().find(x => x.id === id);
+            if (!d) return;
+            if (d.status === 'paid') { showToast('الدَّين مسدَّد ومغلق', 'warning'); return; }
+            currentPayOldDebtId = id;
+            document.getElementById('payOldDebtCustomerName').innerText = d.name;
+            document.getElementById('payOldDebtCurrentLimit').innerText = formatMoney(d.remaining || 0) + ' (≈ ' + formatSYP((d.remaining || 0) * (parseFloat(state.settings.exchangeRate) || 1)) + ')';
+            setEntryCurrency('payOldDebtCurrencyBox', d.currency === 'SYP_NEW' ? 'SYP_NEW' : 'USD');
+            document.getElementById('payOldDebtAmount').value = '';
+            document.getElementById('payOldDebtNote').value = '';
+            openModal('payOldDebtModal');
+            setTimeout(() => document.getElementById('payOldDebtAmount').focus(), 300);
+        }
+        function confirmPayOldDebt() {
+            if (!checkSubscription()) return;
+            if (!currentPayOldDebtId) return;
+            const d = getOldDebts().find(x => x.id === currentPayOldDebtId);
+            if (!d || d.status === 'paid') return;
+            const payCur = document.getElementById('payOldDebtCurrency').value === 'SYP_NEW' ? 'SYP_NEW' : 'USD';
+            const payRate = parseFloat(state.settings.exchangeRate) || 1;
+            const enteredPay = parseFloat(toEnglishDigits(document.getElementById('payOldDebtAmount').value));
+            let amount = debtRound(payCur === 'SYP_NEW' ? enteredPay / payRate : enteredPay);
+            const note = document.getElementById('payOldDebtNote').value.trim();
+            if (isNaN(amount) || amount <= 0) { showToast('أدخل مبلغ صحيح', 'warning'); return; }
+            const oldRemaining = debtRound(d.remaining);
+            if (payCur === 'SYP_NEW' && Math.abs(amount - oldRemaining) < 0.01) amount = oldRemaining;
+            if (amount > oldRemaining + 0.001) { showToast(`⚠️ المبلغ أكبر من المتبقي (${payCur === 'SYP_NEW' ? formatSYP(oldRemaining * payRate) : formatMoney(oldRemaining)})`, 'warning'); return; }
+            const payText = payCur === 'SYP_NEW' ? `${formatSYP(enteredPay)} (≈ ${formatMoney(amount)})` : formatMoney(amount);
+            const newRemaining = debtRound(oldRemaining - amount);
+            d.paid = debtRound((d.paid || 0) + amount);
+            d.remaining = newRemaining < 0.005 ? 0 : newRemaining;
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB');
+            const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            let newNote = `💰 [${dateStr} - ${timeStr}] تم تسديد دفعة ${payText}`;
+            if (d.remaining > 0) newNote += ` — المتبقي: ${formatMoney(d.remaining)}`;
+            if (note) newNote += `\n    📝 ${note}`;
+            if (d.remaining === 0) {
+                d.status = 'paid';
+                d.paidDate = `${dateStr} - ${timeStr}`;
+                newNote += `\n✅ تم التسديد بالكامل`;
+            }
+            d.notes = d.notes ? d.notes + '\n\n' + newNote : newNote;
+            // إضافة الدفعة إلى أرباح اليوم الذي تم فيه التسديد (ضمن الأرباح الخارجية فتظهر في اللوحة والتقارير)
+            const isoDate = oldDebtTodayStr() + 'T23:59:59';
+            getExtProfits().push({
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                description: `تسديد دين قديم - ${d.name}`,
+                amount, currency: payCur, originalAmount: enteredPay, exchangeRateAtEntry: payRate,
+                date: formatLatinDate(isoDate, false), isoDate,
+                notes: note, oldDebtId: d.id
+            });
+            closeModal('payOldDebtModal'); saveState();
+            showToast(d.status === 'paid' ? `✅ تم التسديد بالكامل وأُضيف لأرباح اليوم` : `✅ تم استلام ${payText} وأُضيف لأرباح اليوم`, 'success');
+            currentPayOldDebtId = null;
+        }
+        // ============ نهاية الديون القديمة ============
 
         // ============ الأرباح الخارجية ============
         let editingExtProfitId = null;
