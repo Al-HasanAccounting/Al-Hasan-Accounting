@@ -512,6 +512,35 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 #inventoryPrintArea tr { break-inside: avoid; page-break-inside: avoid; }
 #inventoryPrintArea .ip-foot { text-align: center; font-size: 7pt; padding-top: 1.2mm; border-top: 1px dashed #000; margin-top: 1mm; }
 </style>
+<style id="reportPrintStyles">
+.rp-print { background: #2563eb; }
+.rp-print:hover { background: #1d4ed8; }
+#reportPrintArea { display: none; }
+#reportPrintArea.rpa-measure { display: block; position: absolute; left: -10000px; top: 0; width: 72mm; padding: 0 1.5mm; box-sizing: border-box; visibility: hidden; }
+@media print {
+    body.printing-report > *:not(#reportPrintArea) { display: none !important; }
+    body.printing-report > #receiptModal { display: none !important; }
+    body.printing-report > #reportPrintArea { display: block !important; position: static !important; visibility: visible !important; width: 72mm !important; max-width: 72mm !important; margin: 0 !important; padding: 0 1.5mm 6mm !important; background: #fff !important; }
+    body.printing-report { background: #fff !important; }
+    #reportPrintArea, #reportPrintArea * { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+#reportPrintArea { direction: rtl; font-family: inherit; }
+#reportPrintArea .rpa-head { text-align: center; padding: 1mm 0 1.2mm; border-bottom: 1px dashed #000; }
+#reportPrintArea .rpa-store { font-size: 11pt; font-weight: 800; line-height: 1.25; margin: 0; word-break: break-word; }
+#reportPrintArea .rpa-title { font-size: 9pt; font-weight: 700; margin: 0.6mm 0 0; }
+#reportPrintArea .rpa-sub { font-size: 7.5pt; margin: 0.4mm 0 0; line-height: 1.3; }
+#reportPrintArea .rpa-sec { padding: 1.2mm 0; border-bottom: 1px dashed #000; break-inside: avoid; page-break-inside: avoid; }
+#reportPrintArea .rpa-label { font-size: 8.5pt; font-weight: 800; margin: 0 0 0.6mm; }
+#reportPrintArea .rpa-line { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; font-size: 8pt; line-height: 1.35; }
+#reportPrintArea .rpa-line span:last-child { direction: ltr; font-weight: 700; white-space: nowrap; }
+#reportPrintArea .rpa-big { font-size: 10pt; font-weight: 800; }
+#reportPrintArea table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+#reportPrintArea td { font-size: 7.5pt; padding: 0.6mm 0.4mm; line-height: 1.2; border-bottom: 0.5px dotted #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#reportPrintArea td:nth-child(1) { width: 4mm; text-align: center; }
+#reportPrintArea td:nth-child(3) { width: 17mm; text-align: left; direction: ltr; }
+#reportPrintArea tr { break-inside: avoid; page-break-inside: avoid; }
+#reportPrintArea .rpa-foot { text-align: center; font-size: 7pt; padding-top: 1.2mm; }
+</style>
 </head>
 <body>
     <div id="toastContainer" class="fixed top-1/2 left-1/2 z-[10001] flex flex-col items-center gap-3 pointer-events-none" style="transform: translate(-50%, -50%);"></div>
@@ -958,7 +987,10 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                                 <h2 class="text-3xl font-bold text-white mb-1">التقارير المالية</h2>
                                 <p class="text-slate-400 text-sm">صورة كاملة عن أداء متجرك</p>
                             </div>
-                            <button onclick="exportReportsExcel()" class="rp-export"><i class="fa-solid fa-file-excel"></i><span>تصدير Excel</span></button>
+                            <div style="display:flex;gap:8px;flex-shrink:0;">
+                                <button onclick="printReportsReceipt()" class="rp-export rp-print" title="طباعة التقرير"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
+                                <button onclick="exportReportsExcel()" class="rp-export"><i class="fa-solid fa-file-excel"></i><span>تصدير Excel</span></button>
+                            </div>
                         </div>
 
                         <select id="reportFilterSelect" onchange="onReportFilterChange()" class="hidden">
@@ -1456,6 +1488,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         </div>
     </div>
     <div id="inventoryPrintArea" aria-hidden="true"></div>
+    <div id="reportPrintArea" aria-hidden="true"></div>
     <div id="receiptModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="rc-card bg-white text-black rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
             <div class="rc-head bg-gradient-to-r from-navy-900 to-navy-800 p-4 text-center">
@@ -4346,6 +4379,62 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             return formatMoney(e ? e.amount : 0);
         }
         // ========== نهاية اختيار عملة الإدخال ==========
+
+        // ============ طباعة التقرير المالي (ورق حراري 80mm / مساحة 72mm) ============
+        function printReportsReceipt() {
+            const area = document.getElementById('reportPrintArea');
+            if (!area) return;
+            const { label } = getReportDateRange();
+            const inv = filterInvoicesByRange();
+            const exps = filterExpensesByRange();
+            const ext = filterExtProfitsByRange();
+            const extCur = ext.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
+            const cur = rpSumInv(inv);
+            const revenue = cur.rev;
+            const profit = cur.prof + extCur;
+            const expenses = exps.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+            const net = profit - expenses;
+            const rate = parseFloat(state.settings.exchangeRate) || 1;
+            const prod = {};
+            inv.forEach(i => (i.items || []).forEach(it => {
+                const k = it.name || 'منتج';
+                if (!prod[k]) prod[k] = { name: k, qty: 0, value: 0 };
+                prod[k].qty += parseFloat(it.qty) || 0; prod[k].value += rpItemUSD(it);
+            }));
+            const top = Object.values(prod).sort((a, b) => b.value - a.value).slice(0, 5);
+            const store = (state.settings && state.settings.storeName) || '';
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const block = (title, usd) => `<div class="rpa-sec"><p class="rpa-label">${title}</p><div class="rpa-line"><span>بالدولار</span><span class="rpa-big">${debtEsc(formatMoney(usd))}</span></div><div class="rpa-line"><span>بالليرة السورية</span><span>${debtEsc(formatSYP(usd * rate))}</span></div></div>`;
+            const topRows = top.length ? `<table><tbody>${top.map((p, i) => `<tr><td>${i + 1}</td><td class="rpa-pn">${debtEsc(p.name)}</td><td>${debtEsc(String(Math.round(p.qty * 100) / 100))} قطعة</td></tr>`).join('')}</tbody></table>` : '<div class="rpa-line"><span>لا توجد مبيعات في هذه الفترة</span></div>';
+            area.innerHTML = `<div class="rpa-head"><p class="rpa-store">${debtEsc(store)}</p><p class="rpa-title">التقرير المالي</p><p class="rpa-sub">الفترة: ${debtEsc(label)}</p><p class="rpa-sub">${dateStr}</p></div>`
+                + block('إجمالي الإيرادات', revenue)
+                + block('إجمالي الربح', profit)
+                + block('إجمالي الربح بعد المصروفات', net)
+                + block('إجمالي المصروفات', expenses)
+                + `<div class="rpa-sec"><div class="rpa-line"><span class="rpa-label" style="margin:0">عدد الفواتير</span><span class="rpa-big">${inv.length}</span></div></div>`
+                + `<div class="rpa-sec"><p class="rpa-label">الأكثر مبيعاً</p>${topRows}</div>`
+                + `<div class="rpa-foot">— نهاية التقرير —</div>`;
+            // تصغير خط أسماء المنتجات لتبقى كل واحدة في سطر واحد
+            area.classList.add('rpa-measure');
+            area.querySelectorAll('td.rpa-pn').forEach(td => {
+                let size = 7.5;
+                while (td.scrollWidth > td.clientWidth + 0.5 && size > 5) { size -= 0.25; td.style.fontSize = size + 'pt'; }
+            });
+            area.classList.remove('rpa-measure');
+            document.body.classList.add('printing-report');
+            let cleaned = false;
+            const cleanup = () => {
+                if (cleaned) return; cleaned = true;
+                window.removeEventListener('afterprint', cleanup);
+                document.body.classList.remove('printing-report');
+                area.innerHTML = '';
+            };
+            window.addEventListener('afterprint', cleanup);
+            try { window.print(); } catch (e) { cleanup(); showToast('⚠️ تعذر فتح نافذة الطباعة', 'warning'); return; }
+            setTimeout(cleanup, 8000);
+        }
+        // ============ نهاية طباعة التقرير المالي ============
 
         // ============ طباعة قائمة المنتجات (ورق حراري 80mm / مساحة 72mm) ============
         function printInventoryList() {
