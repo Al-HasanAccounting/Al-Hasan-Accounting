@@ -542,6 +542,39 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 #reportPrintArea tr { break-inside: avoid; page-break-inside: avoid; }
 #reportPrintArea .rpa-foot { text-align: center; font-size: 7pt; padding-top: 1.2mm; }
 </style>
+<style id="salesPrintStyles">
+.sp-chips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: #111d33; border: 1px solid #1e293b; padding: 4px; border-radius: 14px; margin-bottom: 12px; }
+.sp-chips button { padding: 9px 2px; border-radius: 10px; color: #94a3b8; font-weight: 700; font-size: 12px; white-space: nowrap; transition: background .2s, color .2s; }
+.sp-chips button.on { background: #facc15; color: #0a1120; }
+@media (max-width: 480px) { .sp-chips { grid-template-columns: repeat(3, 1fr); } }
+#salesPrintArea { display: none; }
+#salesPrintArea.spa-measure { display: block; position: absolute; left: -10000px; top: 0; width: 72mm; padding: 0 1.5mm; box-sizing: border-box; visibility: hidden; }
+@media print {
+    body.printing-sales > *:not(#salesPrintArea) { display: none !important; }
+    body.printing-sales > #receiptModal { display: none !important; }
+    body.printing-sales > #salesPrintArea { display: block !important; position: static !important; visibility: visible !important; width: 72mm !important; max-width: 72mm !important; margin: 0 !important; padding: 0 1.5mm 6mm !important; background: #fff !important; }
+    body.printing-sales { background: #fff !important; }
+    #salesPrintArea, #salesPrintArea * { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+#salesPrintArea { direction: rtl; font-family: inherit; }
+#salesPrintArea .spa-head { text-align: center; padding: 1mm 0 1.2mm; border-bottom: 1px dashed #000; }
+#salesPrintArea .spa-store { font-size: 11pt; font-weight: 800; line-height: 1.25; margin: 0; word-break: break-word; }
+#salesPrintArea .spa-title { font-size: 9pt; font-weight: 700; margin: 0.6mm 0 0; }
+#salesPrintArea .spa-sub { font-size: 7.5pt; margin: 0.4mm 0 0; line-height: 1.3; }
+#salesPrintArea table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 1mm; }
+#salesPrintArea th { font-size: 7pt; font-weight: 800; padding: 0.6mm 0.4mm; border-bottom: 1px solid #000; white-space: nowrap; }
+#salesPrintArea td { font-size: 7.5pt; padding: 0.7mm 0.4mm; line-height: 1.2; border-bottom: 0.5px dotted #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+#salesPrintArea th:nth-child(1), #salesPrintArea td:nth-child(1) { text-align: right; }
+#salesPrintArea th:nth-child(2), #salesPrintArea td:nth-child(2) { width: 11mm; text-align: center; }
+#salesPrintArea th:nth-child(3), #salesPrintArea td:nth-child(3) { width: 19mm; text-align: left; direction: ltr; }
+#salesPrintArea tr { break-inside: avoid; page-break-inside: avoid; }
+#salesPrintArea .spa-sec { padding: 1.2mm 0; border-top: 1px dashed #000; margin-top: 1mm; break-inside: avoid; page-break-inside: avoid; }
+#salesPrintArea .spa-line { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; font-size: 8pt; line-height: 1.4; }
+#salesPrintArea .spa-line span:last-child { direction: ltr; font-weight: 700; white-space: nowrap; }
+#salesPrintArea .spa-label { font-size: 8.5pt; font-weight: 800; margin: 0.6mm 0 0.4mm; }
+#salesPrintArea .spa-big { font-size: 10.5pt; font-weight: 800; }
+#salesPrintArea .spa-foot { text-align: center; font-size: 7pt; padding-top: 1.2mm; }
+</style>
 </head>
 <body>
     <div id="toastContainer" class="fixed top-1/2 left-1/2 z-[10001] flex flex-col items-center gap-3 pointer-events-none" style="transform: translate(-50%, -50%);"></div>
@@ -877,7 +910,22 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 <div id="invoices" class="page">
                     <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
                         <div><h2 class="text-3xl font-bold text-white mb-1">سجل المبيعات</h2><p class="text-slate-400 text-sm">جميع المعاملات</p></div>
-                        <button onclick="exportSalesExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="printSalesReceipt()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2" title="طباعة تقرير المبيعات"><i class="fa-solid fa-print"></i> طباعة</button>
+                            <button onclick="exportSalesExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
+                        </div>
+                    </div>
+                    <div class="sp-chips" id="salesPeriodChips">
+                        <button type="button" data-f="all" class="on" onclick="setSalesPeriod('all')">الكل</button>
+                        <button type="button" data-f="1d" onclick="setSalesPeriod('1d')">اليوم</button>
+                        <button type="button" data-f="7d" onclick="setSalesPeriod('7d')">أسبوع</button>
+                        <button type="button" data-f="30d" onclick="setSalesPeriod('30d')">شهر</button>
+                        <button type="button" data-f="6m" onclick="setSalesPeriod('6m')">6 أشهر</button>
+                        <button type="button" data-f="custom" onclick="setSalesPeriod('custom')">يوم محدد</button>
+                    </div>
+                    <div id="salesCustomDateWrap" class="hidden items-center gap-3 mb-4 bg-navy-800 border border-navy-700 rounded-xl p-3">
+                        <label class="text-slate-300 text-sm font-bold"><i class="fa-solid fa-calendar-day text-gold-400"></i> اختر التاريخ</label>
+                        <input type="date" id="salesCustomDate" lang="en" dir="ltr" onchange="onSalesCustomDateChange()" class="bg-navy-900 border border-navy-700 rounded-lg px-3 py-2 text-white focus:border-gold-400 outline-none">
                     </div>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                         <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">عدد المعاملات</h3><div class="text-2xl font-bold text-white" id="salesStatCount">0</div></div><div class="stat-card-icon bg-blue-500/10 text-blue-400"><i class="fa-solid fa-file-invoice"></i></div></div>
@@ -1490,6 +1538,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
     </div>
     <div id="inventoryPrintArea" aria-hidden="true"></div>
     <div id="reportPrintArea" aria-hidden="true"></div>
+    <div id="salesPrintArea" aria-hidden="true"></div>
     <div id="receiptModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="rc-card bg-white text-black rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
             <div class="rc-head bg-gradient-to-r from-navy-900 to-navy-800 p-4 text-center">
@@ -3900,6 +3949,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             document.getElementById('salesStatRetail').innerText = formatMoney(totalRetail);
             let filtered = state.invoices.filter(inv => inv.id.includes(filter) || (inv.customerName && inv.customerName.includes(filter)) || (inv.items && inv.items.some(item => item.name.includes(filter))));
             if (typeFilter !== 'all') filtered = filtered.filter(inv => (typeFilter === 'wholesale' && inv.isWholesale) || (typeFilter === 'retail' && !inv.isWholesale));
+            filtered = salesPeriodApply(filtered);
             filtered = [...filtered].reverse();
             if (filtered.length === 0) container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-slate-500"><i class="fa-solid fa-receipt text-6xl mb-4 opacity-50"></i><p class="text-lg">لا توجد معاملات</p></div>`;
             else container.innerHTML = `<table class="w-full text-right"><thead class="bg-navy-900 text-gold-400 text-sm"><tr><th class="p-4">الفاتورة</th><th class="p-4">التاريخ</th><th class="p-4">العميل</th><th class="p-4">الدفع</th><th class="p-4">النوع</th><th class="p-4">الإجمالي</th><th class="p-4">الربح</th><th class="p-4 text-center">إجراء</th></tr></thead><tbody>${filtered.map(inv => {
@@ -4380,6 +4430,103 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             return formatMoney(e ? e.amount : 0);
         }
         // ========== نهاية اختيار عملة الإدخال ==========
+
+        // ============ تصنيف الفترة + طباعة سجل المبيعات (ورق حراري 80mm / مساحة 72mm) ============
+        let salesPeriod = 'all';
+        let salesPeriodDate = null;
+        function setSalesPeriod(f) {
+            salesPeriod = f;
+            const wrap = document.getElementById('salesCustomDateWrap');
+            if (f === 'custom') {
+                const input = document.getElementById('salesCustomDate');
+                if (!input.value) {
+                    const t = new Date(), pad = n => String(n).padStart(2, '0');
+                    input.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+                }
+                salesPeriodDate = input.value;
+                wrap.classList.remove('hidden'); wrap.classList.add('flex');
+                try { forceDateInputLocale(); } catch (e) {}
+            } else {
+                wrap.classList.add('hidden'); wrap.classList.remove('flex');
+            }
+            document.querySelectorAll('#salesPeriodChips button').forEach(b => b.classList.toggle('on', b.dataset.f === f));
+            const s = document.getElementById('salesSearch');
+            renderSalesLog(s ? s.value : '');
+        }
+        function onSalesCustomDateChange() {
+            salesPeriodDate = document.getElementById('salesCustomDate').value;
+            salesPeriod = 'custom';
+            document.querySelectorAll('#salesPeriodChips button').forEach(b => b.classList.toggle('on', b.dataset.f === 'custom'));
+            const s = document.getElementById('salesSearch');
+            renderSalesLog(s ? s.value : '');
+        }
+        function getSalesPeriodRange() {
+            const now = new Date();
+            if (salesPeriod === '1d') return { start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0), end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59), label: 'اليوم' };
+            if (salesPeriod === '7d') return { start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), end: now, label: 'آخر أسبوع' };
+            if (salesPeriod === '30d') return { start: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), end: now, label: 'آخر شهر' };
+            if (salesPeriod === '6m') return { start: new Date(now.getFullYear(), now.getMonth() - 6, now.getDate()), end: now, label: 'آخر 6 أشهر' };
+            if (salesPeriod === 'custom' && salesPeriodDate) {
+                const p = salesPeriodDate.split('-'), y = parseInt(p[0]), m = parseInt(p[1]) - 1, d = parseInt(p[2]);
+                return { start: new Date(y, m, d, 0, 0, 0), end: new Date(y, m, d, 23, 59, 59), label: 'يوم: ' + salesPeriodDate };
+            }
+            return { start: null, end: null, label: 'كل المبيعات' };
+        }
+        function salesPeriodApply(list) {
+            const { start, end } = getSalesPeriodRange();
+            if (!start) return list;
+            return list.filter(inv => { const d = getInvoiceDate(inv); return d && d >= start && d <= end; });
+        }
+        function printSalesReceipt() {
+            const area = document.getElementById('salesPrintArea');
+            if (!area) return;
+            const { label } = getSalesPeriodRange();
+            let inv = salesPeriodApply(state.invoices || []);
+            const typeFilter = document.getElementById('salesTypeFilter') ? document.getElementById('salesTypeFilter').value : 'all';
+            if (typeFilter === 'wholesale') inv = inv.filter(i => i.isWholesale);
+            else if (typeFilter === 'retail') inv = inv.filter(i => !i.isWholesale);
+            if (inv.length === 0) { showToast('⚠️ لا توجد مبيعات في الفترة المحددة', 'warning'); return; }
+            const rate = parseFloat(state.settings.exchangeRate) || 1;
+            const prod = {};
+            let itemsSum = 0, qtySum = 0;
+            inv.forEach(i => (i.items || []).forEach(it => {
+                const k = it.name || 'منتج';
+                if (!prod[k]) prod[k] = { name: k, qty: 0, value: 0 };
+                const q = parseFloat(it.qty) || 0, v = rpItemUSD(it);
+                prod[k].qty += q; prod[k].value += v; qtySum += q; itemsSum += v;
+            }));
+            const list = Object.values(prod).sort((a, b) => b.value - a.value);
+            const invTotal = inv.reduce((s, i) => s + (parseFloat(i.totalUSD) || 0), 0);
+            const disc = itemsSum - invTotal;
+            const store = (state.settings && state.settings.storeName) || '';
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const typeTxt = typeFilter === 'wholesale' ? 'النوع: بيع جملة' : (typeFilter === 'retail' ? 'النوع: بيع مفرق' : '');
+            const rows = list.map(p => `<tr><td class="spa-pn">${debtEsc(p.name)}</td><td>${debtEsc(String(Math.round(p.qty * 100) / 100))}</td><td>${debtEsc(formatMoney(p.value))}</td></tr>`).join('');
+            area.innerHTML = `<div class="spa-head">${printLogoHtml()}<p class="spa-store">${debtEsc(store)}</p><p class="spa-title">تقرير المبيعات</p><p class="spa-sub">الفترة: ${debtEsc(label)}</p>${typeTxt ? `<p class="spa-sub">${typeTxt}</p>` : ''}<p class="spa-sub">${dateStr}</p></div>`
+                + `<table><thead><tr><th>الصنف</th><th>الكمية</th><th>الإجمالي</th></tr></thead><tbody>${rows}</tbody></table>`
+                + `<div class="spa-sec"><div class="spa-line"><span>عدد الفواتير</span><span>${inv.length}</span></div><div class="spa-line"><span>عدد الأصناف</span><span>${list.length}</span></div><div class="spa-line"><span>إجمالي الكميات</span><span>${Math.round(qtySum * 100) / 100}</span></div>`
+                + (Math.abs(disc) > 0.01 ? `<div class="spa-line"><span>إجمالي الأصناف</span><span>${debtEsc(formatMoney(itemsSum))}</span></div><div class="spa-line"><span>الخصومات</span><span>${debtEsc(formatMoney(disc))}</span></div>` : '')
+                + `</div>`
+                + `<div class="spa-sec"><p class="spa-label">الإجمالي العام</p><div class="spa-line"><span>بالدولار</span><span class="spa-big">${debtEsc(formatMoney(invTotal))}</span></div><div class="spa-line"><span>بالليرة السورية</span><span>${debtEsc(formatSYP(invTotal * rate))}</span></div></div>`
+                + `<div class="spa-foot">— نهاية التقرير —</div>`;
+            area.classList.add('spa-measure');
+            area.querySelectorAll('td.spa-pn').forEach(td => {
+                let size = 7.5;
+                while (td.scrollWidth > td.clientWidth + 0.5 && size > 5) { size -= 0.25; td.style.fontSize = size + 'pt'; }
+            });
+            area.classList.remove('spa-measure');
+            document.body.classList.add('printing-sales');
+            let cleaned = false;
+            const cleanup = () => {
+                if (cleaned) return; cleaned = true;
+                window.removeEventListener('afterprint', cleanup);
+                document.body.classList.remove('printing-sales');
+                area.innerHTML = '';
+            };
+            printWhenLogoReady(area, cleanup);
+        }
+        // ============ نهاية طباعة سجل المبيعات ============
 
         // ============ طباعة التقرير المالي (ورق حراري 80mm / مساحة 72mm) ============
         // لوغو المحل في رأس أوراق الطباعة (نفس مصدر لوغو فاتورة البيع)
