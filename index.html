@@ -603,6 +603,36 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 #expensePrintArea .epa-big { font-size: 10.5pt; font-weight: 800; }
 #expensePrintArea .epa-foot { text-align: center; font-size: 7pt; padding-top: 1.2mm; }
 </style>
+<style id="debtPrintStyles">
+#debtPrintArea { display: none; }
+#debtPrintArea.dpa-measure { display: block; position: absolute; left: -10000px; top: 0; width: 72mm; padding: 0 1.5mm; box-sizing: border-box; visibility: hidden; }
+@media print {
+    body.printing-debts > *:not(#debtPrintArea) { display: none !important; }
+    body.printing-debts > #receiptModal { display: none !important; }
+    body.printing-debts > #debtPrintArea { display: block !important; position: static !important; visibility: visible !important; width: 72mm !important; max-width: 72mm !important; margin: 0 !important; padding: 0 1.5mm 6mm !important; background: #fff !important; }
+    body.printing-debts { background: #fff !important; }
+    #debtPrintArea, #debtPrintArea * { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+#debtPrintArea { direction: rtl; font-family: inherit; }
+#debtPrintArea .dpa-head { text-align: center; padding: 1mm 0 1.2mm; border-bottom: 1px dashed #000; }
+#debtPrintArea .dpa-store { font-size: 11pt; font-weight: 800; line-height: 1.25; margin: 0; word-break: break-word; }
+#debtPrintArea .dpa-title { font-size: 9pt; font-weight: 700; margin: 0.6mm 0 0; }
+#debtPrintArea .dpa-sub { font-size: 7.5pt; margin: 0.4mm 0 0; line-height: 1.3; }
+#debtPrintArea .dpa-item { padding: 1.3mm 0; border-bottom: 0.5px dotted #000; break-inside: avoid; page-break-inside: avoid; }
+#debtPrintArea .dpa-row { display: flex; justify-content: space-between; align-items: center; gap: 2mm; }
+#debtPrintArea .dpa-name { flex: 1; min-width: 0; font-size: 9pt; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#debtPrintArea .dpa-badge { flex-shrink: 0; font-size: 6.5pt; font-weight: 800; padding: 0.3mm 1.6mm; border: 1px solid #000; border-radius: 2mm; white-space: nowrap; }
+#debtPrintArea .dpa-badge.paid { border-style: dashed; }
+#debtPrintArea .dpa-rem { margin-top: 0.6mm; font-size: 8pt; }
+#debtPrintArea .dpa-rem span:last-child { direction: ltr; font-weight: 800; font-size: 9pt; white-space: nowrap; }
+#debtPrintArea .dpa-meta { margin-top: 0.4mm; font-size: 6.5pt; line-height: 1.3; }
+#debtPrintArea .dpa-sec { padding: 1.2mm 0; border-top: 1px dashed #000; margin-top: 1mm; break-inside: avoid; page-break-inside: avoid; }
+#debtPrintArea .dpa-line { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; font-size: 8pt; line-height: 1.4; }
+#debtPrintArea .dpa-line span:last-child { direction: ltr; font-weight: 700; white-space: nowrap; }
+#debtPrintArea .dpa-label { font-size: 8.5pt; font-weight: 800; margin: 0.6mm 0 0.4mm; }
+#debtPrintArea .dpa-big { font-size: 10.5pt; font-weight: 800; }
+#debtPrintArea .dpa-foot { text-align: center; font-size: 7pt; padding-top: 1.2mm; }
+</style>
 </head>
 <body>
     <div id="toastContainer" class="fixed top-1/2 left-1/2 z-[10001] flex flex-col items-center gap-3 pointer-events-none" style="transform: translate(-50%, -50%);"></div>
@@ -970,6 +1000,19 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 <div id="customers" class="page">
                     <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
                         <div><h2 class="text-3xl font-bold text-white mb-1">فواتير الدَّين</h2><p class="text-slate-400 text-sm">الفواتير المسجّلة بالدَّين من نقطة البيع</p></div>
+                        <button onclick="printDebtsReceipt()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2" title="طباعة تقرير فواتير الدَّين"><i class="fa-solid fa-print"></i> طباعة</button>
+                    </div>
+                    <div class="sp-chips" id="debtPeriodChips">
+                        <button type="button" data-f="all" class="on" onclick="setDebtPeriod('all')">الكل</button>
+                        <button type="button" data-f="1d" onclick="setDebtPeriod('1d')">اليوم</button>
+                        <button type="button" data-f="7d" onclick="setDebtPeriod('7d')">أسبوع</button>
+                        <button type="button" data-f="30d" onclick="setDebtPeriod('30d')">شهر</button>
+                        <button type="button" data-f="6m" onclick="setDebtPeriod('6m')">6 أشهر</button>
+                        <button type="button" data-f="custom" onclick="setDebtPeriod('custom')">يوم محدد</button>
+                    </div>
+                    <div id="debtCustomDateWrap" class="hidden items-center gap-3 mb-4 bg-navy-800 border border-navy-700 rounded-xl p-3">
+                        <label class="text-slate-300 text-sm font-bold"><i class="fa-solid fa-calendar-day text-gold-400"></i> اختر التاريخ</label>
+                        <input type="date" id="debtCustomDate" lang="en" dir="ltr" onchange="onDebtCustomDateChange()" class="bg-navy-900 border border-navy-700 rounded-lg px-3 py-2 text-white focus:border-gold-400 outline-none">
                     </div>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                         <div class="stat-card"><div class="flex-1 min-w-0"><h3 class="text-slate-400 text-sm mb-1">إجمالي الفواتير</h3><div class="text-2xl font-bold text-white" id="statTotalCustomers">0</div></div><div class="stat-card-icon bg-blue-500/10 text-blue-400"><i class="fa-solid fa-users"></i></div></div>
@@ -1583,6 +1626,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
     <div id="reportPrintArea" aria-hidden="true"></div>
     <div id="salesPrintArea" aria-hidden="true"></div>
     <div id="expensePrintArea" aria-hidden="true"></div>
+    <div id="debtPrintArea" aria-hidden="true"></div>
     <div id="receiptModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="rc-card bg-white text-black rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
             <div class="rc-head bg-gradient-to-r from-navy-900 to-navy-800 p-4 text-center">
@@ -4149,6 +4193,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             let filtered = all.filter(d => (d.name || '').includes(filter) || (d.phone || '').includes(filter) || (d.address || '').includes(filter));
             if (statusFilter === 'open') filtered = filtered.filter(d => d.status !== 'paid');
             else if (statusFilter === 'paid') filtered = filtered.filter(d => d.status === 'paid');
+            filtered = debtPeriodApply(filtered);
             filtered = filtered.slice().sort((a, b) => ((a.status === 'paid') - (b.status === 'paid')) || (b.id - a.id));
             const avatarColors = ['linear-gradient(135deg, #8b5cf6, #6d28d9)','linear-gradient(135deg, #3b82f6, #1e40af)','linear-gradient(135deg, #10b981, #047857)','linear-gradient(135deg, #f59e0b, #b45309)','linear-gradient(135deg, #ec4899, #be185d)','linear-gradient(135deg, #06b6d4, #0e7490)'];
             if (filtered.length === 0) {
@@ -4475,6 +4520,103 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             return formatMoney(e ? e.amount : 0);
         }
         // ========== نهاية اختيار عملة الإدخال ==========
+
+        // ============ تصنيف الفترة + طباعة فواتير الدَّين (ورق حراري 80mm / مساحة 72mm) ============
+        let debtPeriod = 'all';
+        let debtPeriodDate = null;
+        function setDebtPeriod(f) {
+            debtPeriod = f;
+            const wrap = document.getElementById('debtCustomDateWrap');
+            if (f === 'custom') {
+                const input = document.getElementById('debtCustomDate');
+                if (!input.value) {
+                    const t = new Date(), pad = n => String(n).padStart(2, '0');
+                    input.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+                }
+                debtPeriodDate = input.value;
+                wrap.classList.remove('hidden'); wrap.classList.add('flex');
+                try { forceDateInputLocale(); } catch (e) {}
+            } else {
+                wrap.classList.add('hidden'); wrap.classList.remove('flex');
+            }
+            document.querySelectorAll('#debtPeriodChips button').forEach(b => b.classList.toggle('on', b.dataset.f === f));
+            const s = document.getElementById('customerSearch');
+            renderCustomers(s ? s.value : '');
+        }
+        function onDebtCustomDateChange() {
+            debtPeriodDate = document.getElementById('debtCustomDate').value;
+            debtPeriod = 'custom';
+            document.querySelectorAll('#debtPeriodChips button').forEach(b => b.classList.toggle('on', b.dataset.f === 'custom'));
+            const s = document.getElementById('customerSearch');
+            renderCustomers(s ? s.value : '');
+        }
+        function getDebtPeriodRange() {
+            const now = new Date();
+            if (debtPeriod === '1d') return { start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0), end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59), label: 'اليوم' };
+            if (debtPeriod === '7d') return { start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), end: now, label: 'آخر أسبوع' };
+            if (debtPeriod === '30d') return { start: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), end: now, label: 'آخر شهر' };
+            if (debtPeriod === '6m') return { start: new Date(now.getFullYear(), now.getMonth() - 6, now.getDate()), end: now, label: 'آخر 6 أشهر' };
+            if (debtPeriod === 'custom' && debtPeriodDate) {
+                const p = debtPeriodDate.split('-'), y = parseInt(p[0]), m = parseInt(p[1]) - 1, d = parseInt(p[2]);
+                return { start: new Date(y, m, d, 0, 0, 0), end: new Date(y, m, d, 23, 59, 59), label: 'يوم: ' + debtPeriodDate };
+            }
+            return { start: null, end: null, label: 'كل الفواتير' };
+        }
+        function debtPeriodApply(list) {
+            const { start, end } = getDebtPeriodRange();
+            if (!start) return list;
+            return list.filter(d => { const dt = getInvoiceDate(d); return dt && dt >= start && dt <= end; });
+        }
+        function printDebtsReceipt() {
+            const area = document.getElementById('debtPrintArea');
+            if (!area) return;
+            if (!Array.isArray(state.debtInvoices)) state.debtInvoices = [];
+            const { label } = getDebtPeriodRange();
+            let list = debtPeriodApply(state.debtInvoices);
+            const sf = document.getElementById('customerTypeFilter') ? document.getElementById('customerTypeFilter').value : 'all';
+            if (sf === 'open') list = list.filter(d => d.status !== 'paid');
+            else if (sf === 'paid') list = list.filter(d => d.status === 'paid');
+            if (list.length === 0) { showToast('⚠️ لا توجد فواتير دَّين في الفترة المحددة', 'warning'); return; }
+            list = list.slice().sort((a, b) => ((a.status === 'paid') - (b.status === 'paid')) || (b.id - a.id));
+            const rate = parseFloat(state.settings.exchangeRate) || 1;
+            const openList = list.filter(d => d.status !== 'paid');
+            const remainingSum = openList.reduce((s, d) => s + (d.remaining || 0), 0);
+            const totalSum = list.reduce((s, d) => s + (d.total || 0), 0);
+            const paidSum = list.reduce((s, d) => s + (d.paid || 0), 0);
+            const items = list.map(d => {
+                const isPaid = d.status === 'paid';
+                const dt = getInvoiceDate(d);
+                const dateTxt = dt ? dt.toLocaleDateString('en-GB') : (d.date || '');
+                const remTxt = isPaid ? formatMoney(0) : formatMoney(d.remaining || 0);
+                const sypApprox = (!isPaid && d.invoiceCurrency === 'SYP_NEW') ? ` (≈ ${formatSYP((d.remaining || 0) * rate)})` : '';
+                return `<div class="dpa-item"><div class="dpa-row"><span class="dpa-name">${debtEsc(d.name || 'بدون اسم')}</span><span class="dpa-badge ${isPaid ? 'paid' : ''}">${isPaid ? 'مسدَّدة ✓' : 'مفتوحة'}</span></div><div class="dpa-row dpa-rem"><span>المتبقي${debtEsc(sypApprox)}</span><span>${debtEsc(remTxt)}</span></div><div class="dpa-meta">الإجمالي: ${debtEsc(formatMoney(d.total || 0))} • المسدَّد: ${debtEsc(formatMoney(d.paid || 0))}${dateTxt ? ' • ' + debtEsc(dateTxt) : ''}</div></div>`;
+            }).join('');
+            const store = (state.settings && state.settings.storeName) || '';
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const statusTxt = sf === 'open' ? 'الحالة: مفتوحة فقط' : (sf === 'paid' ? 'الحالة: مسدَّدة فقط' : '');
+            area.innerHTML = `<div class="dpa-head">${printLogoHtml()}<p class="dpa-store">${debtEsc(store)}</p><p class="dpa-title">تقرير فواتير الدَّين</p><p class="dpa-sub">الفترة: ${debtEsc(label)}</p>${statusTxt ? `<p class="dpa-sub">${statusTxt}</p>` : ''}<p class="dpa-sub">${dateStr}</p></div>`
+                + items
+                + `<div class="dpa-sec"><div class="dpa-line"><span>عدد الفواتير</span><span>${list.length}</span></div><div class="dpa-line"><span>مفتوحة</span><span>${openList.length}</span></div><div class="dpa-line"><span>مسدَّدة</span><span>${list.length - openList.length}</span></div><div class="dpa-line"><span>إجمالي قيمة الدَّين</span><span>${debtEsc(formatMoney(totalSum))}</span></div><div class="dpa-line"><span>إجمالي المسدَّد</span><span>${debtEsc(formatMoney(paidSum))}</span></div></div>`
+                + `<div class="dpa-sec"><p class="dpa-label">إجمالي المتبقي للتحصيل</p><div class="dpa-line"><span>بالدولار</span><span class="dpa-big">${debtEsc(formatMoney(remainingSum))}</span></div><div class="dpa-line"><span>بالليرة السورية</span><span>${debtEsc(formatSYP(remainingSum * rate))}</span></div></div>`
+                + `<div class="dpa-foot">— نهاية التقرير —</div>`;
+            area.classList.add('dpa-measure');
+            area.querySelectorAll('.dpa-name').forEach(el => {
+                let size = 9;
+                while (el.scrollWidth > el.clientWidth + 0.5 && size > 6) { size -= 0.25; el.style.fontSize = size + 'pt'; }
+            });
+            area.classList.remove('dpa-measure');
+            document.body.classList.add('printing-debts');
+            let cleaned = false;
+            const cleanup = () => {
+                if (cleaned) return; cleaned = true;
+                window.removeEventListener('afterprint', cleanup);
+                document.body.classList.remove('printing-debts');
+                area.innerHTML = '';
+            };
+            printWhenLogoReady(area, cleanup);
+        }
+        // ============ نهاية طباعة فواتير الدَّين ============
 
         // ============ تصنيف الفترة + طباعة المصروفات (ورق حراري 80mm / مساحة 72mm) ============
         let expensePeriod = 'all';
