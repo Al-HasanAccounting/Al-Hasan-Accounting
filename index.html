@@ -2262,22 +2262,107 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             setTimeout(doReload, 2500);
         }
 
-        function printReceipt() {
-            let closed = false;
-            const closeReceiptAfterPrint = () => {
-                if (closed) return;
-                closed = true;
-                window.removeEventListener('afterprint', closeReceiptAfterPrint);
-                try { closeModal('receiptModal'); } catch(e) {}
-            };
-            window.addEventListener('afterprint', closeReceiptAfterPrint);
-            try { window.print(); } catch(e) {
-                window.removeEventListener('afterprint', closeReceiptAfterPrint);
-                showToast('⚠️ تعذر فتح نافذة الطباعة', 'warning');
-                return;
+       function printReceipt() {
+            // 1. إنشاء أو جلب إطار طباعة مخفي ومعزول عن ثقل التطبيق
+            let printFrame = document.getElementById('fastPrintFrame');
+            if (!printFrame) {
+                printFrame = document.createElement('iframe');
+                printFrame.id = 'fastPrintFrame';
+                printFrame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+                document.body.appendChild(printFrame);
             }
-            // احتياطاً للمتصفحات التي لا تُطلق حدث انتهاء الطباعة
-            setTimeout(closeReceiptAfterPrint, 2500);
+
+            // 2. جلب بيانات الفاتورة الجاهزة من المودال مباشرة
+            const logoSrc = document.getElementById('receiptStoreLogo')?.src || '';
+            const storeName = document.getElementById('receiptStoreName')?.innerText || '';
+            const storeInfo = document.getElementById('receiptStoreInfo')?.innerText || '';
+            const invId = document.getElementById('receiptInvoiceId')?.innerText || '';
+            const invDate = document.getElementById('receiptDate')?.innerText || '';
+            const customer = document.getElementById('receiptCustomer')?.innerText || '';
+            const payment = document.getElementById('receiptPayment')?.innerText || '';
+            const itemsHtml = document.getElementById('receiptItems')?.innerHTML || '';
+            const total = document.getElementById('receiptTotal')?.innerText || '';
+            const phone = document.getElementById('receiptStorePhone')?.innerText || '';
+            
+            const discountRow = document.getElementById('receiptDiscountRow');
+            const hasDiscount = discountRow && !discountRow.classList.contains('hidden');
+            const discountPercent = document.getElementById('receiptDiscountPercent')?.innerText || '0';
+            const discountVal = document.getElementById('receiptDiscount')?.innerText || '';
+
+            // 3. بناء مستند خفيف جداً مخصص للطابعة الحرارية 80mm بدون أي مكتبات خارجية
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>&#8203;</title>
+                    <style>
+                        @page { size: 72mm auto; margin: 0; }
+                        * { box-sizing: border-box; color: #000 !important; background: transparent !important; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+                        body { width: 72mm; max-width: 72mm; margin: 0; padding: 1mm 1.5mm 4mm; font-size: 8.5pt; line-height: 1.3; direction: rtl; }
+                        .head { text-align: center; padding-bottom: 1.5mm; }
+                        .logo { width: 12mm; height: 12mm; object-fit: contain; display: block; margin: 0 auto 1mm; }
+                        .name { font-size: 12pt; font-weight: 800; margin: 0; }
+                        .sub { font-size: 8pt; margin: 0.5mm 0 0; }
+                        .meta { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 1.5mm 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1mm; font-size: 8pt; }
+                        .meta-left { text-align: left; }
+                        .label { font-size: 7pt; }
+                        .val { font-weight: bold; }
+                        table { width: 100%; border-collapse: collapse; margin: 1.5mm 0; }
+                        th { font-size: 7.5pt; border-bottom: 1px solid #000; padding: 1mm 0.5mm; text-align: right; }
+                        td { font-size: 8pt; padding: 1mm 0.5mm; border-bottom: 0.5px dotted #000; vertical-align: top; }
+                        th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { text-align: center; white-space: nowrap; }
+                        th:nth-child(4), td:nth-child(4) { text-align: left; white-space: nowrap; font-weight: bold; }
+                        .totals { border-top: 1px dashed #000; padding-top: 1.5mm; }
+                        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1mm; }
+                        .total-row { font-size: 11pt; font-weight: 900; border-top: 1px solid #000; padding-top: 1mm; margin-top: 1mm; }
+                        .foot { border-top: 1px dashed #000; margin-top: 2mm; padding-top: 1.5mm; text-align: center; font-size: 7.5pt; }
+                    </style>
+                </head>
+                <body>
+                    <div class="head">
+                        ${logoSrc ? `<img src="${logoSrc}" class="logo">` : ''}
+                        <div class="name">${storeName}</div>
+                        <div class="sub">${storeInfo}</div>
+                    </div>
+                    <div class="meta">
+                        <div><div class="label">رقم الفاتورة</div><div class="val">${invId}</div></div>
+                        <div class="meta-left"><div class="label">التاريخ</div><div class="val">${invDate}</div></div>
+                        <div><div class="label">العميل</div><div class="val">${customer}</div></div>
+                        <div class="meta-left"><div class="label">طريقة الدفع</div><div class="val">${payment}</div></div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                        </thead>
+                        <tbody>${itemsHtml}</tbody>
+                    </table>
+                    <div class="totals">
+                        ${hasDiscount ? `<div class="row"><span>الخصم (${discountPercent}\%):</span><b>${discountVal}</b></div>` : ''}
+                        <div class="row total-row"><span>الإجمالي:</span><span>${total}</span></div>
+                    </div>
+                    <div class="foot">
+                        <div>شكراً لتعاملكم معنا!</div>
+                        <div>${phone}</div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            // 4. كتابة المحتوى والطباعة فوراً
+            const doc = printFrame.contentWindow.document;
+            doc.open();
+            doc.write(htmlContent);
+            doc.close();
+
+            // إغلاق المودال فوراً لعدم تعطيل الكاشير
+            closeModal('receiptModal');
+
+            // إعطاء مهلة 50 ملي ثانية فقط لرسم النص ثم إطلاق أمر الطباعة
+            setTimeout(() => {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+            }, 50);
         }
 
         const defaultState = {
