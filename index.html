@@ -6421,5 +6421,189 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         renderHistory();
     })();
     </script>
+    <!-- ⚡ حزمة تسريع الأداء الفائق لتطبيق الحسن للمحاسبة ⚡ -->
+<style id="performanceBoostStyles">
+    /* تسريع رسم الكروت والقوائم الطويلة عبر المتصفح (GPU Acceleration) */
+    #posProductList > div,
+    #inventoryListContainer > div,
+    #customersListContainer > div,
+    #oldDebtsListContainer > div,
+    #expensesListContainer > div,
+    #extProfitsListContainer > div,
+    #salesListContainer tr {
+        content-visibility: auto;
+        contain-intrinsic-size: 120px;
+    }
+    /* تقليل استهلاك المعالج في التأثيرات البصرية على الأجهزة الضعيفة */
+    .page { will-change: opacity, transform; }
+</style>
+
+<script id="performanceBoostScript">
+(function applySpeedOptimizations() {
+    // 1. تخزين منسقات العملات والأرقام في الذاكرة بدلاً من إنشائها آلاف المرات
+    const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const sypFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+
+    window.formatMoney = function(amount) {
+        return usdFormatter.format(Number(amount) || 0);
+    };
+    window.formatSYP = function(amount) {
+        return sypFormatter.format(Number(amount) || 0) + ' ل.س';
+    };
+    window.formatSYPValue = function(amount) {
+        return sypFormatter.format(Number(amount) || 0);
+    };
+    window.formatProductPrice = function(amount, productOrCurrency) {
+        let currency = 'USD';
+        if (productOrCurrency && typeof productOrCurrency === 'object') {
+            currency = productOrCurrency.pricingCurrency || 'USD';
+        } else if (typeof productOrCurrency === 'string') {
+            currency = productOrCurrency;
+        }
+        const num = parseFloat(amount) || 0;
+        return currency === 'SYP_NEW' ? (sypFormatter.format(num) + ' ل.س') : usdFormatter.format(num);
+    };
+
+    // 2. تسريع جلب الصور من خلال ذاكرة مؤقتة سريعة (Memory Cache)
+    const imgMemoryCache = new Map();
+    const origGetProductImage = window.getProductImage;
+    const origSetProductImage = window.setProductImage;
+    const origRemoveProductImage = window.removeProductImage;
+
+    if (typeof origGetProductImage === 'function') {
+        window.getProductImage = function(id) {
+            if (imgMemoryCache.has(id)) return imgMemoryCache.get(id);
+            const res = origGetProductImage(id);
+            imgMemoryCache.set(id, res);
+            return res;
+        };
+    }
+    if (typeof origSetProductImage === 'function') {
+        window.setProductImage = function(id, dataUrl) {
+            imgMemoryCache.set(id, dataUrl || null);
+            return origSetProductImage(id, dataUrl);
+        };
+    }
+    if (typeof origRemoveProductImage === 'function') {
+        window.removeProductImage = function(id) {
+            imgMemoryCache.delete(id);
+            return origRemoveProductImage(id);
+        };
+    }
+
+    // 3. معرفة الصفحة النشطة حالياً لتحديثها هي فقط وعدم إبطاء الجهاز بتحديث صفحات مخفية
+    function getActivePageId() {
+        const activePage = document.querySelector('.page.active');
+        return activePage ? activePage.id : 'dashboard';
+    }
+
+    window.renderActivePageOnly = function() {
+        const pageId = getActivePageId();
+        try { updateSidebarIdentity(); } catch(e) {}
+        try { updateSubscriptionUI(); } catch(e) {}
+        try { renderNotifications(); } catch(e) {}
+
+        switch (pageId) {
+            case 'dashboard':
+                try { renderDashboard(); } catch(e) {}
+                break;
+            case 'pos':
+                try { renderPosCategories(); } catch(e) {}
+                try { renderPOSProducts((document.getElementById('posSearch') || {}).value || ''); } catch(e) {}
+                try { updateCartUI(); } catch(e) {}
+                break;
+            case 'inventory':
+                try { renderInventory((document.getElementById('inventorySearch') || {}).value || ''); } catch(e) {}
+                break;
+            case 'invoices':
+                try { renderSalesLog((document.getElementById('salesSearch') || {}).value || ''); } catch(e) {}
+                break;
+            case 'customers':
+                try { renderCustomers((document.getElementById('customerSearch') || {}).value || ''); } catch(e) {}
+                break;
+            case 'oldDebts':
+                try { renderOldDebts(); } catch(e) {}
+                break;
+            case 'expenses':
+                try { renderExpenses((document.getElementById('expenseSearch') || {}).value || ''); } catch(e) {}
+                break;
+            case 'externalProfits':
+                try { renderExternalProfits((document.getElementById('extProfitSearch') || {}).value || ''); } catch(e) {}
+                break;
+            case 'reports':
+                try { renderReports(); } catch(e) {}
+                break;
+            case 'productInquiry':
+                try { renderInquiryRate(); } catch(e) {}
+                break;
+            case 'settings':
+                try { updateStoreLogoPreview(); } catch(e) {}
+                break;
+        }
+    };
+
+    // استبدال renderAll الثقيلة بالتحديث الذكي السريع
+    window.renderAll = function() {
+        imgMemoryCache.clear();
+        window.renderActivePageOnly();
+    };
+
+    // 4. تسريع الحفظ المحلي والسحابي (Non-blocking Debounced Save)
+    let localSaveTimer = null;
+    let cloudSaveTimer = null;
+    const origSaveStateToCloud = window.saveStateToCloud;
+
+    window.saveStateToCloud = function() {
+        clearTimeout(cloudSaveTimer);
+        cloudSaveTimer = setTimeout(() => {
+            if (typeof origSaveStateToCloud === 'function') {
+                origSaveStateToCloud();
+            }
+        }, 350); // تجميع التعديلات السريعة في رفعة سحابية واحدة
+    };
+
+    window.saveState = function() {
+        // تحديث الواجهة فوراً بدون انتظار تحويل البيانات النصية الضخمة
+        try { window.renderActivePageOnly(); } catch(e) {}
+
+        // حفظ في الذاكرة المحلية والسحابة بالخلفية بدون تجميد الشاشة
+        clearTimeout(localSaveTimer);
+        localSaveTimer = setTimeout(() => {
+            try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+            window.saveStateToCloud();
+        }, 50);
+    };
+
+    // 5. تسريع حقول البحث (Debounce) لمنع التقطيع أثناء الكتابة السريعة
+    function debounceFn(fn, delay) {
+        let timer = null;
+        return function(...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const searchInputs = [
+            { id: 'posSearch', fn: (val) => renderPOSProducts(val) },
+            { id: 'inventorySearch', fn: (val) => renderInventory(val) },
+            { id: 'salesSearch', fn: (val) => renderSalesLog(val) },
+            { id: 'customerSearch', fn: (val) => renderCustomers(val) },
+            { id: 'expenseSearch', fn: (val) => renderExpenses(val) },
+            { id: 'inquirySearch', fn: (val) => renderInquirySearch(val) },
+            { id: 'adminSearchClient', fn: (val) => renderAdminClients(val) }
+        ];
+
+        searchInputs.forEach(item => {
+            const el = document.getElementById(item.id);
+            if (el) {
+                el.removeAttribute('oninput');
+                const debounced = debounceFn((e) => item.fn(e.target.value), 120);
+                el.addEventListener('input', debounced);
+            }
+        });
+    });
+})();
+</script>
 </body>
 </html>
