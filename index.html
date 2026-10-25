@@ -3005,6 +3005,31 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
             finalizeAdoptedState();
         }
+        // يمنع ظهور بيانات حساب آخر: إذا كانت البيانات المحلية تعود لحساب غير الحساب الحالي تُحفظ جانباً (قد تحوي تعديلات غير مرفوعة) ثم تُحمَّل بيانات الحساب الحالي
+        function guardStateOwnership() {
+            try {
+                var scope = getScopeKey();
+                var mark = readSyncMark();
+                if (!mark || mark.scope === scope) return;
+                var raw = localStorage.getItem('ALHASAN_ACCOUNTING');
+                if (raw) { try { localStorage.setItem('ALHASAN_STASH@' + mark.scope, raw); } catch(e) {} }
+                var stash = null;
+                try { stash = localStorage.getItem('ALHASAN_STASH@' + scope); } catch(e) {}
+                var restored = null;
+                if (stash) { try { restored = JSON.parse(stash); } catch(e) { restored = null; } }
+                if (restored && typeof restored === 'object' && Array.isArray(restored.products)) {
+                    localStorage.setItem('ALHASAN_ACCOUNTING', stash);
+                    localStorage.removeItem('ALHASAN_STASH@' + scope);
+                    state = restored;
+                } else {
+                    localStorage.removeItem('ALHASAN_ACCOUNTING');
+                    state = getFreshDefault();
+                }
+                state.cart = [];
+                localStorage.removeItem('ALHASAN_SYNC_MARK'); // تحميل كامل واحد لهذا الحساب للتأكد من أحدث نسخة
+                lastKnownCloudRev = parseInt(state._rev) || 0;
+            } catch(e) {}
+        }
         function readSyncMark(){ try { return JSON.parse(localStorage.getItem('ALHASAN_SYNC_MARK') || 'null'); } catch(e) { return null; } }
         function markSynced(rev){ try { localStorage.setItem('ALHASAN_SYNC_MARK', JSON.stringify({ scope: getScopeKey(), rev: parseInt(rev) || 0 })); } catch(e) {} }
         // يقرأ رقم النسخة فقط (بضعة بايتات)؛ ولا ينزّل كامل البيانات إلا إذا كانت السحابة أحدث من النسخة المحلية
@@ -3138,6 +3163,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 localStorage.setItem('alhasan_client_username', username);
                 localStorage.setItem('alhasan_client_db_key', encodedUsername);
                 localStorage.setItem('alhasan_client_id', client.id);
+                try { guardStateOwnership(); } catch(e) {}
                 await loadClientData(encodedUsername);
                 const prevCloudEnd = (state.subscription && state.subscription.endDate) || null;
                 state.subscription = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: state.subscription.providerPhone || ADMIN_WHATSAPP };
@@ -3472,6 +3498,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 const splash = document.getElementById('splash-screen');
                 const splashStatus = document.getElementById('splashStatus');
                 if (splashStatus) splashStatus.innerText = 'جاري الاتصال بالسحابة...';
+                try { guardStateOwnership(); } catch(e) {}
                 try { await loadStateFromCloud(); } catch(e) {}
                 state.cart = [];
                 try { if (isClientUser()) await syncClientSubscriptionOnLoad(); } catch(e) {}
