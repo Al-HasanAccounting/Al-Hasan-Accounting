@@ -14,7 +14,7 @@
 
     <script>
     (function checkVersion() {
-        const CURRENT_VERSION = 'v_' + Math.floor(Date.now() / 3600000);
+        const CURRENT_VERSION = 'V.1.0.0'; // غيّر هذا الرقم يدوياً فقط عند إصدار تحديث
         let savedVersion = null;
         try { savedVersion = localStorage.getItem('app_version'); } catch(e) {}
         if (savedVersion !== CURRENT_VERSION) {
@@ -2072,6 +2072,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 
         const MASTER_KEY = 'ALHASAN-MASTER-2026';
         const IMG_KEY_PREFIX = 'alhasan_img_';
+        const IMG_STAMP_PREFIX = 'alhasan_imgst_';
+        function imgPath(id) { return 'appData/images/' + getScopeKey() + '/' + id; }
         let pendingProductImage = undefined;
         const MAX_CLOUD_IMAGE_SIZE = 700000;
 
@@ -2084,15 +2086,18 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (dataUrl) {
                 if (dataUrl.length > MAX_CLOUD_IMAGE_SIZE) { showToast('⚠️ الصورة كبيرة جداً على السحابة، اختر صورة أصغر', 'warning'); return false; }
                 state.productImages[id] = dataUrl;
+                try { if (!state.imageStamps || typeof state.imageStamps !== 'object' || Array.isArray(state.imageStamps)) state.imageStamps = {}; var stp = Date.now(); state.imageStamps[id] = stp; localStorage.setItem(IMG_STAMP_PREFIX + id, String(stp)); db.ref(imgPath(id)).set(dataUrl).catch(function() { showToast('⚠️ تعذّر رفع الصورة للسحابة', 'warning'); }); } catch(e) {}
                 try { localStorage.setItem(IMG_KEY_PREFIX + id, dataUrl); } catch(e) {}
             } else {
                 delete state.productImages[id];
+                try { if (state.imageStamps) delete state.imageStamps[id]; db.ref(imgPath(id)).remove().catch(function() {}); } catch(e) {}
                 try { localStorage.removeItem(IMG_KEY_PREFIX + id); } catch(e) {}
             }
             return true;
         }
         function removeProductImage(id) {
             if (state && state.productImages && state.productImages[id]) delete state.productImages[id];
+            try { if (state && state.imageStamps) delete state.imageStamps[id]; db.ref(imgPath(id)).remove().catch(function() {}); } catch(e) {}
             try { localStorage.removeItem(IMG_KEY_PREFIX + id); } catch(e) {}
         }
         function compressImage(file, maxSize = 500, quality = 0.75) {
@@ -2613,13 +2618,18 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 lastKnownCloudRev = state._rev;
                 state._savedAt = Date.now();
                 state._writer = SYNC_SESSION_ID;
-                const json = JSON.stringify(state);
+                const json = JSON.stringify(state, function(k, v) { return k === 'productImages' ? {} : v; });
                 try { localStorage.setItem('ALHASAN_ACCOUNTING', json); } catch(e) {}
                 const plainData = JSON.parse(json);
                 plainData.cart = [];
+                plainData.productImages = {};
                 setCloudDirty(true);
                 cloudPendingWrites++;
+                var wroteRev = plainData._rev;
                 return getActiveRef().set(plainData).then(function() {
+                    markSynced(wroteRev);
+                    try { publishSubs(); } catch(e) {}
+                    try { recheckRemote(); } catch(e) {}
                     cloudPendingWrites = Math.max(0, cloudPendingWrites - 1);
                     if (cloudPendingWrites === 0) setCloudDirty(false);
                 }).catch(function(error) {
@@ -2761,8 +2771,37 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             try { if (tombListenerRef && tombListenerFn) tombListenerRef.off('child_added', tombListenerFn); } catch(e) {}
             tombListenerRef = null; tombListenerFn = null; tombListenerScope = null;
         }
+        var imgRenderTimer = null;
+        function migrateAndHydrateImages() {
+            if (!state.imageStamps || typeof state.imageStamps !== 'object' || Array.isArray(state.imageStamps)) state.imageStamps = {};
+            if (!state.productImages || typeof state.productImages !== 'object' || Array.isArray(state.productImages)) state.productImages = {};
+            var migrated = false;
+            Object.keys(state.productImages).forEach(function(id) {
+                var d = state.productImages[id];
+                if (typeof d !== 'string' || !d || state.imageStamps[id]) return;
+                var st = Date.now();
+                state.imageStamps[id] = st;
+                try { localStorage.setItem(IMG_KEY_PREFIX + id, d); localStorage.setItem(IMG_STAMP_PREFIX + id, String(st)); } catch(e) {}
+                db.ref(imgPath(id)).set(d).catch(function() {});
+                migrated = true;
+            });
+            if (migrated) saveStateToCloud();
+            Object.keys(state.imageStamps).forEach(function(id) {
+                var st = String(state.imageStamps[id]), have = null, img = null;
+                try { have = localStorage.getItem(IMG_STAMP_PREFIX + id); img = localStorage.getItem(IMG_KEY_PREFIX + id); } catch(e) {}
+                if (have === st && img) return;
+                db.ref(imgPath(id)).once('value').then(function(sn) {
+                    var d = sn.val();
+                    if (typeof d !== 'string' || !d) return;
+                    state.productImages[id] = d;
+                    try { localStorage.setItem(IMG_KEY_PREFIX + id, d); localStorage.setItem(IMG_STAMP_PREFIX + id, st); } catch(e) {}
+                    clearTimeout(imgRenderTimer);
+                    imgRenderTimer = setTimeout(function() { try { refreshAfterRemoteChange(); } catch(e) {} }, 400);
+                }).catch(function() {});
+            });
+        }
         function finalizeAdoptedState() {
-            try {
+            try { markSynced(state._rev); migrateAndHydrateImages();
                 lastKnownCloudRev = Math.max(lastKnownCloudRev, parseInt(state._rev) || 0);
                 if (!Array.isArray(state.deletedInvoices)) state.deletedInvoices = [];
                 mergeEmbeddedTombstones();
@@ -2807,14 +2846,30 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 refreshAfterRemoteChange();
             } catch(e) {}
         }
+        function recheckRemote() {
+            if (cloudPendingWrites > 0 || !stateListenerRef) return;
+            var fullRef = getActiveRef();
+            fullRef.child('_rev').once('value').then(function(rs) {
+                if ((parseInt(rs.val()) || 0) > (parseInt(state._rev) || 0) && cloudPendingWrites === 0) fullRef.once('value').then(handleRemoteStateSnapshot);
+            }).catch(function() {});
+        }
         function attachStateListener() {
             const scope = getScopeKey();
             if (stateListenerRef && stateListenerScope === scope) return;
             detachStateListener();
             try {
                 stateListenerScope = scope;
-                stateListenerRef = getActiveRef();
-                stateListenerFn = stateListenerRef.on('value', handleRemoteStateSnapshot, function() {});
+                var fullRef = getActiveRef();
+                stateListenerRef = fullRef.child('_rev');
+                stateListenerFn = stateListenerRef.on('value', function(rs) {
+                    try {
+                        if (getScopeKey() !== stateListenerScope) return;
+                        var r = parseInt(rs.val()) || 0;
+                        if (r > lastKnownCloudRev) lastKnownCloudRev = r;
+                        if (r <= (parseInt(state._rev) || 0) || cloudPendingWrites > 0) return;
+                        fullRef.once('value').then(handleRemoteStateSnapshot).catch(function() {});
+                    } catch(e) {}
+                }, function() {});
             } catch(e) { stateListenerRef = null; stateListenerFn = null; }
         }
         function detachStateListener() {
@@ -2880,26 +2935,42 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (!rec || !rec.endDate) return false;
             return applyClientRecord(rec, null);
         }
+        function clientSubKey() { return localStorage.getItem('alhasan_client_db_key'); }
         function syncClientSubscriptionOnLoad() {
             if (!isClientUser()) return Promise.resolve(false);
-            return db.ref('appData/mainState/adminClients').once('value').then(function(snap) {
-                return handleAdminClientsSnapshot(snap.val());
+            var k = clientSubKey();
+            if (!k) return Promise.resolve(false);
+            return db.ref('appData/subs/' + k).once('value').then(function(snap) {
+                if (snap.exists()) return handleAdminClientsSnapshot([snap.val()]);
+                // احتياطي مؤقت حتى يفتح المدير لوحته مرة واحدة وتُنشر عقدة الاشتراكات
+                return db.ref('appData/mainState/adminClients').once('value').then(function(s2) { return handleAdminClientsSnapshot(s2.val()); });
             }).catch(function() { return false; });
         }
         function attachSubscriptionListener() {
             if (!isClientUser() || subListenerRef) return;
+            var k = clientSubKey();
+            if (!k) return;
             try {
-                subListenerRef = db.ref('appData/mainState/adminClients');
+                subListenerRef = db.ref('appData/subs/' + k);
                 subListenerFn = subListenerRef.on('value', function(snap) {
-                    try { handleAdminClientsSnapshot(snap.val()); } catch(e) {}
+                    try { if (snap.exists()) handleAdminClientsSnapshot([snap.val()]); } catch(e) {}
                 }, function() {});
             } catch(e) { subListenerRef = null; subListenerFn = null; }
+        }
+        var lastSubsJson = null;
+        function publishSubs() {
+            if (!isMasterUser() || !state || !Array.isArray(state.adminClients)) return;
+            var map = {};
+            state.adminClients.forEach(function(c) { if (c && c.username) map[encodeKey(c.username)] = { id: c.id, username: c.username, startDate: c.startDate || '', endDate: c.endDate || '' }; });
+            var j = JSON.stringify(map);
+            if (j === lastSubsJson) return;
+            db.ref('appData/subs').set(map).then(function() { lastSubsJson = j; }).catch(function() {});
         }
         function startCloudSync() {
             try { mergeEmbeddedTombstones(); } catch(e) {}
             try { attachStateListener(); } catch(e) {}
             try { attachTombstoneListener(); } catch(e) {}
-            try { attachSubscriptionListener(); } catch(e) {}
+            try { attachSubscriptionListener(); } catch(e) {} try { publishSubs(); } catch(e) {}
             try { flushPendingTombstones(); } catch(e) {}
         }
         // ========== نهاية مزامنة السحابة الآمنة ==========
@@ -2929,8 +3000,36 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
             finalizeAdoptedState();
         }
+        function readSyncMark(){ try { return JSON.parse(localStorage.getItem('ALHASAN_SYNC_MARK') || 'null'); } catch(e) { return null; } }
+        function markSynced(rev){ try { localStorage.setItem('ALHASAN_SYNC_MARK', JSON.stringify({ scope: getScopeKey(), rev: parseInt(rev) || 0 })); } catch(e) {} }
+        // يقرأ رقم النسخة فقط (بضعة بايتات)؛ ولا ينزّل كامل البيانات إلا إذا كانت السحابة أحدث من النسخة المحلية
+        function fetchStateGated(ref){
+            var local = null;
+            try { local = JSON.parse(localStorage.getItem('ALHASAN_ACCOUNTING')); } catch(e) {}
+            var mark = readSyncMark();
+            var dirty = getCloudDirty();
+            var isDirty = !!(dirty && dirty.scope === getScopeKey());
+            var localUsable = !!(local && typeof local === 'object' && Array.isArray(local.products) && mark && mark.scope === getScopeKey() && !isDirty);
+            var revP = ref.child('_rev').once('value');
+            // إذا تأخر الاتصال أكثر من 4 ثوانٍ يفتح التطبيق من البيانات المحلية فوراً، والمستمع يزامن لاحقاً عند عودة الشبكة
+            var tmo = new Promise(function(res) { setTimeout(function() { res('timeout'); }, 4000); });
+            return Promise.race([revP, tmo]).then(function(rs){
+                if (rs === 'timeout') {
+                    if (localUsable) return { val: function() { return local; } };
+                    return revP.then(decide);
+                }
+                return decide(rs);
+            });
+            function decide(rs) {
+                var cloudRev = rs.val();
+                if (cloudRev !== null && localUsable && mark.rev >= (parseInt(cloudRev) || 0) && (parseInt(local._rev) || 0) >= (parseInt(cloudRev) || 0)) {
+                    return { val: function() { return local; } };
+                }
+                return ref.once('value');
+            }
+        }
         function loadMainState() {
-            return db.ref('appData/mainState').once('value').then((snapshot) => {
+            return fetchStateGated(db.ref('appData/mainState')).then((snapshot) => {
                 const raw = snapshot.val();
                 const cloudData = normalizeCloudData(raw);
                 if (cloudData && typeof cloudData === 'object') {
@@ -2963,7 +3062,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             finalizeAdoptedState();
         }
         function loadClientData(encodedUsername) {
-            return db.ref('appData/clientData/' + encodedUsername).once('value').then((snapshot) => {
+            return fetchStateGated(db.ref('appData/clientData/' + encodedUsername)).then((snapshot) => {
                 const raw = snapshot.val();
                 const cloudData = normalizeCloudData(raw);
                 if (cloudData && typeof cloudData === 'object') {
