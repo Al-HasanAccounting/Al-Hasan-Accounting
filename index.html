@@ -19,12 +19,12 @@
         try { savedVersion = localStorage.getItem('app_version'); } catch(e) {}
         if (savedVersion !== CURRENT_VERSION) {
             try { localStorage.setItem('app_version', CURRENT_VERSION); } catch(e) {}
-            if ('serviceWorker' in navigator) {
+            if (navigator.onLine !== false && 'serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
                     for (let registration of registrations) registration.unregister();
                 }).catch(function(err) {});
             }
-            if ('caches' in window) {
+            if (navigator.onLine !== false && 'caches' in window) {
                 caches.keys().then(function(names) {
                     for (let name of names) caches.delete(name);
                 }).catch(function(err) {});
@@ -2223,6 +2223,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 
         // ========== إعادة تحميل التطبيق ==========
         function forceReloadApp() {
+            if (navigator.onLine === false) { try { showToast('📴 لا يوجد إنترنت — التطبيق يعمل من النسخة المحفوظة وسيتحدث تلقائياً عند عودة الاتصال', 'info'); } catch(e) {} return; }
             try { showToast('⏳ جاري تحديث التطبيق...', 'info'); } catch(e) {}
             
             try {
@@ -2604,7 +2605,10 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 if (cloudPendingWrites === 0 && d && d.scope === getScopeKey()) { try { saveStateToCloud(); } catch(e) {} }
             }, 8000);
         }
+        window.addEventListener('offline', function() { try { showToast('📴 لا يوجد إنترنت — يمكنك العمل بشكل طبيعي وستتم المزامنة تلقائياً', 'info'); } catch(e) {} });
         window.addEventListener('online', function() {
+            try { showToast('🌐 عاد الاتصال — جاري المزامنة...', 'success'); } catch(e) {}
+            try { recheckRemote(); } catch(e) {}
             try {
                 const d = getCloudDirty();
                 if (cloudPendingWrites === 0 && d && d.scope === getScopeKey()) saveStateToCloud();
@@ -2939,12 +2943,13 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         function syncClientSubscriptionOnLoad() {
             if (!isClientUser()) return Promise.resolve(false);
             var k = clientSubKey();
-            if (!k) return Promise.resolve(false);
-            return db.ref('appData/subs/' + k).once('value').then(function(snap) {
+            if (!k || navigator.onLine === false) return Promise.resolve(false);
+            var guard = new Promise(function(res) { setTimeout(function() { res(false); }, 3500); });
+            return Promise.race([guard, db.ref('appData/subs/' + k).once('value').then(function(snap) {
                 if (snap.exists()) return handleAdminClientsSnapshot([snap.val()]);
                 // احتياطي مؤقت حتى يفتح المدير لوحته مرة واحدة وتُنشر عقدة الاشتراكات
                 return db.ref('appData/mainState/adminClients').once('value').then(function(s2) { return handleAdminClientsSnapshot(s2.val()); });
-            }).catch(function() { return false; });
+            }).catch(function() { return false; })]);
         }
         function attachSubscriptionListener() {
             if (!isClientUser() || subListenerRef) return;
@@ -3009,20 +3014,23 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             var mark = readSyncMark();
             var dirty = getCloudDirty();
             var isDirty = !!(dirty && dirty.scope === getScopeKey());
-            var localUsable = !!(local && typeof local === 'object' && Array.isArray(local.products) && mark && mark.scope === getScopeKey() && !isDirty);
-            var revP = ref.child('_rev').once('value');
-            // إذا تأخر الاتصال أكثر من 4 ثوانٍ يفتح التطبيق من البيانات المحلية فوراً، والمستمع يزامن لاحقاً عند عودة الشبكة
-            var tmo = new Promise(function(res) { setTimeout(function() { res('timeout'); }, 4000); });
+            var localValid = !!(local && typeof local === 'object' && Array.isArray(local.products) && (!mark || mark.scope === getScopeKey()));
+            var localFresh = localValid && !!mark && !isDirty;
+            var offline = (typeof navigator !== 'undefined' && navigator.onLine === false);
+            // بدون إنترنت أو اتصال بطيء (أكثر من 4 ثوانٍ): يفتح فوراً من النسخة المحلية، والمزامنة تتم تلقائياً عند عودة الشبكة
+            var revP = offline ? new Promise(function() {}) : ref.child('_rev').once('value');
+            var tmo = new Promise(function(res) { setTimeout(function() { res('timeout'); }, offline ? 0 : 4000); });
             return Promise.race([revP, tmo]).then(function(rs){
                 if (rs === 'timeout') {
-                    if (localUsable) return { val: function() { return local; } };
+                    if (localValid) return { val: function() { return local; } };
+                    if (offline) return Promise.reject(new Error('offline-no-local'));
                     return revP.then(decide);
                 }
                 return decide(rs);
             });
             function decide(rs) {
                 var cloudRev = rs.val();
-                if (cloudRev !== null && localUsable && mark.rev >= (parseInt(cloudRev) || 0) && (parseInt(local._rev) || 0) >= (parseInt(cloudRev) || 0)) {
+                if (cloudRev !== null && localFresh && mark.rev >= (parseInt(cloudRev) || 0) && (parseInt(local._rev) || 0) >= (parseInt(cloudRev) || 0)) {
                     return { val: function() { return local; } };
                 }
                 return ref.once('value');
