@@ -3876,7 +3876,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 discount: discountPercent
             };
             state.invoices.push(invoice);
-            if (paymentMethod === 'دين') createDebtInvoice(invoice, debtData);
+            let mergedDebt = null;
+            if (paymentMethod === 'دين') mergedDebt = createDebtInvoice(invoice, debtData);
             state.cart = [];
             try { resetDebtPanel(); } catch(e) {}
             try { document.getElementById('cartCustomerName').value = ''; document.getElementById('cartDiscountPercent').value = ''; } catch(e) {}
@@ -3885,7 +3886,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const displayTotal = invoiceCurrency === 'SYP_NEW'
                 ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(invoice.totalSYP) + ' ل.س'
                 : formatMoney(finalTotalUSD);
-            showToast(`تم البيع - ${displayTotal}`, 'success');
+            showToast(mergedDebt ? `تم البيع - ${displayTotal} • أُضيفت لحساب "${mergedDebt.name}"` : `تم البيع - ${displayTotal}`, 'success');
             updateCartUI(); renderPOSProducts(); renderPosCategories(); renderCustomers();
             setTimeout(() => { try { checkStockNotifications(); } catch(e) {} }, 500);
         }
@@ -4143,8 +4144,23 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             // تسجيل الحذف بشكل دائم حتى لا تعود الفاتورة من أي نسخة قديمة أو جهاز آخر
             try { state.invoices.filter(inv => inv.id === invoiceId).forEach(inv => registerInvoiceTombstone(inv)); } catch(e) {}
             if (Array.isArray(invoice.items)) invoice.items.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty = (product.qty || 0) + (item.qty || 0); });
-            const linkedDebt = (state.debtInvoices || []).some(d => d.invoiceId === invoice.id);
-            if (linkedDebt) state.debtInvoices = state.debtInvoices.filter(d => d.invoiceId !== invoice.id);
+            (state.debtInvoices || []).filter(d => debtInvoiceIds(d).indexOf(invoice.id) !== -1).forEach(d => {
+                const ids = debtInvoiceIds(d);
+                if (ids.length <= 1) { state.debtInvoices = state.debtInvoices.filter(x => x !== d); return; }
+                const amt = debtRound(invoice.totalUSD);
+                const rest = ids.filter(x => x !== invoice.id);
+                d.invoiceIds = rest;
+                if (d.invoiceId === invoice.id) d.invoiceId = rest[0];
+                d.total = Math.max(0, debtRound((d.total || 0) - amt));
+                d.remaining = Math.max(0, debtRound((d.remaining || 0) - amt));
+                d.paid = Math.max(0, debtRound(d.total - d.remaining));
+                d.notes = (d.notes ? d.notes + '\n\n' : '') + `🗑️ [${new Date().toLocaleDateString('en-GB')}] حُذفت الفاتورة رقم ${invoice.id} (${formatMoney(amt)})`;
+                if (d.remaining === 0) {
+                    d.status = 'paid';
+                    d.paidDate = new Date().toLocaleDateString('en-GB');
+                    state.invoices.forEach(i => { if (rest.indexOf(i.id) !== -1) i.status = 'Paid'; });
+                }
+            });
             state.invoices = state.invoices.filter(inv => inv.id !== invoiceId);
             saveState();
             showToast(`🗑️ تم حذف الفاتورة ${invoiceId} وإرجاع الكميات`, 'delete');
@@ -4250,19 +4266,56 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (nameEl) nameEl.placeholder = method === 'دين' ? 'اسم الزبون (مطلوب للدَّين)' : 'اسم الزبون (اختياري)';
         }
         function resetDebtPanel() { ['debtPhone', 'debtAddress', 'debtNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); }
+        // تطبيع الاسم للمقارنة: يتجاهل التشكيل والمسافات الزائدة وفروق الألف والياء والتاء المربوطة
+        function debtNormName(s) {
+            return String(s == null ? '' : s)
+                .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+                .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+                .replace(/\s+/g, ' ').trim().toLowerCase();
+        }
+        // أحدث حساب دَّين مفتوح بنفس اسم العميل (المطابقة بالاسم فقط)
+        function findOpenDebtByName(name) {
+            const key = debtNormName(name);
+            if (!key) return null;
+            const matches = (state.debtInvoices || []).filter(d => d.status !== 'paid' && debtNormName(d.name) === key);
+            if (!matches.length) return null;
+            return matches.sort((a, b) => (b.id || 0) - (a.id || 0))[0];
+        }
+        // أرقام كل الفواتير المرتبطة بحساب الدَّين (للسجلات القديمة: فاتورة واحدة)
+        function debtInvoiceIds(d) {
+            if (d && Array.isArray(d.invoiceIds) && d.invoiceIds.length) return d.invoiceIds;
+            return (d && d.invoiceId !== undefined && d.invoiceId !== null) ? [d.invoiceId] : [];
+        }
+        // يُرجع السجل الموجود إذا تم الدمج، أو null إذا أُنشئ حساب جديد
         function createDebtInvoice(invoice, data) {
             if (!Array.isArray(state.debtInvoices)) state.debtInvoices = [];
+            const amount = debtRound(invoice.totalUSD);
+            const existing = findOpenDebtByName(invoice.customerName);
+            if (existing) {
+                const ids = debtInvoiceIds(existing).slice();
+                if (ids.indexOf(invoice.id) === -1) ids.push(invoice.id);
+                existing.invoiceIds = ids;
+                existing.total = debtRound((existing.total || 0) + amount);
+                existing.remaining = debtRound((existing.remaining || 0) + amount);
+                if (data && data.phone && !existing.phone) existing.phone = data.phone;
+                if (data && data.address && !existing.address) existing.address = data.address;
+                let line = `🧾 [${invoice.date}] فاتورة جديدة رقم ${invoice.id} بقيمة ${formatMoney(amount)} — المتبقي الآن: ${formatMoney(existing.remaining)}`;
+                if (data && data.notes) line += `\n    📝 ${data.notes}`;
+                existing.notes = existing.notes ? existing.notes + '\n\n' + line : line;
+                return existing;
+            }
             let notes = `🧾 فاتورة رقم ${invoice.id}`;
             if (data && data.notes) notes += `\n${data.notes}`;
             state.debtInvoices.push({
-                id: Date.now(), invoiceId: invoice.id, name: invoice.customerName,
+                id: Date.now(), invoiceId: invoice.id, invoiceIds: [invoice.id], name: invoice.customerName,
                 type: invoice.isWholesale ? 'wholesale' : 'retail',
                 phone: (data && data.phone) || '', address: (data && data.address) || '', notes,
-                total: debtRound(invoice.totalUSD), paid: 0, remaining: debtRound(invoice.totalUSD),
+                total: amount, paid: 0, remaining: amount,
                 status: 'open', date: invoice.date, isoDate: invoice.isoDate || getCurrentISODate(),
                 invoiceCurrency: invoice.invoiceCurrency || 'USD',
                 exchangeRateAtSale: invoice.exchangeRateAtSale || state.settings.exchangeRate
             });
+            return null;
         }
         function renderCustomers(filter = '') {
             const container = document.getElementById('customersListContainer');
@@ -4312,8 +4365,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             d.phone = document.getElementById('custPhone').value.trim();
             d.address = document.getElementById('custAddress').value.trim();
             d.notes = document.getElementById('custNotes').value.trim();
-            const inv = state.invoices.find(i => i.id === d.invoiceId);
-            if (inv) inv.customerName = name;
+            const linkedIds = debtInvoiceIds(d);
+            state.invoices.forEach(i => { if (linkedIds.indexOf(i.id) !== -1) i.customerName = name; });
             showToast(`تم تعديل "${name}"`, 'edit');
             closeModal('addCustomerModal'); saveState();
             resetCustomerModal();
@@ -4396,8 +4449,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 d.status = 'paid';
                 d.paidDate = `${dateStr} - ${timeStr}`;
                 newNote += `\n✅ تم التسديد بالكامل`;
-                const inv = state.invoices.find(i => i.id === d.invoiceId);
-                if (inv) inv.status = 'Paid';
+                const linkedIds = debtInvoiceIds(d);
+                state.invoices.forEach(i => { if (linkedIds.indexOf(i.id) !== -1) i.status = 'Paid'; });
             }
             d.notes = d.notes ? d.notes + '\n\n' + newNote : newNote;
             closeModal('payDebtModal'); saveState();
