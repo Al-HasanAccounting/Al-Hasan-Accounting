@@ -13,25 +13,7 @@
     <meta name="msapplication-TileColor" content="#0a1120">
 
     <script>
-    (function checkVersion() {
-        const CURRENT_VERSION = 'v_' + Math.floor(Date.now() / 3600000);
-        let savedVersion = null;
-        try { savedVersion = localStorage.getItem('app_version'); } catch(e) {}
-        if (savedVersion !== CURRENT_VERSION) {
-            try { localStorage.setItem('app_version', CURRENT_VERSION); } catch(e) {}
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    for (let registration of registrations) registration.unregister();
-                }).catch(function(err) {});
-            }
-            if ('caches' in window) {
-                caches.keys().then(function(names) {
-                    for (let name of names) caches.delete(name);
-                }).catch(function(err) {});
-            }
-            if (savedVersion !== null) setTimeout(function() { window.location.reload(true); }, 800);
-        }
-    })();
+    /* أُلغي المسح الدوري للـ Service Worker والكاش: لازم لعمل التطبيق بدون إنترنت. التحديث يتم عبر sw.js */
     </script>
 
     <meta name="theme-color" content="#0a1120">
@@ -767,6 +749,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 <button onclick="logout()" class="w-full flex items-center gap-3 text-sm text-red-400 hover:text-red-300 py-2 px-3 rounded-lg hover:bg-red-500/10"><i class="fa-solid fa-sign-out-alt w-4"></i> تسجيل الخروج</button>
                 <button onclick="exportData()" class="w-full flex items-center gap-3 text-sm text-slate-400 hover:text-gold-400 py-2 px-3 rounded-lg hover:bg-navy-700"><i class="fa-solid fa-file-excel w-4"></i> تصدير البيانات (Excel)</button>
                 <button onclick="document.getElementById('importFile').click()" class="w-full flex items-center gap-3 text-sm text-slate-400 hover:text-gold-400 py-2 px-3 rounded-lg hover:bg-navy-700"><i class="fa-solid fa-upload w-4"></i> استيراد البيانات</button>
+                <button onclick="exportBackup()" class="w-full flex items-center gap-3 text-sm text-slate-400 hover:text-gold-400 py-2 px-3 rounded-lg hover:bg-navy-700"><i class="fa-solid fa-floppy-disk w-4"></i> نسخة احتياطية (JSON)</button>
                 <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
             </div>
         </aside>
@@ -1895,7 +1878,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     return;
                 }
                 state.settings.storeLogo = compressed;
-                try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+                try { persistLocalState(); } catch(e) {}
                 saveStateToCloud();
                 updateStoreLogoPreview();
                 updateSidebarIdentity();
@@ -1910,7 +1893,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (!state.settings.storeLogo) { showToast('لا يوجد شعار مرفوع', 'info'); return; }
             if (!confirm('هل تريد إزالة الشعار؟')) return;
             state.settings.storeLogo = null;
-            try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+            try { persistLocalState(); } catch(e) {}
             saveStateToCloud();
             const input = document.getElementById('storeLogoInput');
             if (input) input.value = '';
@@ -2084,7 +2067,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (dataUrl) {
                 if (dataUrl.length > MAX_CLOUD_IMAGE_SIZE) { showToast('⚠️ الصورة كبيرة جداً على السحابة، اختر صورة أصغر', 'warning'); return false; }
                 state.productImages[id] = dataUrl;
-                try { localStorage.setItem(IMG_KEY_PREFIX + id, dataUrl); } catch(e) {}
+                try { if (!isClientUser()) localStorage.setItem(IMG_KEY_PREFIX + id, dataUrl); } catch(e) {}
             } else {
                 delete state.productImages[id];
                 try { localStorage.removeItem(IMG_KEY_PREFIX + id); } catch(e) {}
@@ -2218,6 +2201,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 
         // ========== إعادة تحميل التطبيق ==========
         function forceReloadApp() {
+            if (navigator.onLine === false) { try { showToast('📴 لا يوجد إنترنت، لا يمكن تحديث التطبيق الآن', 'warning'); } catch(e) {} return; }
             try { showToast('⏳ جاري تحديث التطبيق...', 'info'); } catch(e) {}
             
             try {
@@ -2424,7 +2408,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     if (d) { dv.isoDate = dateToISOLocal(d); migrated = true; }
                 }
             });
-            if (migrated) { try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {} }
+            if (migrated) { try { persistLocalState(); } catch(e) {} }
         })();
 
         let monthlyChartInstance = null, expenseChartInstance = null, dashboardChartInstance = null, editingProductId = null;
@@ -2454,7 +2438,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const notification = { id: 'notif_' + Date.now() + '_' + Math.floor(Math.random() * 10000), type, message, date: formatLatinDate(new Date(), true), timestamp: Date.now(), read: false, dedupeKey: options.dedupeKey || null };
             state.notifications.unshift(notification);
             if (state.notifications.length > 100) state.notifications = state.notifications.slice(0, 100);
-            try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+            try { persistLocalState(); } catch(e) {}
             saveStateToCloud();
             renderNotifications();
         }
@@ -2490,7 +2474,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const notif = state.notifications.find(n => n.id === id);
             if (notif && !notif.read) {
                 notif.read = true;
-                try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+                try { persistLocalState(); } catch(e) {}
                 saveStateToCloud(); renderNotifications();
             }
         }
@@ -2499,7 +2483,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             let changed = false;
             state.notifications.forEach(n => { if (!n.read) { n.read = true; changed = true; } });
             if (changed) {
-                try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+                try { persistLocalState(); } catch(e) {}
                 saveStateToCloud(); renderNotifications();
                 showToast('✅ تم تعليم جميع الإشعارات كمقروءة', 'success');
             }
@@ -2508,7 +2492,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (!Array.isArray(state.notifications) || state.notifications.length === 0) return;
             if (confirm('هل أنت متأكد من حذف جميع الإشعارات؟')) {
                 state.notifications = [];
-                try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+                try { persistLocalState(); } catch(e) {}
                 saveStateToCloud(); renderNotifications();
                 showToast('🗑️ تم حذف جميع الإشعارات', 'delete');
             }
@@ -2554,6 +2538,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         // (حفظ مؤكد + منع الكتابة فوق بيانات أحدث + حذف نهائي للفواتير + تحديث الاشتراك مباشرة)
         const SYNC_SESSION_ID = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         const CLOUD_DIRTY_KEY = 'alhasan_cloud_dirty';
+        const SYNC_META_KEY = 'alhasan_sync_meta';
         const PENDING_TOMBS_KEY = 'alhasan_pending_tombstones';
         let cloudPendingWrites = 0;
         let lastKnownCloudRev = 0;
@@ -2607,21 +2592,236 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             } catch(e) {}
         });
 
+        // ======== الوضع المحلي: بيانات العميل في IndexedDB على جهازه، والسحابة للاشتراك فقط ========
+        const LOCAL_DB_NAME = 'alhasan_local_v1';
+        let localDbPromise = null, localPersistTimer = null, localBlock = false, lastLocalFailToastAt = 0, subTimer = null;
+        function withTimeout(p, ms) {
+            return new Promise(function(res, rej) { const to = setTimeout(function() { rej(new Error('timeout')); }, ms); p.then(function(v) { clearTimeout(to); res(v); }, function(e) { clearTimeout(to); rej(e); }); });
+        }
+        function localDb() {
+            if (localDbPromise) return localDbPromise;
+            localDbPromise = new Promise(function(res, rej) {
+                try {
+                    const rq = indexedDB.open(LOCAL_DB_NAME, 1);
+                    rq.onupgradeneeded = function() { rq.result.createObjectStore('kv'); };
+                    rq.onsuccess = function() { res(rq.result); };
+                    rq.onerror = function() { rej(rq.error); };
+                } catch(e) { rej(e); }
+            });
+            localDbPromise.catch(function() { localDbPromise = null; });
+            return localDbPromise;
+        }
+        function idbGet(key) {
+            return localDb().then(function(db) { return new Promise(function(res, rej) { const rq = db.transaction('kv').objectStore('kv').get(key); rq.onsuccess = function() { res(rq.result); }; rq.onerror = function() { rej(rq.error); }; }); });
+        }
+        function idbSet(key, val) {
+            return localDb().then(function(db) { return new Promise(function(res, rej) { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(val, key); tx.oncomplete = function() { res(true); }; tx.onerror = function() { rej(tx.error); }; tx.onabort = function() { rej(tx.error); }; }); });
+        }
+        function localStateKey() { return 'state:' + getScopeKey(); }
+        function localLsKey() { return 'ALHASAN_LOCAL_' + getScopeKey(); }
+        function notifyLocalSaveFailure() {
+            const now = Date.now();
+            if (now - lastLocalFailToastAt < 60000) return;
+            lastLocalFailToastAt = now;
+            try { showToast('⚠️ تعذّر حفظ بياناتك على هذا الجهاز! صدّر نسخة احتياطية الآن', 'warning'); } catch(e) {}
+        }
+        function persistLocalNow() {
+            if (localPersistTimer) { clearTimeout(localPersistTimer); localPersistTimer = null; }
+            if (!isClientUser()) { try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {} return Promise.resolve(true); }
+            if (localBlock) return Promise.resolve(false);
+            let json;
+            try { json = JSON.stringify(state); } catch(e) { return Promise.resolve(false); }
+            return idbSet(localStateKey(), { t: Date.now(), json: json }).then(function() {
+                try { localStorage.removeItem(localLsKey()); } catch(e) {}
+                return true;
+            }).catch(function() {
+                try { localStorage.setItem(localLsKey(), json); return true; } catch(e) { notifyLocalSaveFailure(); return false; }
+            });
+        }
+        function persistLocalState() {
+            if (!isClientUser()) { persistLocalNow(); return; }
+            if (localPersistTimer) return;
+            localPersistTimer = setTimeout(persistLocalNow, 250);
+        }
+        function flushLocalPersist() { if (localPersistTimer) persistLocalNow(); }
+        window.addEventListener('pagehide', flushLocalPersist);
+        document.addEventListener('visibilitychange', function() { if (document.hidden) flushLocalPersist(); });
+
+        // تحميل بيانات العميل: من جهازه أولاً. وإذا لم توجد (أول تشغيل بعد الانتقال) نستوردها من السحابة مرة واحدة فقط
+        async function loadClientLocalFirst(encodedUsername) {
+            localBlock = true;   // لا نكتب شيئاً قبل أن نتأكد من مصدر البيانات
+            try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e) {}
+            const scopeKey = 'c_' + encodedUsername;
+            let local = null;
+            try { const rec = await idbGet('state:' + scopeKey); if (rec && rec.json) local = JSON.parse(rec.json); } catch(e) {}
+            if (!local) { try { const s = localStorage.getItem('ALHASAN_LOCAL_' + scopeKey); if (s) local = JSON.parse(s); } catch(e) {} }
+            if (local && typeof local === 'object') { localBlock = false; adoptClientCloudData(local); return true; }
+            if (navigator.onLine === false) throw new Error('هذا أول تشغيل على هذا الجهاز ويلزم اتصال بالإنترنت لتجهيز بياناتك');
+            let snap;
+            try { snap = await withTimeout(db.ref('appData/clientData/' + encodedUsername).once('value'), 20000); }
+            catch(e) { throw new Error('هذا أول تشغيل على هذا الجهاز ويلزم اتصال بالإنترنت لتجهيز بياناتك'); }
+            let data = normalizeCloudData(snap.val());
+            let imported = false;
+            if (data && typeof data === 'object') {
+                if (data._migratedAt) {
+                    const when = new Date(parseInt(data._migratedAt) || 0).toLocaleDateString('en-GB');
+                    if (!confirm('بيانات هذا الحساب نُقلت إلى جهاز سابق بتاريخ ' + when + '.\nتوجد نسخة سحابية قديمة قد لا تتضمن آخر عملياتك.\nهل تريد استعادتها؟\n(إلغاء = البدء ببيانات فارغة ثم الاستيراد من ملف نسخة احتياطية)')) data = null;
+                }
+            }
+            if (data && typeof data === 'object') { delete data._migratedAt; imported = true; }
+            else { data = getFreshDefault(); data.adminClients = []; data.cart = []; }
+            localBlock = false;
+            adoptClientCloudData(data);
+            const ok = await persistLocalNow();
+            if (!ok) { localBlock = true; throw new Error('تعذّر حفظ البيانات على هذا الجهاز، تأكد من توفر مساحة تخزين'); }
+            if (imported) {
+                try { db.ref('appData/clientData/' + encodedUsername + '/_migratedAt').set(Date.now()); } catch(e) {}
+                try { showToast('✅ تم نقل بياناتك إلى هذا الجهاز. صدّر نسخة احتياطية من القائمة الجانبية', 'success'); } catch(e) {}
+            }
+            return true;
+        }
+
+        // ---------- الاشتراكات: سجل صغير لكل عميل بدل تنزيل قائمة كل العملاء ----------
+        let subsSig = {};
+        function subsRecordFrom(c) { return { id: c.id, name: c.name, store: c.store, phone: c.phone, city: c.city, username: c.username, password: c.password, startDate: c.startDate, endDate: c.endDate }; }
+        function syncSubsToCloud() {
+            try {
+                if (!isMasterUser() || !Array.isArray(state.adminClients)) return;
+                const updates = {};
+                state.adminClients.forEach(function(c) {
+                    if (!c || !c.username) return;
+                    const k = encodeKey(c.username), rec = subsRecordFrom(c), h = JSON.stringify(rec);
+                    if (subsSig[k] !== h) updates[k] = rec;
+                });
+                if (!Object.keys(updates).length) return;
+                db.ref('appData/subs').update(updates).then(function() { Object.keys(updates).forEach(function(k) { subsSig[k] = JSON.stringify(updates[k]); }); }).catch(function() {});
+            } catch(e) {}
+        }
+        let subFetchFailed = false;
+        async function fetchClientSubRecord(username, password) {
+            let rec = null; subFetchFailed = false;
+            if (navigator.onLine === false) { subFetchFailed = true; return null; }
+            try { const snap = await withTimeout(db.ref('appData/subs/' + encodeKey(username)).once('value'), 10000); rec = snap.val(); } catch(e) { subFetchFailed = true; return null; }
+            if (rec && typeof rec === 'object') return ((rec.username || 'admin') === username && (rec.password || 'admin123') === password) ? rec : null;
+            const clients = Array.isArray(state.adminClients) ? state.adminClients : [];   // احتياطي أثناء الانتقال فقط
+            return clients.find(function(c) { return (c.username || 'admin') === username && (c.password || 'admin123') === password; }) || null;
+        }
+        async function offlineClientLogin(username, password) {
+            const enc = encodeKey(username);
+            let local = null;
+            try { const rec = await idbGet('state:c_' + enc); if (rec && rec.json) local = JSON.parse(rec.json); } catch(e) {}
+            if (!local) { try { const s = localStorage.getItem('ALHASAN_LOCAL_c_' + enc); if (s) local = JSON.parse(s); } catch(e) {} }
+            const sub = local && local.subscription;
+            if (!sub || !sub.endDate || (sub.username || 'admin') !== username || (sub.password || 'admin123') !== password) return null;
+            return { id: '', name: username, store: (local.settings && local.settings.storeName) || username, phone: '', city: '', username: sub.username || username, password: sub.password || password, startDate: sub.startDate, endDate: sub.endDate };
+        }
+        function clientSubKey() { return localStorage.getItem('alhasan_client_db_key') || encodeKey(localStorage.getItem('alhasan_client_username') || ''); }
+        function clientSubscriptionCheck() {
+            if (!isClientUser() || navigator.onLine === false) return Promise.resolve(false);
+            try { db.goOnline(); } catch(e) {}
+            return syncClientSubscriptionOnLoad().then(function(r) {
+                setTimeout(function() { try { db.goOffline(); } catch(e) {} }, 2000);   // نغلق الاتصال بين الفحوصات
+                return r;
+            });
+        }
+
+        window.addEventListener('offline', function() { try { showToast('📴 لا يوجد إنترنت — يعمل التطبيق محلياً وستُزامَن الأمور عند عودة الاتصال', 'info'); } catch(e) {} });
+        window.addEventListener('online', function() {
+            try {
+                if (isClientUser()) clientSubscriptionCheck();
+                showToast('🌐 عاد الاتصال بالإنترنت', 'success');
+            } catch(e) {}
+        });
+
+        function cleanupLocalImageDuplicates() {
+            try {
+                if (!isClientUser() || !state || !state.productImages) return;
+                const ks = [];
+                for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf(IMG_KEY_PREFIX) === 0) ks.push(k); }
+                ks.forEach(function(k) { const id = k.slice(IMG_KEY_PREFIX.length); if (state.productImages[id]) { try { localStorage.removeItem(k); } catch(e) {} } });
+            } catch(e) {}
+        }
+
+        // ---------- النسخ الاحتياطي ----------
+        function exportBackup() {
+            try {
+                const copy = JSON.parse(JSON.stringify(state));
+                ['adminClients', 'subscription', 'cart', '_rev', '_savedAt', '_writer'].forEach(function(k) { delete copy[k]; });
+                const blob = new Blob([JSON.stringify(copy)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'alhasan_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+                document.body.appendChild(a); a.click();
+                setTimeout(function() { try { URL.revokeObjectURL(a.href); a.remove(); } catch(e) {} }, 1500);
+                try { localStorage.setItem('alhasan_last_backup_' + getScopeKey(), String(Date.now())); } catch(e) {}
+                showToast('✅ تم تصدير النسخة الاحتياطية، احفظ الملف في مكان آمن', 'success');
+            } catch(e) { showToast('❌ فشل تصدير النسخة الاحتياطية', 'error'); }
+        }
+        function backupReminderCheck() {
+            try {
+                if (!isClientUser()) return;
+                const k = 'alhasan_last_backup_' + getScopeKey();
+                const last = parseInt(localStorage.getItem(k)) || 0;
+                if (!last) { localStorage.setItem(k, String(Date.now())); return; }
+                if (Date.now() - last > 7 * 86400000 && confirm('لم تصدّر نسخة احتياطية من بياناتك منذ أكثر من أسبوع.\nبياناتك محفوظة على هذا الجهاز فقط، ونوصي بتصدير نسخة الآن.\nهل تريد التصدير الآن؟')) exportBackup();
+            } catch(e) {}
+        }
+
+        // ---------- توفير الاستهلاك: لا نحمّل الحالة كاملة إلا عند وجود تغيير فعلي ----------
+        function writeSyncMeta() {
+            try { localStorage.setItem(SYNC_META_KEY, JSON.stringify({ scope: getScopeKey(), rev: parseInt(state._rev) || 0, savedAt: parseInt(state._savedAt) || 0 })); } catch(e) {}
+        }
+        function readSyncMeta() {
+            try { return safeJsonParse(localStorage.getItem(SYNC_META_KEY), null); } catch(e) { return null; }
+        }
+        // يرجع true فقط إذا كانت النسخة المحلية مطابقة تماماً لنسخة السحابة (نقرأ حقلين صغيرين بدل العقدة كلها)
+        function canSkipCloudDownload(ref) {
+            try {
+                const meta = readSyncMeta();
+                if (!meta || meta.scope !== getScopeKey() || !meta.rev) return Promise.resolve(false);
+                if (getCloudDirty()) return Promise.resolve(false);
+                if ((parseInt(state._rev) || 0) !== meta.rev || (parseInt(state._savedAt) || 0) !== meta.savedAt) return Promise.resolve(false);
+                return Promise.all([ref.child('_rev').once('value'), ref.child('_savedAt').once('value')]).then(function(r) {
+                    return (parseInt(r[0].val()) || 0) === meta.rev && (parseInt(r[1].val()) || 0) === meta.savedAt;
+                }).catch(function() { return false; });
+            } catch(e) { return Promise.resolve(false); }
+        }
+        let remoteFetchBusy = false, remoteFetchAgain = false, latestCloudRevSeen = 0;
+        function fetchRemoteStateOnce() {
+            if (remoteFetchBusy) { remoteFetchAgain = true; return; }
+            let ref = null;
+            try { ref = getActiveRef(); } catch(e) { return; }
+            remoteFetchBusy = true;
+            ref.once('value').then(handleRemoteStateSnapshot).catch(function() {}).then(function() {
+                remoteFetchBusy = false;
+                if (remoteFetchAgain) {
+                    remoteFetchAgain = false;
+                    if (latestCloudRevSeen > lastKnownCloudRev) fetchRemoteStateOnce();
+                }
+            });
+        }
+
         function saveStateToCloud() {
+            if (isClientUser()) { persistLocalState(); return Promise.resolve(); }
+            try { syncSubsToCloud(); } catch(e) {}
             try {
                 state._rev = Math.max(parseInt(state._rev) || 0, lastKnownCloudRev) + 1;
                 lastKnownCloudRev = state._rev;
                 state._savedAt = Date.now();
                 state._writer = SYNC_SESSION_ID;
                 const json = JSON.stringify(state);
-                try { localStorage.setItem('ALHASAN_ACCOUNTING', json); } catch(e) {}
+                try { persistLocalState(); } catch(e) {}
                 const plainData = JSON.parse(json);
                 plainData.cart = [];
                 setCloudDirty(true);
                 cloudPendingWrites++;
+                const savedScope = getScopeKey();
                 return getActiveRef().set(plainData).then(function() {
                     cloudPendingWrites = Math.max(0, cloudPendingWrites - 1);
-                    if (cloudPendingWrites === 0) setCloudDirty(false);
+                    if (cloudPendingWrites === 0) {
+                        setCloudDirty(false);
+                        if (getScopeKey() === savedScope) writeSyncMeta();
+                    }
                 }).catch(function(error) {
                     cloudPendingWrites = Math.max(0, cloudPendingWrites - 1);
                     notifyCloudSaveFailure(error);
@@ -2711,6 +2911,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             } catch(e) {}
         }
         function writeTombstoneToCloud(scope, key, t) {
+            if (isClientUser()) return;
             try {
                 db.ref('appData/deletedInvoices/' + scope + '/' + key).set(t).catch(function() { queuePendingTombstone(scope, key, t); });
             } catch(e) { queuePendingTombstone(scope, key, t); }
@@ -2747,6 +2948,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             } catch(e) {}
         }
         function attachTombstoneListener() {
+            if (isClientUser()) return;
             const scope = getScopeKey();
             if (tombListenerRef && tombListenerScope === scope) return;
             detachTombstoneListener();
@@ -2768,9 +2970,10 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 mergeEmbeddedTombstones();
                 syncEmbeddedTombstones();
                 if (purgeDeletedFromState() > 0) {
-                    try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+                    try { persistLocalState(); } catch(e) {}
                     saveStateToCloud();
                 }
+                writeSyncMeta();
             } catch(e) {}
         }
 
@@ -2808,13 +3011,23 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             } catch(e) {}
         }
         function attachStateListener() {
+            if (isClientUser()) return;
             const scope = getScopeKey();
             if (stateListenerRef && stateListenerScope === scope) return;
             detachStateListener();
             try {
                 stateListenerScope = scope;
-                stateListenerRef = getActiveRef();
-                stateListenerFn = stateListenerRef.on('value', handleRemoteStateSnapshot, function() {});
+                // نراقب حقل _rev الصغير فقط؛ لا نحمّل الحالة كاملة إلا إذا غيّرها جهاز آخر فعلاً
+                stateListenerRef = getActiveRef().child('_rev');
+                stateListenerFn = stateListenerRef.on('value', function(revSnap) {
+                    try {
+                        if (getScopeKey() !== stateListenerScope) return;
+                        const cloudRev = parseInt(revSnap.val()) || 0;
+                        if (cloudRev > latestCloudRevSeen) latestCloudRevSeen = cloudRev;
+                        if (cloudRev <= lastKnownCloudRev) return;
+                        fetchRemoteStateOnce();
+                    } catch(e) {}
+                }, function() {});
             } catch(e) { stateListenerRef = null; stateListenerFn = null; }
         }
         function detachStateListener() {
@@ -2882,18 +3095,15 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         }
         function syncClientSubscriptionOnLoad() {
             if (!isClientUser()) return Promise.resolve(false);
-            return db.ref('appData/mainState/adminClients').once('value').then(function(snap) {
-                return handleAdminClientsSnapshot(snap.val());
+            return withTimeout(db.ref('appData/subs/' + clientSubKey()).once('value'), 6000).then(function(snap) {
+                const v = snap.val();
+                return handleAdminClientsSnapshot(v && typeof v === 'object' ? [v] : []);
             }).catch(function() { return false; });
         }
         function attachSubscriptionListener() {
-            if (!isClientUser() || subListenerRef) return;
-            try {
-                subListenerRef = db.ref('appData/mainState/adminClients');
-                subListenerFn = subListenerRef.on('value', function(snap) {
-                    try { handleAdminClientsSnapshot(snap.val()); } catch(e) {}
-                }, function() {});
-            } catch(e) { subListenerRef = null; subListenerFn = null; }
+            if (!isClientUser() || subTimer) return;
+            subTimer = setInterval(function() { clientSubscriptionCheck(); }, 20 * 60 * 1000);
+            setTimeout(function() { clientSubscriptionCheck(); }, 5000);
         }
         function startCloudSync() {
             try { mergeEmbeddedTombstones(); } catch(e) {}
@@ -2901,6 +3111,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             try { attachTombstoneListener(); } catch(e) {}
             try { attachSubscriptionListener(); } catch(e) {}
             try { flushPendingTombstones(); } catch(e) {}
+            try { syncSubsToCloud(); } catch(e) {}
         }
         // ========== نهاية مزامنة السحابة الآمنة ==========
 
@@ -2908,7 +3119,11 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (isMasterUser()) return loadMainState();
             if (isClientUser()) {
                 const dbKey = localStorage.getItem('alhasan_client_db_key');
-                if (dbKey) return loadClientData(dbKey);
+                if (dbKey) return loadClientData(dbKey).catch(function(e) {
+                    try { localStorage.removeItem('alhasan_logged_in'); } catch(_) {}
+                    try { showToast('⚠️ ' + ((e && e.message) || 'تعذّر تحميل بياناتك'), 'warning'); } catch(_) {}
+                    return false;
+                });
             }
             return loadMainState();
         }
@@ -2926,10 +3141,16 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     if (!state.settings.storeLogo) state.settings.storeLogo = null;
                     // ترحيل المنتجات
                     if (Array.isArray(state.products)) state.products.forEach(p => { if (!p.pricingCurrency) p.pricingCurrency = 'USD'; });
-                    try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+                    try { persistLocalState(); } catch(e) {}
             finalizeAdoptedState();
         }
         function loadMainState() {
+            return canSkipCloudDownload(db.ref('appData/mainState')).then(function(skip) {
+                if (skip) { try { finalizeAdoptedState(); } catch(e) {} return true; }
+                return loadMainStateFull();
+            });
+        }
+        function loadMainStateFull() {
             return db.ref('appData/mainState').once('value').then((snapshot) => {
                 const raw = snapshot.val();
                 const cloudData = normalizeCloudData(raw);
@@ -2959,10 +3180,11 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     // ترحيل المنتجات
                     if (Array.isArray(state.products)) state.products.forEach(p => { if (!p.pricingCurrency) p.pricingCurrency = 'USD'; });
                     state.cart = [];
-                    try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+                    try { persistLocalState(); } catch(e) {}
             finalizeAdoptedState();
         }
-        function loadClientData(encodedUsername) {
+        function loadClientData(encodedUsername) { return loadClientLocalFirst(encodedUsername); }
+        function loadClientDataFull(encodedUsername) {
             return db.ref('appData/clientData/' + encodedUsername).once('value').then((snapshot) => {
                 const raw = snapshot.val();
                 const cloudData = normalizeCloudData(raw);
@@ -2979,7 +3201,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             }).catch((error) => { return false; });
         }
         function saveState() {
-            try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+            try { persistLocalState(); } catch(e) {}
             saveStateToCloud();
             try { renderAll(); } catch(e) {}
         }
@@ -3015,8 +3237,9 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 startApp();
                 return;
             }
-            const clients = Array.isArray(state.adminClients) ? state.adminClients : [];
-            const client = clients.find(c => (c.username || 'admin') === username && (c.password || 'admin123') === password);
+            let client = null;
+            try { client = await fetchClientSubRecord(username, password); } catch(e) { client = null; }
+            if (!client && (navigator.onLine === false || subFetchFailed)) { try { client = await offlineClientLogin(username, password); } catch(e) { client = null; } }
             if (client) {
                 const daysLeft = getClientDaysLeft(client.endDate);
                 if (daysLeft <= 0) {
@@ -3031,7 +3254,12 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 localStorage.setItem('alhasan_client_username', username);
                 localStorage.setItem('alhasan_client_db_key', encodedUsername);
                 localStorage.setItem('alhasan_client_id', client.id);
-                await loadClientData(encodedUsername);
+                try { await loadClientData(encodedUsername); } catch(e) {
+                    errorBox.classList.remove('hidden');
+                    errorText.innerText = '⚠️ ' + ((e && e.message) || 'تعذّر تحميل بياناتك');
+                    ['alhasan_logged_in', 'alhasan_user_type', 'alhasan_client_username', 'alhasan_client_db_key', 'alhasan_client_id'].forEach(function(k) { try { localStorage.removeItem(k); } catch(_) {} });
+                    return;
+                }
                 const prevCloudEnd = (state.subscription && state.subscription.endDate) || null;
                 state.subscription = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: state.subscription.providerPhone || ADMIN_WHATSAPP };
                 try { applyClientRecord(client, prevCloudEnd); } catch(e) {}
@@ -3055,6 +3283,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 
         function logout() {
             if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                try { flushLocalPersist(); } catch(e) {}
                 localStorage.removeItem('alhasan_logged_in');
                 localStorage.removeItem('alhasan_user_type');
                 localStorage.removeItem('alhasan_client_username');
@@ -3226,15 +3455,17 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const encodedUsername = encodeKey(username);
             if (isEdit) {
                 const index = state.adminClients.findIndex(c => c.id === editingClientId);
+                if (index !== -1) { try { const ou = state.adminClients[index].username; if (ou && ou !== username) db.ref('appData/subs/' + encodeKey(ou)).remove(); } catch(e) {} }
                 if (index !== -1) state.adminClients[index] = { id: editingClientId, name, store, phone, city, username, password, startDate, endDate, payment, notes };
             } else {
                 state.adminClients.push({ id: Date.now(), name, store, phone, city, username, password, startDate, endDate, payment, notes });
             }
-            try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+            try { persistLocalState(); } catch(e) {}
             const mainRef = db.ref('appData/mainState');
             const dataToSave = JSON.parse(JSON.stringify(state));
             dataToSave.cart = [];
             mainRef.set(dataToSave).then(() => {
+                try { syncSubsToCloud(); } catch(e) {}
                 if (!isEdit) {
                     const clientRef = db.ref('appData/clientData/' + encodedUsername);
                     const clientInitialState = getFreshDefault();
@@ -3246,7 +3477,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     clientInitialState.settings.exchangeRate = state.settings.exchangeRate;
                     clientInitialState.settings.oldExchangeRate = state.settings.oldExchangeRate;
                     clientInitialState.subscription = { startDate, endDate, username, password, providerPhone: ADMIN_WHATSAPP };
-                    clientRef.set(clientInitialState).then(() => { showToast(`✅ تم إضافة "${name}"`, 'success'); }).catch(err => { showToast(`✅ تم إضافة "${name}"`, 'warning'); });
+                    Promise.resolve().then(() => { showToast(`✅ تم إضافة "${name}"`, 'success'); }).catch(err => { showToast(`✅ تم إضافة "${name}"`, 'warning'); });
                 } else showToast(`✅ تم تعديل "${name}"`, 'success');
                 closeModal('addClientModal');
                 editingClientId = null;
@@ -3258,6 +3489,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (!client) return;
             if (confirm(`هل أنت متأكد من حذف "${client.name}"؟`)) {
                 state.adminClients = state.adminClients.filter(c => c.id !== id);
+                try { db.ref('appData/subs/' + encodeKey(client.username)).remove(); } catch(e) {}
                 saveState(); renderAdminPanel();
                 showToast(`🗑️ تم حذف "${client.name}"`, 'delete');
             }
@@ -3358,6 +3590,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             renderAll();
             setTimeout(() => { try { generateAutoNotifications(); } catch(e) {} }, 800);
             try { startCloudSync(); } catch(e) {}
+            try { setTimeout(backupReminderCheck, 4000); } catch(e) {}
+            try { setTimeout(cleanupLocalImageDuplicates, 6000); } catch(e) {}
         }
 
         window.addEventListener('load', () => {
@@ -3365,9 +3599,12 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 const splash = document.getElementById('splash-screen');
                 const splashStatus = document.getElementById('splashStatus');
                 if (splashStatus) splashStatus.innerText = 'جاري الاتصال بالسحابة...';
-                try { await loadStateFromCloud(); } catch(e) {}
+                try {
+                    if (isClientUser()) await loadStateFromCloud();
+                    else if (navigator.onLine !== false) await withTimeout(loadStateFromCloud(), 12000);
+                } catch(e) {}
                 state.cart = [];
-                try { if (isClientUser()) await syncClientSubscriptionOnLoad(); } catch(e) {}
+                try { if (isClientUser()) await clientSubscriptionCheck(); } catch(e) {}
                 if (splashStatus) splashStatus.innerText = 'جاري تحميل النظام...';
                 if (splash) {
                     splash.style.opacity = '0';
@@ -3876,8 +4113,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 discount: discountPercent
             };
             state.invoices.push(invoice);
-            let mergedDebt = null;
-            if (paymentMethod === 'دين') mergedDebt = createDebtInvoice(invoice, debtData);
+            if (paymentMethod === 'دين') createDebtInvoice(invoice, debtData);
             state.cart = [];
             try { resetDebtPanel(); } catch(e) {}
             try { document.getElementById('cartCustomerName').value = ''; document.getElementById('cartDiscountPercent').value = ''; } catch(e) {}
@@ -3886,7 +4122,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const displayTotal = invoiceCurrency === 'SYP_NEW'
                 ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(invoice.totalSYP) + ' ل.س'
                 : formatMoney(finalTotalUSD);
-            showToast(mergedDebt ? `تم البيع - ${displayTotal} • أُضيفت لحساب "${mergedDebt.name}"` : `تم البيع - ${displayTotal}`, 'success');
+            showToast(`تم البيع - ${displayTotal}`, 'success');
             updateCartUI(); renderPOSProducts(); renderPosCategories(); renderCustomers();
             setTimeout(() => { try { checkStockNotifications(); } catch(e) {} }, 500);
         }
@@ -4144,23 +4380,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             // تسجيل الحذف بشكل دائم حتى لا تعود الفاتورة من أي نسخة قديمة أو جهاز آخر
             try { state.invoices.filter(inv => inv.id === invoiceId).forEach(inv => registerInvoiceTombstone(inv)); } catch(e) {}
             if (Array.isArray(invoice.items)) invoice.items.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty = (product.qty || 0) + (item.qty || 0); });
-            (state.debtInvoices || []).filter(d => debtInvoiceIds(d).indexOf(invoice.id) !== -1).forEach(d => {
-                const ids = debtInvoiceIds(d);
-                if (ids.length <= 1) { state.debtInvoices = state.debtInvoices.filter(x => x !== d); return; }
-                const amt = debtRound(invoice.totalUSD);
-                const rest = ids.filter(x => x !== invoice.id);
-                d.invoiceIds = rest;
-                if (d.invoiceId === invoice.id) d.invoiceId = rest[0];
-                d.total = Math.max(0, debtRound((d.total || 0) - amt));
-                d.remaining = Math.max(0, debtRound((d.remaining || 0) - amt));
-                d.paid = Math.max(0, debtRound(d.total - d.remaining));
-                d.notes = (d.notes ? d.notes + '\n\n' : '') + `🗑️ [${new Date().toLocaleDateString('en-GB')}] حُذفت الفاتورة رقم ${invoice.id} (${formatMoney(amt)})`;
-                if (d.remaining === 0) {
-                    d.status = 'paid';
-                    d.paidDate = new Date().toLocaleDateString('en-GB');
-                    state.invoices.forEach(i => { if (rest.indexOf(i.id) !== -1) i.status = 'Paid'; });
-                }
-            });
+            const linkedDebt = (state.debtInvoices || []).some(d => d.invoiceId === invoice.id);
+            if (linkedDebt) state.debtInvoices = state.debtInvoices.filter(d => d.invoiceId !== invoice.id);
             state.invoices = state.invoices.filter(inv => inv.id !== invoiceId);
             saveState();
             showToast(`🗑️ تم حذف الفاتورة ${invoiceId} وإرجاع الكميات`, 'delete');
@@ -4266,56 +4487,19 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (nameEl) nameEl.placeholder = method === 'دين' ? 'اسم الزبون (مطلوب للدَّين)' : 'اسم الزبون (اختياري)';
         }
         function resetDebtPanel() { ['debtPhone', 'debtAddress', 'debtNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); }
-        // تطبيع الاسم للمقارنة: يتجاهل التشكيل والمسافات الزائدة وفروق الألف والياء والتاء المربوطة
-        function debtNormName(s) {
-            return String(s == null ? '' : s)
-                .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
-                .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
-                .replace(/\s+/g, ' ').trim().toLowerCase();
-        }
-        // أحدث حساب دَّين مفتوح بنفس اسم العميل (المطابقة بالاسم فقط)
-        function findOpenDebtByName(name) {
-            const key = debtNormName(name);
-            if (!key) return null;
-            const matches = (state.debtInvoices || []).filter(d => d.status !== 'paid' && debtNormName(d.name) === key);
-            if (!matches.length) return null;
-            return matches.sort((a, b) => (b.id || 0) - (a.id || 0))[0];
-        }
-        // أرقام كل الفواتير المرتبطة بحساب الدَّين (للسجلات القديمة: فاتورة واحدة)
-        function debtInvoiceIds(d) {
-            if (d && Array.isArray(d.invoiceIds) && d.invoiceIds.length) return d.invoiceIds;
-            return (d && d.invoiceId !== undefined && d.invoiceId !== null) ? [d.invoiceId] : [];
-        }
-        // يُرجع السجل الموجود إذا تم الدمج، أو null إذا أُنشئ حساب جديد
         function createDebtInvoice(invoice, data) {
             if (!Array.isArray(state.debtInvoices)) state.debtInvoices = [];
-            const amount = debtRound(invoice.totalUSD);
-            const existing = findOpenDebtByName(invoice.customerName);
-            if (existing) {
-                const ids = debtInvoiceIds(existing).slice();
-                if (ids.indexOf(invoice.id) === -1) ids.push(invoice.id);
-                existing.invoiceIds = ids;
-                existing.total = debtRound((existing.total || 0) + amount);
-                existing.remaining = debtRound((existing.remaining || 0) + amount);
-                if (data && data.phone && !existing.phone) existing.phone = data.phone;
-                if (data && data.address && !existing.address) existing.address = data.address;
-                let line = `🧾 [${invoice.date}] فاتورة جديدة رقم ${invoice.id} بقيمة ${formatMoney(amount)} — المتبقي الآن: ${formatMoney(existing.remaining)}`;
-                if (data && data.notes) line += `\n    📝 ${data.notes}`;
-                existing.notes = existing.notes ? existing.notes + '\n\n' + line : line;
-                return existing;
-            }
             let notes = `🧾 فاتورة رقم ${invoice.id}`;
             if (data && data.notes) notes += `\n${data.notes}`;
             state.debtInvoices.push({
-                id: Date.now(), invoiceId: invoice.id, invoiceIds: [invoice.id], name: invoice.customerName,
+                id: Date.now(), invoiceId: invoice.id, name: invoice.customerName,
                 type: invoice.isWholesale ? 'wholesale' : 'retail',
                 phone: (data && data.phone) || '', address: (data && data.address) || '', notes,
-                total: amount, paid: 0, remaining: amount,
+                total: debtRound(invoice.totalUSD), paid: 0, remaining: debtRound(invoice.totalUSD),
                 status: 'open', date: invoice.date, isoDate: invoice.isoDate || getCurrentISODate(),
                 invoiceCurrency: invoice.invoiceCurrency || 'USD',
                 exchangeRateAtSale: invoice.exchangeRateAtSale || state.settings.exchangeRate
             });
-            return null;
         }
         function renderCustomers(filter = '') {
             const container = document.getElementById('customersListContainer');
@@ -4365,8 +4549,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             d.phone = document.getElementById('custPhone').value.trim();
             d.address = document.getElementById('custAddress').value.trim();
             d.notes = document.getElementById('custNotes').value.trim();
-            const linkedIds = debtInvoiceIds(d);
-            state.invoices.forEach(i => { if (linkedIds.indexOf(i.id) !== -1) i.customerName = name; });
+            const inv = state.invoices.find(i => i.id === d.invoiceId);
+            if (inv) inv.customerName = name;
             showToast(`تم تعديل "${name}"`, 'edit');
             closeModal('addCustomerModal'); saveState();
             resetCustomerModal();
@@ -4449,8 +4633,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 d.status = 'paid';
                 d.paidDate = `${dateStr} - ${timeStr}`;
                 newNote += `\n✅ تم التسديد بالكامل`;
-                const linkedIds = debtInvoiceIds(d);
-                state.invoices.forEach(i => { if (linkedIds.indexOf(i.id) !== -1) i.status = 'Paid'; });
+                const inv = state.invoices.find(i => i.id === d.invoiceId);
+                if (inv) inv.status = 'Paid';
             }
             d.notes = d.notes ? d.notes + '\n\n' + newNote : newNote;
             closeModal('payDebtModal'); saveState();
@@ -6707,7 +6891,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         // حفظ في الذاكرة المحلية والسحابة بالخلفية بدون تجميد الشاشة
         clearTimeout(localSaveTimer);
         localSaveTimer = setTimeout(() => {
-            try { localStorage.setItem('ALHASAN_ACCOUNTING', JSON.stringify(state)); } catch(e) {}
+            try { persistLocalState(); } catch(e) {}
             window.saveStateToCloud();
         }, 50);
     };
