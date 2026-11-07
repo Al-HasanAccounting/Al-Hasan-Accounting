@@ -1476,11 +1476,13 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                             ليرة سورية جديدة
                         </button>
                     </div>
+                    <button type="button" id="btnPricingCart" onclick="setPricingCurrency('CART')" style="display:none" class="mt-3 w-full px-4 py-3 rounded-xl font-bold text-sm border-2 transition-all bg-navy-800 text-slate-300 border-navy-600 hover:border-gold-400"><i class="fa-solid fa-hand-holding-dollar ml-1"></i> وضع السعر في السلة</button>
+                    <input type="hidden" id="prodPriceAtCart" value="0">
                     <input type="hidden" id="prodPricingCurrency" value="USD">
-                    <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-info-circle"></i> جميع الأسعار أدناه ستُدخل بهذه العملة</p>
+                    <p id="prodPricingHint" class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-info-circle"></i> جميع الأسعار أدناه ستُدخل بهذه العملة</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div id="prodPriceGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div><label class="block text-sm text-slate-300 mb-1">التكلفة (<span class="currency-symbol" id="costCurrencyLabel">$</span>)</label><input type="number" id="prodCost" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="0"></div>
                     <div><label class="block text-sm text-slate-300 mb-1">سعر المفرق (<span class="currency-symbol" id="retailCurrencyLabel">$</span>)</label><input type="number" id="prodRetailPrice" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="0"></div>
                     <div><label class="block text-sm text-slate-300 mb-1">سعر الجملة (<span class="currency-symbol" id="wholesaleCurrencyLabel">$</span>)</label><input type="number" id="prodWholesalePrice" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="0"></div>
@@ -1503,9 +1505,21 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 <div class="flex justify-between text-xs mt-1"><span class="text-slate-400">المتوفر في المخزون</span><span id="qtyModalStock" class="text-emerald-400 font-bold"></span></div>
                 <div id="qtyModalInCartRow" class="justify-between text-xs mt-1" style="display:none"><span class="text-slate-400">الموجود حالياً في السلة</span><span id="qtyModalInCart" class="text-blue-400 font-bold"></span></div>
             </div>
+            <div id="qtyModalNameRow" style="display:none" class="mb-3">
+                <label class="block text-sm text-slate-300 mb-1">اسم المنتج</label>
+                <input type="text" id="qtyModalNameInput" autocomplete="off" placeholder="اكتب اسم المنتج" oninput="updateQtyModalPreview()" class="w-full bg-navy-900 border border-navy-600 rounded-xl p-3 text-white text-lg text-center font-bold focus:border-gold-400 outline-none">
+            </div>
             <label id="qtyModalLabel" class="block text-sm text-slate-300 mb-1">الكمية</label>
             <input type="text" id="qtyModalInput" inputmode="decimal" autocomplete="off" dir="ltr" placeholder="0.00" oninput="onQtyModalInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmQtyModal();}" class="w-full bg-navy-900 border border-navy-600 rounded-xl p-4 text-white text-2xl text-center font-bold focus:border-gold-400 outline-none">
             <p class="text-[11px] text-slate-500 mt-1 text-center">حتى خانتين بعد الفاصلة، مثال: 1.55</p>
+            <div id="qtyModalPriceRow" style="display:none" class="mt-3">
+                <label class="block text-sm text-slate-300 mb-1">السعر</label>
+                <div class="flex gap-2">
+                    <input type="text" id="qtyModalPriceInput" inputmode="decimal" autocomplete="off" dir="ltr" placeholder="0.00" oninput="onQtyModalPriceInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmQtyModal();}" class="flex-1 min-w-0 bg-navy-900 border border-navy-600 rounded-xl p-3 text-white text-xl text-center font-bold focus:border-gold-400 outline-none">
+                    <button type="button" id="qtyModalCurUSD" onclick="setQtyModalCurrency('USD')" class="px-4 rounded-xl font-bold text-sm border-2 bg-blue-500 text-white border-blue-500">$</button>
+                    <button type="button" id="qtyModalCurSYP" onclick="setQtyModalCurrency('SYP_NEW')" class="px-4 rounded-xl font-bold text-sm border-2 bg-navy-800 text-slate-300 border-navy-600">ل.س</button>
+                </div>
+            </div>
             <div class="bg-navy-900 rounded-xl p-3 border border-navy-700 mt-3 flex justify-between items-center"><span class="text-slate-400 text-sm">الإجمالي</span><span id="qtyModalTotal" class="text-gold-400 font-bold text-lg">0.00 $</span></div>
             <div id="qtyModalError" class="text-red-400 text-xs mt-2" style="display:none"></div>
             <div class="flex gap-3 mt-4">
@@ -1947,6 +1961,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 
         // ========== دوال عملة التسعير ==========
         function setPricingCurrency(currency) {
+            const isCart = (currency === 'CART') && qtyDecimalEnabled();
+            if (currency === 'CART') currency = 'USD';
             const input = document.getElementById('prodPricingCurrency');
             if (input) input.value = currency;
             
@@ -1969,6 +1985,32 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 if (labelRetail) labelRetail.innerText = '$';
                 if (labelWholesale) labelWholesale.innerText = '$';
             }
+            applyPriceAtCartUI(isCart);
+        }
+
+        // ========== خيار "وضع السعر في السلة" (لأصحاب ميزة الكميات بالفواصل فقط) ==========
+        function isPriceAtCart(product) { return !!(product && product.priceAtCart && qtyDecimalEnabled()); }
+        function isPriceAtCartSelected() { const el = document.getElementById('prodPriceAtCart'); return !!(el && el.value === '1' && qtyDecimalEnabled()); }
+        function applyPriceAtCartUI(isCart) {
+            const flag = document.getElementById('prodPriceAtCart'); if (flag) flag.value = isCart ? '1' : '0';
+            const btnCart = document.getElementById('btnPricingCart');
+            const btnUSD = document.getElementById('btnPricingUSD');
+            const btnSYP = document.getElementById('btnPricingSYP');
+            const grid = document.getElementById('prodPriceGrid');
+            const hint = document.getElementById('prodPricingHint');
+            if (btnCart) {
+                btnCart.style.display = qtyDecimalEnabled() ? 'block' : 'none';
+                btnCart.className = 'mt-3 w-full px-4 py-3 rounded-xl font-bold text-sm border-2 transition-all ' + (isCart ? 'bg-amber-500 text-navy-900 border-amber-500' : 'bg-navy-800 text-slate-300 border-navy-600 hover:border-gold-400');
+            }
+            if (isCart) {
+                const off = 'px-4 py-3 rounded-xl font-bold text-sm border-2 transition-all bg-navy-800 text-slate-300 border-navy-600 hover:border-gold-400';
+                if (btnUSD) btnUSD.className = off;
+                if (btnSYP) btnSYP.className = off;
+            }
+            if (grid) grid.style.display = isCart ? 'none' : '';
+            if (hint) hint.innerHTML = isCart
+                ? '<i class="fa-solid fa-info-circle"></i> لا يوجد سعر لهذا المنتج؛ يُدخل السعر (والعملة) عند إضافته للسلة في نقطة البيع'
+                : '<i class="fa-solid fa-info-circle"></i> جميع الأسعار أدناه ستُدخل بهذه العملة';
         }
 
         function formatProductPrice(amount, productOrCurrency) {
@@ -3959,7 +4001,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             }
             state.cart.forEach(item => {
                 const product = state.products.find(p => p.id === item.id);
-                if (product) {
+                if (product && !isPriceAtCart(product)) {
                     const originalPrice = getProductPriceOriginal(product, state.settings.isWholesale);
                     item.price = originalPrice;
                     item.priceUSD = convertToUSD(originalPrice, product);
@@ -4043,7 +4085,33 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             });
         }
         let qtyModalCtx = null;
+        function parsePriceInput(raw) {
+            let t = toEnglishDigits(String(raw == null ? '' : raw)).replace(/[\u060C\u066B,]/g, '.').replace(/[^0-9.]/g, '');
+            const i = t.indexOf('.');
+            if (i !== -1) t = t.slice(0, i + 1) + t.slice(i + 1).replace(/\./g, '');
+            return t;
+        }
+        function onQtyModalPriceInput() {
+            const el = document.getElementById('qtyModalPriceInput');
+            const n = parsePriceInput(el.value);
+            if (el.value !== n) el.value = n;
+            updateQtyModalPreview();
+        }
+        function setQtyModalCurrency(cur) {
+            if (!qtyModalCtx) return;
+            qtyModalCtx.currency = cur;
+            const on = 'px-4 rounded-xl font-bold text-sm border-2 ';
+            document.getElementById('qtyModalCurUSD').className = on + (cur === 'USD' ? 'bg-blue-500 text-white border-blue-500' : 'bg-navy-800 text-slate-300 border-navy-600');
+            document.getElementById('qtyModalCurSYP').className = on + (cur === 'SYP_NEW' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-navy-800 text-slate-300 border-navy-600');
+            updateQtyModalPreview();
+        }
         function qtyModalProductPriceItem(product, h) {
+            if (isPriceAtCart(product)) {
+                const cur = (qtyModalCtx && qtyModalCtx.currency) || 'USD';
+                const pt = parsePriceInput(document.getElementById('qtyModalPriceInput').value);
+                const pr = (pt === '' || pt === '.') ? 0 : parseFloat(pt) || 0;
+                return { price: pr, priceUSD: convertToUSD(pr, cur), qty: h / 100, displayCurrency: cur };
+            }
             const originalPrice = getProductPriceOriginal(product, state.settings.isWholesale);
             return { price: originalPrice, priceUSD: convertToUSD(originalPrice, product), qty: h / 100, displayCurrency: product.pricingCurrency || 'USD' };
         }
@@ -4055,9 +4123,9 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const cartItem = state.cart.find(i => i.id === productId);
             qtyModalCtx = { id: productId, mode };
             const unit = product.unit || 'قطعة';
-            document.getElementById('qtyModalName').innerText = product.name || '';
+            document.getElementById('qtyModalName').innerText = (cartItem && cartItem.name) || product.name || 'منتج بدون اسم';
             document.getElementById('qtyModalUnit').innerText = unit;
-            document.getElementById('qtyModalPrice').innerText = formatProductPrice(getProductPriceOriginal(product, state.settings.isWholesale), product);
+            document.getElementById('qtyModalPrice').innerText = isPriceAtCart(product) ? 'يُحدد الآن' : formatProductPrice(getProductPriceOriginal(product, state.settings.isWholesale), product);
             document.getElementById('qtyModalStock').innerText = fmtQty(product.qty) + ' ' + unit;
             const inCartRow = document.getElementById('qtyModalInCartRow');
             if (cartItem && mode === 'add') { document.getElementById('qtyModalInCart').innerText = fmtQty(cartItem.qty) + ' ' + unit; inCartRow.style.display = 'flex'; }
@@ -4066,6 +4134,15 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             document.getElementById('qtyModalConfirmBtn').innerText = mode === 'set' ? 'تعديل الكمية' : 'إضافة للسلة';
             const input = document.getElementById('qtyModalInput');
             input.value = (mode === 'set' && cartItem) ? fmtQty(cartItem.qty) : '';
+            const pacRow = document.getElementById('qtyModalPriceRow');
+            if (isPriceAtCart(product)) {
+                qtyModalCtx.currency = (cartItem && cartItem.displayCurrency) || 'USD';
+                document.getElementById('qtyModalPriceInput').value = cartItem ? String(cartItem.price) : '';
+                document.getElementById('qtyModalNameInput').value = (cartItem && cartItem.name) || product.name || '';
+                document.getElementById('qtyModalNameRow').style.display = 'block';
+                pacRow.style.display = 'block';
+                setQtyModalCurrency(qtyModalCtx.currency);
+            } else { pacRow.style.display = 'none'; document.getElementById('qtyModalNameRow').style.display = 'none'; }
             updateQtyModalPreview();
             openModal('qtyEntryModal');
             setTimeout(() => { try { input.focus(); input.select(); } catch(e) {} }, 80);
@@ -4089,6 +4166,11 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const cartItem = state.cart.find(i => i.id === ctx.id);
             const finalH = (ctx.mode === 'set' || !cartItem) ? entered : qH(cartItem.qty) + entered;
             if (finalH > qH(product.qty)) return { h: finalH, error: 'الكمية تتجاوز المخزون! المتوفر: ' + fmtQty(product.qty) + ' ' + (product.unit || '') };
+            if (isPriceAtCart(product)) {
+                if (!document.getElementById('qtyModalNameInput').value.trim()) return { h: finalH, error: showEmptyError ? 'أدخل اسم المنتج' : '' };
+                const pt = parsePriceInput(document.getElementById('qtyModalPriceInput').value);
+                if (pt === '' || pt === '.' || !(parseFloat(pt) > 0)) return { h: finalH, error: showEmptyError ? 'أدخل السعر' : '' };
+            }
             return { h: finalH, error: '' };
         }
         function updateQtyModalPreview() {
@@ -4101,7 +4183,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const enteredH = (txt === '' || txt === '.') ? 0 : qH(txt);
             const tmp = qtyModalProductPriceItem(product, enteredH);
             const line = itemLineOrig(tmp);
-            document.getElementById('qtyModalTotal').innerText = (product.pricingCurrency === 'SYP_NEW') ? formatSYP(line) : formatMoney(line);
+            const curForTotal = isPriceAtCart(product) ? ((qtyModalCtx && qtyModalCtx.currency) || 'USD') : product.pricingCurrency;
+            document.getElementById('qtyModalTotal').innerText = (curForTotal === 'SYP_NEW') ? formatSYP(line) : formatMoney(line);
         }
         function confirmQtyModal() {
             const ctx = qtyModalCtx; if (!ctx) return;
@@ -4109,14 +4192,24 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (!product) { closeQtyModal(); return; }
             const r = qtyModalResolve(true);
             if (r.error) { const errEl = document.getElementById('qtyModalError'); errEl.innerText = r.error; errEl.style.display = 'block'; return; }
-            const originalPrice = getProductPriceOriginal(product, state.settings.isWholesale);
-            const priceUSD = convertToUSD(originalPrice, product);
+            const pac = isPriceAtCart(product);
+            let originalPrice, priceUSD, cur, itemName = null;
+            if (pac) {
+                cur = ctx.currency || 'USD';
+                originalPrice = parseFloat(parsePriceInput(document.getElementById('qtyModalPriceInput').value)) || 0;
+                itemName = document.getElementById('qtyModalNameInput').value.trim();
+                priceUSD = convertToUSD(originalPrice, cur);
+            } else {
+                cur = product.pricingCurrency || 'USD';
+                originalPrice = getProductPriceOriginal(product, state.settings.isWholesale);
+                priceUSD = convertToUSD(originalPrice, product);
+            }
             const cartItem = state.cart.find(i => i.id === product.id);
-            if (cartItem) { cartItem.qty = r.h / 100; cartItem.price = originalPrice; cartItem.priceUSD = priceUSD; }
-            else state.cart.push({ ...product, qty: r.h / 100, price: originalPrice, priceUSD: priceUSD, displayCurrency: product.pricingCurrency || 'USD' });
+            if (cartItem) { cartItem.qty = r.h / 100; cartItem.price = originalPrice; cartItem.priceUSD = priceUSD; if (pac) { cartItem.pricingCurrency = cur; cartItem.displayCurrency = cur; cartItem.name = itemName; } }
+            else state.cart.push({ ...product, qty: r.h / 100, price: originalPrice, priceUSD: priceUSD, displayCurrency: cur, ...(pac ? { pricingCurrency: cur, name: itemName } : {}) });
             closeQtyModal();
             updateCartUI();
-            showToast(`تم إضافة "${product.name}" (${fmtQty(r.h / 100)} ${product.unit || ''})`, 'success');
+            showToast(`تم إضافة "${itemName || product.name}" (${fmtQty(r.h / 100)} ${product.unit || ''})`, 'success');
         }
         function renderPOSProducts(filter = '') {
             const container = document.getElementById('posProductList');
@@ -4138,10 +4231,10 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 div.innerHTML = `
                     ${isLowStock ? '<div class="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full z-10"></div>' : ''}
                     <div class="w-full aspect-square bg-navy-900 rounded-xl flex items-center justify-center mb-2 border border-navy-700 overflow-hidden">${imageHtml}</div>
-                    <h4 class="font-bold text-white text-sm mb-1 line-clamp-2">${p.name}</h4>
+                    <h4 class="font-bold text-white text-sm mb-1 line-clamp-2">${p.name || 'منتج بدون اسم'}</h4>
                     <p class="text-xs text-slate-400 mb-2">متوفر: ${fmtQty(p.qty)}</p>
                     <div class="flex justify-between items-center w-full mt-auto">
-                        <span class="${p.pricingCurrency === 'SYP_NEW' ? 'text-emerald-400' : 'text-gold-400'} font-bold text-sm">${formatProductPrice(originalPrice, p)}</span>
+                        <span class="${p.pricingCurrency === 'SYP_NEW' ? 'text-emerald-400' : 'text-gold-400'} font-bold text-sm">${isPriceAtCart(p) ? 'السعر عند البيع' : formatProductPrice(originalPrice, p)}</span>
                         <span class="bg-navy-900 text-[10px] text-slate-400 px-2 py-1 rounded border border-navy-700">${p.unit || 'قطعة'}</span>
                     </div>
                 `;
@@ -4432,14 +4525,14 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const img = getProductImage(p.id);
             const imageHtml = img ? `<img src="${img}" class="w-full h-full object-cover" alt="${p.name}" loading="lazy">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid fa-box text-slate-600 text-3xl lg:text-2xl"></i></div>`;
             const isSYP = p.pricingCurrency === 'SYP_NEW';
-            const currencyBadge = isSYP
+            const currencyBadge = p.priceAtCart ? '' : isSYP
                 ? '<span class="absolute bottom-4 lg:bottom-2 right-4 lg:right-2 px-2 py-1 lg:px-1.5 lg:py-0.5 rounded-md text-[10px] lg:text-[9px] font-bold bg-emerald-500/90 text-white border border-emerald-400 shadow-lg z-10">ل.س</span>'
                 : '<span class="absolute bottom-4 lg:bottom-2 right-4 lg:right-2 px-2 py-1 lg:px-1.5 lg:py-0.5 rounded-md text-[10px] lg:text-[9px] font-bold bg-blue-500/90 text-white border border-blue-400 shadow-lg z-10">$</span>';
             return `
             <div class="product-card bg-navy-800 rounded-2xl p-5 lg:p-3 border border-navy-700 shadow-lg flex flex-col gap-4 lg:gap-2 relative">
                 <div class="product-qty-badge absolute top-4 lg:top-2 left-4 lg:left-2 w-8 h-8 lg:w-6 lg:h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm lg:text-[10px] z-10">${fmtQty(p.qty)}</div>
                 <div class="text-right mt-1 lg:mt-0">
-                    <h3 class="product-name text-xl font-bold text-white mb-1 lg:mb-0.5">${p.name}</h3>
+                    <h3 class="product-name text-xl font-bold text-white mb-1 lg:mb-0.5">${p.name || 'منتج بدون اسم'}</h3>
                     <p class="product-barcode-text text-xs lg:text-[10px] text-slate-400 truncate">باركود: ${p.barcode}</p>
                 </div>
                 <div class="product-image-container relative bg-navy-900 rounded-xl lg:rounded-lg flex items-center justify-center aspect-square overflow-hidden border border-navy-700">
@@ -4447,7 +4540,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     ${currencyBadge}
                     <button type="button" onclick="event.stopPropagation(); showBarcodeModal('${p.barcode}', '${(p.name || '').replace(/'/g, "\\'")}')" class="barcode-btn absolute bottom-1 left-1 w-7 h-7 lg:w-6 lg:h-6 rounded-lg lg:rounded-md bg-gold-500/95 hover:bg-gold-500 text-navy-900 flex items-center justify-center shadow-lg z-10" title="عرض / تحميل الباركود"><i class="fa-solid fa-barcode text-xs lg:text-[10px]"></i></button>
                 </div>
-                <div class="price-grid grid grid-cols-3 gap-2 lg:gap-1 text-center">
+                ${p.priceAtCart ? '<div class="text-center text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-xl py-3 lg:py-1.5"><i class="fa-solid fa-hand-holding-dollar ml-1"></i> السعر يُحدد عند البيع</div>' : ''}
+                <div class="price-grid grid grid-cols-3 gap-2 lg:gap-1 text-center" ${p.priceAtCart ? 'style="display:none"' : ''}>
                     <div class="price-box bg-navy-900 rounded-xl lg:rounded-lg p-3 lg:p-1.5 border border-navy-700 min-w-0 overflow-hidden"><span class="price-label text-slate-400 text-xs lg:text-[9px] mb-1 lg:mb-0.5 block leading-none">التكلفة</span><span class="price-value text-white font-bold lg:text-xs break-all">${formatProductPrice(p.cost, p)}</span></div>
                     <div class="price-box bg-navy-900 rounded-xl lg:rounded-lg p-3 lg:p-1.5 border border-navy-700 min-w-0 overflow-hidden"><span class="price-label text-slate-400 text-xs lg:text-[9px] mb-1 lg:mb-0.5 block leading-none">مفرق</span><span class="price-value ${isSYP ? 'text-emerald-400' : 'text-gold-400'} font-bold lg:text-xs break-all">${formatProductPrice(p.retailPrice, p)}</span></div>
                     <div class="price-box bg-navy-900 rounded-xl lg:rounded-lg p-3 lg:p-1.5 border border-navy-700 min-w-0 overflow-hidden"><span class="price-label text-slate-400 text-xs lg:text-[9px] mb-1 lg:mb-0.5 block leading-none">جملة</span><span class="price-value text-purple-400 font-bold lg:text-xs break-all">${formatProductPrice(p.wholesalePrice, p)}</span></div>
@@ -4472,25 +4566,26 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const qty = qtyDecimalEnabled() ? q2(normalizeQtyInput(document.getElementById('prodQty').value)) : (parseInt(document.getElementById('prodQty').value) || 0);
             const unit = document.getElementById('prodUnit').value.trim() || 'قطعة';
             const minLimit = qtyDecimalEnabled() ? (q2(normalizeQtyInput(document.getElementById('prodMinLimit').value)) || 10) : (parseInt(document.getElementById('prodMinLimit').value) || 10);
-            const cost = parseFloat(document.getElementById('prodCost').value) || 0;
-            const retailPrice = parseFloat(document.getElementById('prodRetailPrice').value) || 0;
-            const wholesalePrice = parseFloat(document.getElementById('prodWholesalePrice').value) || 0;
+            const cost = isPriceAtCartSelected() ? 0 : (parseFloat(document.getElementById('prodCost').value) || 0);
+            const retailPrice = isPriceAtCartSelected() ? 0 : (parseFloat(document.getElementById('prodRetailPrice').value) || 0);
+            const wholesalePrice = isPriceAtCartSelected() ? 0 : (parseFloat(document.getElementById('prodWholesalePrice').value) || 0);
             const notes = document.getElementById('prodNotes').value.trim();
             let barcode = document.getElementById('prodBarcode').value.trim();
-            if (!name || !sku) { showToast('أدخل اسم المنتج و SKU', 'warning'); return; }
+            if ((!name && !isPriceAtCartSelected()) || !sku) { showToast(isPriceAtCartSelected() ? 'أدخل رمز المنتج (SKU)' : 'أدخل اسم المنتج و SKU', 'warning'); return; }
             if (!barcode) barcode = Math.floor(100000000000 + Math.random() * 900000000000).toString();
             const isEdit = !!editingProductId;
             const pricingCurrency = (document.getElementById('prodPricingCurrency') || {}).value || 'USD';
+            const cartPriceExtra = isPriceAtCartSelected() ? { priceAtCart: true } : {};
             let productId;
             if (isEdit) {
                 productId = editingProductId;
                 let index = state.products.findIndex(p => p.id === editingProductId);
                 if (index === -1) index = state.products.findIndex(p => String(p.id) === String(editingProductId));
-                if (index !== -1) state.products[index] = { id: state.products[index].id, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency };
-                else state.products.push({ id: editingProductId, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency });
+                if (index !== -1) state.products[index] = { id: state.products[index].id, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency, ...cartPriceExtra };
+                else state.products.push({ id: editingProductId, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency, ...cartPriceExtra });
             } else {
                 productId = Date.now();
-                state.products.push({ id: productId, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency });
+                state.products.push({ id: productId, name, sku, category, qty, unit, minLimit, cost, retailPrice, wholesalePrice, barcode, notes, pricingCurrency, ...cartPriceExtra });
             }
             try {
                 if (pendingProductImage === null) removeProductImage(productId);
@@ -4525,7 +4620,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             else preview.innerHTML = '<i class="fa-solid fa-image text-slate-500 text-2xl"></i>';
             document.getElementById('productModalTitle').innerText = 'تعديل المنتج';
             document.getElementById('productSubmitBtn').innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
-            setPricingCurrency(product.pricingCurrency || 'USD');
+            setPricingCurrency((product.priceAtCart && qtyDecimalEnabled()) ? 'CART' : (product.pricingCurrency || 'USD'));
             openModal('addProductModal');
         }
         function deleteProduct(id) {
