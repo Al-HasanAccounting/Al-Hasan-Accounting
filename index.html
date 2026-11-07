@@ -1491,6 +1491,30 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         </div>
     </div>
     
+    <div id="qtyEntryModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[10001] backdrop-blur-sm p-4">
+        <div class="bg-navy-800 p-5 rounded-2xl w-full max-w-sm border border-gold-500/40 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gold-400"><i class="fa-solid fa-scale-balanced ml-1"></i> إدخال الكمية</h3>
+                <button type="button" onclick="closeQtyModal()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div class="bg-navy-900 rounded-xl p-3 border border-navy-700 mb-4">
+                <div id="qtyModalName" class="text-white font-bold"></div>
+                <div class="flex justify-between text-xs mt-2"><span class="text-slate-400">السعر لكل <span id="qtyModalUnit"></span></span><span id="qtyModalPrice" class="text-gold-400 font-bold"></span></div>
+                <div class="flex justify-between text-xs mt-1"><span class="text-slate-400">المتوفر في المخزون</span><span id="qtyModalStock" class="text-emerald-400 font-bold"></span></div>
+                <div id="qtyModalInCartRow" class="justify-between text-xs mt-1" style="display:none"><span class="text-slate-400">الموجود حالياً في السلة</span><span id="qtyModalInCart" class="text-blue-400 font-bold"></span></div>
+            </div>
+            <label id="qtyModalLabel" class="block text-sm text-slate-300 mb-1">الكمية</label>
+            <input type="text" id="qtyModalInput" inputmode="decimal" autocomplete="off" dir="ltr" placeholder="0.00" oninput="onQtyModalInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmQtyModal();}" class="w-full bg-navy-900 border border-navy-600 rounded-xl p-4 text-white text-2xl text-center font-bold focus:border-gold-400 outline-none">
+            <p class="text-[11px] text-slate-500 mt-1 text-center">حتى خانتين بعد الفاصلة، مثال: 1.55</p>
+            <div class="bg-navy-900 rounded-xl p-3 border border-navy-700 mt-3 flex justify-between items-center"><span class="text-slate-400 text-sm">الإجمالي</span><span id="qtyModalTotal" class="text-gold-400 font-bold text-lg">0.00 $</span></div>
+            <div id="qtyModalError" class="text-red-400 text-xs mt-2" style="display:none"></div>
+            <div class="flex gap-3 mt-4">
+                <button type="button" onclick="closeQtyModal()" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إلغاء</button>
+                <button type="button" id="qtyModalConfirmBtn" onclick="confirmQtyModal()" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg">إضافة للسلة</button>
+            </div>
+        </div>
+    </div>
+
     <div id="barcodeModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[10000] backdrop-blur-sm p-4">
         <div class="bg-navy-800 p-6 rounded-2xl w-full max-w-md border-2 border-gold-500 shadow-2xl">
             <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-gold-400"><i class="fa-solid fa-barcode"></i> الباركود</h3><button onclick="closeModal('barcodeModal')" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
@@ -1661,6 +1685,16 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                         <div><label class="block text-sm text-slate-300 mb-1">نهاية الاشتراك *</label><input type="date" id="clientEndDate" lang="en" dir="ltr" class="w-full bg-navy-800 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></div>
                         <div><label class="block text-sm text-slate-300 mb-1">قيمة الاشتراك ($)</label><input type="number" id="clientPayment" class="w-full bg-navy-800 border border-navy-600 rounded-lg p-3 text-white focus:border-gold-400 outline-none" placeholder="0.00" step="0.01" value="0"></div>
                     </div>
+                </div>
+                <div class="bg-navy-900 p-4 rounded-xl border border-navy-700">
+                    <h4 class="text-gold-400 font-bold text-sm mb-3"><i class="fa-solid fa-sliders"></i> مميزات إضافية</h4>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="clientDecimalQty" class="mt-1 w-5 h-5 flex-shrink-0" style="accent-color:#eab308">
+                        <span>
+                            <span class="block text-white font-bold text-sm">إدخال الكمية بالفواصل في نقطة البيع</span>
+                            <span class="block text-xs text-slate-400 mt-1">عند الضغط على المنتج تظهر نافذة لإدخال الكمية بخانتين بعد الفاصلة (مثل 1.55)، ويُحسب السعر وينقص المخزون بدقة. باقي الحسابات تعمل كما هي.</span>
+                        </span>
+                    </label>
                 </div>
                 <div><label class="block text-sm text-slate-300 mb-1">ملاحظات</label><textarea id="clientNotes" rows="2" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none"></textarea></div>
             </div>
@@ -2683,7 +2717,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 
         // ---------- الاشتراكات: سجل صغير لكل عميل بدل تنزيل قائمة كل العملاء ----------
         let subsSig = {};
-        function subsRecordFrom(c) { return { id: c.id, name: c.name, store: c.store, phone: c.phone, city: c.city, username: c.username, password: c.password, startDate: c.startDate, endDate: c.endDate }; }
+        function subsRecordFrom(c) { return { id: c.id, name: c.name, store: c.store, phone: c.phone, city: c.city, username: c.username, password: c.password, startDate: c.startDate, endDate: c.endDate, decimalQty: !!c.decimalQty }; }
         function syncSubsToCloud() {
             try {
                 if (!isMasterUser() || !Array.isArray(state.adminClients)) return;
@@ -2713,7 +2747,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (!local) { try { const s = localStorage.getItem('ALHASAN_LOCAL_c_' + enc); if (s) local = JSON.parse(s); } catch(e) {} }
             const sub = local && local.subscription;
             if (!sub || !sub.endDate || (sub.username || 'admin') !== username || (sub.password || 'admin123') !== password) return null;
-            return { id: '', name: username, store: (local.settings && local.settings.storeName) || username, phone: '', city: '', username: sub.username || username, password: sub.password || password, startDate: sub.startDate, endDate: sub.endDate };
+            return { id: '', name: username, store: (local.settings && local.settings.storeName) || username, phone: '', city: '', username: sub.username || username, password: sub.password || password, startDate: sub.startDate, endDate: sub.endDate, decimalQty: !!sub.decimalQty };
         }
         function clientSubKey() { return localStorage.getItem('alhasan_client_db_key') || encodeKey(localStorage.getItem('alhasan_client_username') || ''); }
         function clientSubscriptionCheck() {
@@ -3068,19 +3102,21 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             let seen = null;
             try { seen = localStorage.getItem(seenKey); } catch(e) {}
             if (!seen) seen = prevEndHint || old.endDate || rec.endDate;
-            const changed = old.endDate !== rec.endDate || old.startDate !== (rec.startDate || old.startDate);
+            const changed = old.endDate !== rec.endDate || old.startDate !== (rec.startDate || old.startDate) || !!old.decimalQty !== !!rec.decimalQty;
             state.subscription = {
                 startDate: rec.startDate || old.startDate,
                 endDate: rec.endDate,
                 username: rec.username || old.username,
                 password: rec.password || old.password,
-                providerPhone: old.providerPhone || ADMIN_WHATSAPP
+                providerPhone: old.providerPhone || ADMIN_WHATSAPP,
+                decimalQty: !!rec.decimalQty
             };
             const extended = !!seen && String(rec.endDate) > String(seen);
             try { localStorage.setItem(seenKey, rec.endDate); } catch(e) {}
             if (changed) {
                 saveStateToCloud();
                 try { updateSubscriptionUI(); } catch(e) {}
+                try { renderPOSProducts(); updateCartUI(); } catch(e) {}
             }
             if (extended) announceSubscriptionExtended(rec.endDate);
             return extended;
@@ -3261,7 +3297,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     return;
                 }
                 const prevCloudEnd = (state.subscription && state.subscription.endDate) || null;
-                state.subscription = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: state.subscription.providerPhone || ADMIN_WHATSAPP };
+                state.subscription = { startDate: client.startDate, endDate: client.endDate, username: client.username, password: client.password, providerPhone: state.subscription.providerPhone || ADMIN_WHATSAPP, decimalQty: !!client.decimalQty };
                 try { applyClientRecord(client, prevCloudEnd); } catch(e) {}
                 if (!state.settings.storeName || state.settings.storeName === 'الحسن للمحاسبة') {
                     state.settings.storeName = client.store || 'متجري';
@@ -3399,7 +3435,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 else { statusBadge = `نشط (${days} يوم)`; statusColor = 'text-emerald-400 bg-emerald-500/20'; borderColor = 'border-navy-700'; }
                 const firstLetter = (c.name || '؟').trim().charAt(0);
                 const avatarColor = avatarColors[index % avatarColors.length];
-                return `<div class="bg-navy-800 rounded-xl p-3 border ${borderColor} shadow-lg flex flex-col gap-2.5 min-w-0 overflow-hidden"><div class="flex items-center gap-2 min-w-0"><div class="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold shadow flex-shrink-0" style="background: ${avatarColor}; font-size:15px">${firstLetter}</div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-sm truncate">${c.name || '-'}</h3><p class="text-gold-400 truncate" style="font-size:11px">${c.store || ''}</p></div><div class="flex gap-1 flex-shrink-0"><button onclick="editClient(${c.id})" class="w-7 h-7 rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen" style="font-size:11px"></i></button><button onclick="deleteClient(${c.id})" class="w-7 h-7 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash" style="font-size:11px"></i></button></div></div><div class="grid grid-cols-2 gap-1.5"><div class="bg-navy-900 rounded-lg p-2 border border-navy-700 text-center min-w-0"><div class="text-slate-400" style="font-size:10px">البداية</div><div class="text-white font-bold truncate" style="font-size:11px">${c.startDate || '-'}</div></div><div class="bg-navy-900 rounded-lg p-2 border border-navy-700 text-center min-w-0"><div class="text-slate-400" style="font-size:10px">النهاية</div><div class="text-gold-400 font-bold truncate" style="font-size:11px">${c.endDate || '-'}</div></div></div><div class="flex justify-center"><span class="inline-block px-2 py-1 rounded-md font-bold text-center leading-tight max-w-full ${statusColor}" style="font-size:10px">${statusBadge}</span></div><div class="flex gap-1.5"><button onclick="extendClient(${c.id})" class="flex-1 min-w-0 bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold py-1.5 rounded-lg flex items-center justify-center gap-1 border border-gold-500/30 whitespace-nowrap" style="font-size:11px"><i class="fa-solid fa-plus"></i> تمديد</button><button onclick="copyClientCredentials(${c.id})" class="flex-1 min-w-0 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-bold py-1.5 rounded-lg flex items-center justify-center gap-1 border border-blue-500/30 whitespace-nowrap" style="font-size:11px"><i class="fa-solid fa-copy"></i> نسخ الدخول</button></div></div>`;
+                return `<div class="bg-navy-800 rounded-xl p-3 border ${borderColor} shadow-lg flex flex-col gap-2.5 min-w-0 overflow-hidden"><div class="flex items-center gap-2 min-w-0"><div class="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold shadow flex-shrink-0" style="background: ${avatarColor}; font-size:15px">${firstLetter}</div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-sm truncate">${c.name || '-'}</h3><p class="text-gold-400 truncate" style="font-size:11px">${c.store || ''}</p></div><div class="flex gap-1 flex-shrink-0"><button onclick="editClient(${c.id})" class="w-7 h-7 rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen" style="font-size:11px"></i></button><button onclick="deleteClient(${c.id})" class="w-7 h-7 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash" style="font-size:11px"></i></button></div></div><div class="grid grid-cols-2 gap-1.5"><div class="bg-navy-900 rounded-lg p-2 border border-navy-700 text-center min-w-0"><div class="text-slate-400" style="font-size:10px">البداية</div><div class="text-white font-bold truncate" style="font-size:11px">${c.startDate || '-'}</div></div><div class="bg-navy-900 rounded-lg p-2 border border-navy-700 text-center min-w-0"><div class="text-slate-400" style="font-size:10px">النهاية</div><div class="text-gold-400 font-bold truncate" style="font-size:11px">${c.endDate || '-'}</div></div></div><div class="flex justify-center"><span class="inline-block px-2 py-1 rounded-md font-bold text-center leading-tight max-w-full ${statusColor}" style="font-size:10px">${statusBadge}</span></div>${c.decimalQty ? '<div class="flex justify-center"><span class="inline-block px-2 py-1 rounded-md font-bold text-center leading-tight text-blue-300 bg-blue-500/15 border border-blue-500/30" style="font-size:10px"><i class="fa-solid fa-scale-balanced"></i> كميات بالفواصل</span></div>' : ''}<div class="flex gap-1.5"><button onclick="extendClient(${c.id})" class="flex-1 min-w-0 bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold py-1.5 rounded-lg flex items-center justify-center gap-1 border border-gold-500/30 whitespace-nowrap" style="font-size:11px"><i class="fa-solid fa-plus"></i> تمديد</button><button onclick="copyClientCredentials(${c.id})" class="flex-1 min-w-0 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-bold py-1.5 rounded-lg flex items-center justify-center gap-1 border border-blue-500/30 whitespace-nowrap" style="font-size:11px"><i class="fa-solid fa-copy"></i> نسخ الدخول</button></div></div>`;
             }).join('');
         }
         function openAddClientModal() {
@@ -3416,6 +3452,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             document.getElementById('clientEndDate').value = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
             document.getElementById('clientPayment').value = '0';
             document.getElementById('clientNotes').value = '';
+            document.getElementById('clientDecimalQty').checked = false;
             openModal('addClientModal');
             try { forceDateInputLocale(); } catch(e) {}
         }
@@ -3435,6 +3472,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             document.getElementById('clientEndDate').value = client.endDate || '';
             document.getElementById('clientPayment').value = client.payment || 0;
             document.getElementById('clientNotes').value = client.notes || '';
+            document.getElementById('clientDecimalQty').checked = !!client.decimalQty;
             openModal('addClientModal');
             try { forceDateInputLocale(); } catch(e) {}
         }
@@ -3449,6 +3487,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const endDate = document.getElementById('clientEndDate').value;
             const payment = parseFloat(document.getElementById('clientPayment').value) || 0;
             const notes = document.getElementById('clientNotes').value.trim();
+            const decimalQty = !!document.getElementById('clientDecimalQty').checked;
             if (!name || !store || !endDate) { showToast('⚠️ الرجاء إدخال البيانات المطلوبة', 'warning'); return; }
             if (!Array.isArray(state.adminClients)) state.adminClients = [];
             const isEdit = !!editingClientId;
@@ -3456,9 +3495,9 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (isEdit) {
                 const index = state.adminClients.findIndex(c => c.id === editingClientId);
                 if (index !== -1) { try { const ou = state.adminClients[index].username; if (ou && ou !== username) db.ref('appData/subs/' + encodeKey(ou)).remove(); } catch(e) {} }
-                if (index !== -1) state.adminClients[index] = { id: editingClientId, name, store, phone, city, username, password, startDate, endDate, payment, notes };
+                if (index !== -1) state.adminClients[index] = { id: editingClientId, name, store, phone, city, username, password, startDate, endDate, payment, notes, decimalQty };
             } else {
-                state.adminClients.push({ id: Date.now(), name, store, phone, city, username, password, startDate, endDate, payment, notes });
+                state.adminClients.push({ id: Date.now(), name, store, phone, city, username, password, startDate, endDate, payment, notes, decimalQty });
             }
             try { persistLocalState(); } catch(e) {}
             const mainRef = db.ref('appData/mainState');
@@ -3532,6 +3571,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             return Math.ceil(diff / (1000 * 60 * 60 * 24));
         }
         function updateSubscriptionUI() {
+            try { applyDecimalQtyUI(); } catch(e) {}
             const active = isSubscriptionActive();
             const daysLeft = getDaysRemaining();
             const banner = document.getElementById('subscriptionBanner');
@@ -3853,7 +3893,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             else topProductsContainer.innerHTML = topProducts.map((p, i) => {
                 const img = getProductImage(p.id);
                 const thumb = img ? `<img src="${img}" class="w-8 h-8 rounded-lg object-cover border border-navy-700 flex-shrink-0">` : `<div class="w-8 h-8 rounded-lg bg-gold-500/10 text-gold-400 flex items-center justify-center font-bold text-sm flex-shrink-0">${i + 1}</div>`;
-                return `<div class="flex items-center gap-3 bg-navy-900 p-3 rounded-xl border border-navy-700">${thumb}<div class="flex-1"><h4 class="text-white font-bold text-sm">${p.name}</h4><p class="text-xs text-slate-400">${p.qty} قطعة</p></div></div>`;
+                return `<div class="flex items-center gap-3 bg-navy-900 p-3 rounded-xl border border-navy-700">${thumb}<div class="flex-1"><h4 class="text-white font-bold text-sm">${p.name}</h4><p class="text-xs text-slate-400">${fmtQty(p.qty)} قطعة</p></div></div>`;
             }).join('');
             const recentSales = [...state.invoices].slice(-5).reverse();
             const recentSalesContainer = document.getElementById('dashRecentSales');
@@ -3865,7 +3905,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             }).join('');
             const stockAlertsContainer = document.getElementById('dashStockAlerts');
             if (lowStockProducts.length === 0) stockAlertsContainer.innerHTML = `<div class="flex flex-col items-center justify-center py-10 text-slate-500"><i class="fa-solid fa-box-open text-5xl mb-3 opacity-30"></i><p class="text-sm">جميع المنتجات متوفرة</p></div>`;
-            else stockAlertsContainer.innerHTML = lowStockProducts.map(p => `<div class="flex justify-between items-center bg-navy-900 p-3 rounded-xl border border-red-500/20"><div><h4 class="text-white font-bold text-sm">${p.name}</h4><p class="text-xs text-red-400">الكمية: ${p.qty}</p></div><div class="text-red-400 text-xs font-bold">${p.minLimit} حد أدنى</div></div>`).join('');
+            else stockAlertsContainer.innerHTML = lowStockProducts.map(p => `<div class="flex justify-between items-center bg-navy-900 p-3 rounded-xl border border-red-500/20"><div><h4 class="text-white font-bold text-sm">${p.name}</h4><p class="text-xs text-red-400">الكمية: ${fmtQty(p.qty)}</p></div><div class="text-red-400 text-xs font-bold">${p.minLimit} حد أدنى</div></div>`).join('');
             setTimeout(() => {
                 try {
                     const ctx = document.getElementById('salesProfitChart').getContext('2d');
@@ -3927,6 +3967,157 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             });
             updateCartUI(); renderPOSProducts();
         }
+        // ===== كميات بالفواصل (خانتان بعد الفاصلة) — تُفعَّل من لوحة المدير لحسابات محددة =====
+        // كل الحسابات تتم بالأعداد الصحيحة (مئات الوحدة) لتفادي أخطاء الفاصلة العائمة
+        function qtyDecimalEnabled() { return !!(typeof state !== 'undefined' && state && state.subscription && state.subscription.decimalQty); }
+        function qH(v) { const n = Number(v); if (!isFinite(n)) return 0; return Math.round(n * 100 + (n >= 0 ? 1e-7 : -1e-7)); }
+        function q2(v) { return qH(v) / 100; }
+        function qAdd(a, b) { return (qH(a) + qH(b)) / 100; }
+        function qSub(a, b) { return (qH(a) - qH(b)) / 100; }
+        function fmtQty(v) { const n = q2(v); return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, '').replace(/\.$/, ''); }
+        function normalizeQtyInput(raw) {
+            let t = toEnglishDigits(String(raw == null ? '' : raw)).replace(/[\u060C\u066B,]/g, '.').replace(/[^0-9.]/g, '');
+            const i = t.indexOf('.');
+            if (i !== -1) t = t.slice(0, i + 1) + t.slice(i + 1).replace(/\./g, '').slice(0, 2);
+            return t;
+        }
+        // تقريب نصف لأعلى مع هامش صغير يمتص ضجيج الفاصلة العائمة (آمن لأن القيم الحقيقية تبعد 0.01 على الأقل عن منتصف السنت)
+        function rHU(x) { return Math.round(x + Math.min(1e-3, Math.max(1e-7, Math.abs(x) * 1e-13))); }
+        // سعر الوحدة × الكمية بالسنت: بأعداد صحيحة تماماً عندما يكون السعر بسنتين كحد أقصى
+        function lineCents(price, h) {
+            const pc = Math.round(price * 100);
+            if (Math.abs(price * 100 - pc) < 1e-6 && Math.abs(pc * h) < 9e15) return Math.floor((pc * h + 50) / 100);
+            return rHU(price * h);
+        }
+        function itemExact(item) { return qtyDecimalEnabled() || !Number.isInteger(Number(item && item.qty)); }
+        function itemPriceUSD(item) { return item.priceUSD !== undefined ? item.priceUSD : convertToUSD(item.price, item); }
+        function itemCurrency(item) { return item.displayCurrency || item.pricingCurrency || 'USD'; }
+        // إجمالي السطر بالدولار (يُقرَّب لأقرب سنت عند التسعير بالدولار في وضع الفواصل)
+        function itemLineUSD(item) {
+            const priceUSD = itemPriceUSD(item);
+            if (!itemExact(item)) return priceUSD * item.qty;
+            const h = qH(item.qty);
+            if (itemCurrency(item) === 'USD') return lineCents(priceUSD, h) / 100;
+            return priceUSD * h / 100;
+        }
+        // إجمالي السطر بعملة التسعير الأصلية (للعرض)
+        function itemLineOrig(item) {
+            const price = item.price || 0;
+            if (!itemExact(item)) return price * item.qty;
+            const h = qH(item.qty);
+            if (itemCurrency(item) === 'USD') return lineCents(price, h) / 100;
+            return price * h / 100;
+        }
+        // للفواتير المحفوظة: نعتمد القيمة المحفوظة وقت البيع إن وُجدت
+        function invLineUSD(it) {
+            if (it.lineUSD !== undefined && it.lineUSD !== null) return Number(it.lineUSD) || 0;
+            return itemPriceUSD(it) * (Number(it.qty) || 0);
+        }
+        function invLineOrig(it) {
+            if (it.lineUSD !== undefined && it.lineUSD !== null) {
+                return itemCurrency(it) === 'USD' ? Number(it.lineUSD) || 0 : (it.price || 0) * qH(it.qty) / 100;
+            }
+            return (it.price || 0) * it.qty;
+        }
+        function computeCartAmounts(discountPercent) {
+            let subtotalUSD = 0, totalCostUSD = 0, totalItems = 0;
+            state.cart.forEach(item => {
+                const costUSD = convertToUSD(item.cost || 0, item);
+                subtotalUSD += itemLineUSD(item);
+                if (itemExact(item)) { totalCostUSD += costUSD * qH(item.qty) / 100; totalItems = qAdd(totalItems, item.qty); }
+                else { totalCostUSD += costUSD * item.qty; totalItems += item.qty; }
+            });
+            let finalTotalUSD = subtotalUSD - (subtotalUSD * (discountPercent / 100));
+            if (qtyDecimalEnabled() && state.cart.length > 0 && state.cart.every(i => itemCurrency(i) === 'USD')) {
+                const subC = Math.round(subtotalUSD * 100);
+                subtotalUSD = subC / 100;
+                finalTotalUSD = rHU(subC * (100 - discountPercent) / 100) / 100;
+            }
+            return { subtotalUSD, totalCostUSD, totalItems, finalTotalUSD };
+        }
+        function applyDecimalQtyUI() {
+            const on = qtyDecimalEnabled();
+            ['prodQty', 'prodMinLimit'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.setAttribute('step', on ? '0.01' : '1'); el.setAttribute('inputmode', on ? 'decimal' : 'numeric'); }
+            });
+        }
+        let qtyModalCtx = null;
+        function qtyModalProductPriceItem(product, h) {
+            const originalPrice = getProductPriceOriginal(product, state.settings.isWholesale);
+            return { price: originalPrice, priceUSD: convertToUSD(originalPrice, product), qty: h / 100, displayCurrency: product.pricingCurrency || 'USD' };
+        }
+        function openQtyModal(productId, mode) {
+            const product = state.products.find(p => p.id === productId);
+            if (!product) return;
+            if (qH(product.qty) <= 0) { showToast('المنتج غير متوفر!', 'warning'); return; }
+            mode = (mode === 'set') ? 'set' : 'add';
+            const cartItem = state.cart.find(i => i.id === productId);
+            qtyModalCtx = { id: productId, mode };
+            const unit = product.unit || 'قطعة';
+            document.getElementById('qtyModalName').innerText = product.name || '';
+            document.getElementById('qtyModalUnit').innerText = unit;
+            document.getElementById('qtyModalPrice').innerText = formatProductPrice(getProductPriceOriginal(product, state.settings.isWholesale), product);
+            document.getElementById('qtyModalStock').innerText = fmtQty(product.qty) + ' ' + unit;
+            const inCartRow = document.getElementById('qtyModalInCartRow');
+            if (cartItem && mode === 'add') { document.getElementById('qtyModalInCart').innerText = fmtQty(cartItem.qty) + ' ' + unit; inCartRow.style.display = 'flex'; }
+            else inCartRow.style.display = 'none';
+            document.getElementById('qtyModalLabel').innerText = (mode === 'set' ? 'الكمية الجديدة' : (cartItem ? 'الكمية المراد إضافتها' : 'الكمية')) + ' (' + unit + ')';
+            document.getElementById('qtyModalConfirmBtn').innerText = mode === 'set' ? 'تعديل الكمية' : 'إضافة للسلة';
+            const input = document.getElementById('qtyModalInput');
+            input.value = (mode === 'set' && cartItem) ? fmtQty(cartItem.qty) : '';
+            updateQtyModalPreview();
+            openModal('qtyEntryModal');
+            setTimeout(() => { try { input.focus(); input.select(); } catch(e) {} }, 80);
+        }
+        function closeQtyModal() { qtyModalCtx = null; closeModal('qtyEntryModal'); }
+        function onQtyModalInput() {
+            const el = document.getElementById('qtyModalInput');
+            const n = normalizeQtyInput(el.value);
+            if (el.value !== n) el.value = n;
+            updateQtyModalPreview();
+        }
+        // يحسب الكمية النهائية المطلوبة في السلة (بمئات الوحدة) ويتحقق من المخزون؛ يعيد {h, error}
+        function qtyModalResolve(showEmptyError) {
+            const ctx = qtyModalCtx; if (!ctx) return { h: 0, error: '' };
+            const product = state.products.find(p => p.id === ctx.id);
+            if (!product) return { h: 0, error: 'المنتج غير موجود' };
+            const txt = normalizeQtyInput(document.getElementById('qtyModalInput').value);
+            if (txt === '' || txt === '.') return { h: 0, error: showEmptyError ? 'أدخل الكمية' : '' };
+            const entered = qH(txt);
+            if (entered <= 0) return { h: 0, error: 'أدخل كمية أكبر من صفر' };
+            const cartItem = state.cart.find(i => i.id === ctx.id);
+            const finalH = (ctx.mode === 'set' || !cartItem) ? entered : qH(cartItem.qty) + entered;
+            if (finalH > qH(product.qty)) return { h: finalH, error: 'الكمية تتجاوز المخزون! المتوفر: ' + fmtQty(product.qty) + ' ' + (product.unit || '') };
+            return { h: finalH, error: '' };
+        }
+        function updateQtyModalPreview() {
+            const ctx = qtyModalCtx; if (!ctx) return;
+            const product = state.products.find(p => p.id === ctx.id); if (!product) return;
+            const r = qtyModalResolve(false);
+            const errEl = document.getElementById('qtyModalError');
+            errEl.innerText = r.error; errEl.style.display = r.error ? 'block' : 'none';
+            const txt = normalizeQtyInput(document.getElementById('qtyModalInput').value);
+            const enteredH = (txt === '' || txt === '.') ? 0 : qH(txt);
+            const tmp = qtyModalProductPriceItem(product, enteredH);
+            const line = itemLineOrig(tmp);
+            document.getElementById('qtyModalTotal').innerText = (product.pricingCurrency === 'SYP_NEW') ? formatSYP(line) : formatMoney(line);
+        }
+        function confirmQtyModal() {
+            const ctx = qtyModalCtx; if (!ctx) return;
+            const product = state.products.find(p => p.id === ctx.id);
+            if (!product) { closeQtyModal(); return; }
+            const r = qtyModalResolve(true);
+            if (r.error) { const errEl = document.getElementById('qtyModalError'); errEl.innerText = r.error; errEl.style.display = 'block'; return; }
+            const originalPrice = getProductPriceOriginal(product, state.settings.isWholesale);
+            const priceUSD = convertToUSD(originalPrice, product);
+            const cartItem = state.cart.find(i => i.id === product.id);
+            if (cartItem) { cartItem.qty = r.h / 100; cartItem.price = originalPrice; cartItem.priceUSD = priceUSD; }
+            else state.cart.push({ ...product, qty: r.h / 100, price: originalPrice, priceUSD: priceUSD, displayCurrency: product.pricingCurrency || 'USD' });
+            closeQtyModal();
+            updateCartUI();
+            showToast(`تم إضافة "${product.name}" (${fmtQty(r.h / 100)} ${product.unit || ''})`, 'success');
+        }
         function renderPOSProducts(filter = '') {
             const container = document.getElementById('posProductList');
             container.innerHTML = '';
@@ -3948,7 +4139,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     ${isLowStock ? '<div class="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full z-10"></div>' : ''}
                     <div class="w-full aspect-square bg-navy-900 rounded-xl flex items-center justify-center mb-2 border border-navy-700 overflow-hidden">${imageHtml}</div>
                     <h4 class="font-bold text-white text-sm mb-1 line-clamp-2">${p.name}</h4>
-                    <p class="text-xs text-slate-400 mb-2">متوفر: ${p.qty}</p>
+                    <p class="text-xs text-slate-400 mb-2">متوفر: ${fmtQty(p.qty)}</p>
                     <div class="flex justify-between items-center w-full mt-auto">
                         <span class="${p.pricingCurrency === 'SYP_NEW' ? 'text-emerald-400' : 'text-gold-400'} font-bold text-sm">${formatProductPrice(originalPrice, p)}</span>
                         <span class="bg-navy-900 text-[10px] text-slate-400 px-2 py-1 rounded border border-navy-700">${p.unit || 'قطعة'}</span>
@@ -3961,6 +4152,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const product = state.products.find(p => p.id === productId);
             if (!product) return;
             if (product.qty <= 0) { showToast('المنتج غير متوفر!', 'warning'); return; }
+            if (qtyDecimalEnabled()) { openQtyModal(productId, 'add'); return; }
             const originalPrice = getProductPriceOriginal(product, state.settings.isWholesale);
             const priceUSD = convertToUSD(originalPrice, product);
             const cartItem = state.cart.find(item => item.id === productId);
@@ -3983,11 +4175,11 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         function increaseQty(productId) {
             const product = state.products.find(p => p.id === productId);
             const cartItem = state.cart.find(item => item.id === productId);
-            if (product && cartItem) { if (cartItem.qty >= product.qty) { showToast('الكمية تتجاوز المخزون!', 'warning'); return; } cartItem.qty++; updateCartUI(); }
+            if (product && cartItem) { if (qH(cartItem.qty) + 100 > qH(product.qty)) { showToast('الكمية تتجاوز المخزون!', 'warning'); return; } cartItem.qty = qAdd(cartItem.qty, 1); updateCartUI(); }
         }
         function decreaseQty(productId) {
             const cartItem = state.cart.find(item => item.id === productId);
-            if (cartItem) { if (cartItem.qty > 1) cartItem.qty--; else { removeFromCart(productId); return; } updateCartUI(); }
+            if (cartItem) { if (qH(cartItem.qty) > 100) cartItem.qty = qSub(cartItem.qty, 1); else { removeFromCart(productId); return; } updateCartUI(); }
         }
         function removeFromCart(productId) {
             const item = state.cart.find(i => i.id === productId);
@@ -4016,20 +4208,20 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                         ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(displayPrice) + ' ل.س'
                         : formatMoney(displayPrice);
                     const totalText = currency === 'SYP_NEW'
-                        ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(displayPrice * item.qty) + ' ل.س'
-                        : formatMoney(displayPrice * item.qty);
+                        ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(itemLineOrig(item)) + ' ل.س'
+                        : formatMoney(itemLineOrig(item));
                     div.innerHTML = `
                         <button onclick="removeFromCart(${item.id})" class="absolute top-3 left-3 text-red-500 z-10"><i class="fa-solid fa-trash"></i></button>
                         <div class="flex gap-3 pr-8">
                             ${thumb}
                             <div class="flex-1 min-w-0">
                                 <h4 class="font-bold text-white text-sm truncate">${item.name}</h4>
-                                <p class="text-xs text-slate-400 mt-1">${priceText} × ${item.qty} = <span class="${currency === 'SYP_NEW' ? 'text-emerald-400' : 'text-gold-400'} font-bold">${totalText}</span></p>
+                                <p class="text-xs text-slate-400 mt-1">${priceText} × ${fmtQty(item.qty)} = <span class="${currency === 'SYP_NEW' ? 'text-emerald-400' : 'text-gold-400'} font-bold">${totalText}</span></p>
                             </div>
                         </div>
                         <div class="flex items-center justify-between bg-navy-800 rounded-lg p-1 w-1/2 mr-auto border border-navy-700 mt-2">
                             <button onclick="increaseQty(${item.id})" class="w-8 h-8 rounded bg-gold-500/20 text-gold-400 flex items-center justify-center font-bold">+</button>
-                            <span class="text-white font-bold text-sm">${item.qty}</span>
+                            ${qtyDecimalEnabled() ? `<button type="button" onclick="openQtyModal(${item.id}, 'set')" class="text-white font-bold text-sm px-2 py-1 rounded hover:bg-navy-700">${fmtQty(item.qty)} <i class="fa-solid fa-pen text-gold-400" style="font-size:9px"></i></button>` : `<span class="text-white font-bold text-sm">${item.qty}</span>`}
                             <button onclick="decreaseQty(${item.id})" class="w-8 h-8 rounded bg-navy-700 text-slate-400 flex items-center justify-center font-bold">-</button>
                         </div>
                     `;
@@ -4039,13 +4231,10 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             updateCartTotals();
         }
         function updateCartTotals() {
-            let subtotalUSD = 0;
-            state.cart.forEach(item => {
-                const priceUSD = item.priceUSD !== undefined ? item.priceUSD : convertToUSD(item.price, item);
-                subtotalUSD += priceUSD * item.qty;
-            });
             const discountPercent = parseFloat(document.getElementById('cartDiscountPercent').value) || 0;
-            const grandTotalUSD = subtotalUSD - (subtotalUSD * (discountPercent / 100));
+            const cartAmounts = computeCartAmounts(discountPercent);
+            const subtotalUSD = cartAmounts.subtotalUSD;
+            const grandTotalUSD = cartAmounts.finalTotalUSD;
             document.getElementById('cartSubtotal').innerText = formatMoney(subtotalUSD);
             document.getElementById('cartGrandTotal').innerText = formatMoney(grandTotalUSD);
             document.getElementById('cartTotalNewSYP').innerText = formatSYP(grandTotalUSD * state.settings.exchangeRate);
@@ -4057,42 +4246,47 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const customerName = document.getElementById('cartCustomerName').value.trim() || 'زبون نقدي';
             const paymentMethod = document.getElementById('cartPaymentMethod').value;
             const discountPercent = parseFloat(document.getElementById('cartDiscountPercent').value) || 0;
-            let subtotalUSD = 0, totalCostUSD = 0, totalItems = 0;
-            state.cart.forEach(item => {
-                const priceUSD = item.priceUSD !== undefined ? item.priceUSD : convertToUSD(item.price, item);
-                const costUSD = convertToUSD(item.cost || 0, item);
-                subtotalUSD += priceUSD * item.qty;
-                totalCostUSD += costUSD * item.qty;
-                totalItems += item.qty;
-            });
-            const finalTotalUSD = subtotalUSD - (subtotalUSD * (discountPercent / 100));
-            const profit = finalTotalUSD - totalCostUSD;
+            const checkoutAmounts = computeCartAmounts(discountPercent);
+            const subtotalUSD = checkoutAmounts.subtotalUSD, totalCostUSD = checkoutAmounts.totalCostUSD, totalItems = checkoutAmounts.totalItems, finalTotalUSD = checkoutAmounts.finalTotalUSD;
+            const profit = qtyDecimalEnabled() ? Math.round((finalTotalUSD - totalCostUSD) * 1e6) / 1e6 : finalTotalUSD - totalCostUSD;
             const debtData = {
                 phone: ((document.getElementById('debtPhone') || {}).value || '').trim(),
                 address: ((document.getElementById('debtAddress') || {}).value || '').trim(),
                 notes: ((document.getElementById('debtNotes') || {}).value || '').trim()
             };
             if (paymentMethod === 'دين' && (customerName === 'زبون نقدي' || customerName === '')) { showToast('⚠️ أدخل اسم العميل لفاتورة الدَّين', 'warning'); return; }
+            // التحقق من المخزون قبل البيع (وضع الفواصل)
+            if (qtyDecimalEnabled()) {
+                for (const it of state.cart) {
+                    const pr = state.products.find(p => p.id === it.id);
+                    if (pr && qH(it.qty) > qH(pr.qty)) { showToast(`⚠️ كمية "${it.name}" في السلة (${fmtQty(it.qty)}) أكبر من المتوفر (${fmtQty(pr.qty)})`, 'warning'); return; }
+                    if (qH(it.qty) <= 0) { showToast(`⚠️ كمية "${it.name}" غير صحيحة`, 'warning'); return; }
+                }
+            }
             // خصم الكميات من المخزون
-            state.cart.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty -= item.qty; });
+            state.cart.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty = qSub(product.qty, item.qty); });
             const nowIso = getCurrentISODate();
             // تحديد عملة الفاتورة: إذا كان أي منتج بالليرة → الفاتورة بالليرة
             const hasSYPProduct = state.cart.some(item => (item.pricingCurrency || item.displayCurrency) === 'SYP_NEW');
             const invoiceCurrency = hasSYPProduct ? 'SYP_NEW' : 'USD';
             // نسخ أصناف السلة مع بيانات السعر الأصلي
-            const invoiceItems = state.cart.map(item => ({
-                id: item.id,
-                name: item.name,
-                sku: item.sku,
-                barcode: item.barcode,
-                unit: item.unit,
-                qty: item.qty,
-                cost: item.cost,
-                pricingCurrency: item.pricingCurrency || 'USD',
-                price: item.price,               // السعر الأصلي (بالعملة المُختارة)
-                priceUSD: item.priceUSD,         // محوّل للدولار
-                displayCurrency: item.displayCurrency
-            }));
+            const invoiceItems = state.cart.map(item => {
+                const row = {
+                    id: item.id,
+                    name: item.name,
+                    sku: item.sku,
+                    barcode: item.barcode,
+                    unit: item.unit,
+                    qty: item.qty,
+                    cost: item.cost,
+                    pricingCurrency: item.pricingCurrency || 'USD',
+                    price: item.price,               // السعر الأصلي (بالعملة المُختارة)
+                    priceUSD: item.priceUSD,         // محوّل للدولار
+                    displayCurrency: item.displayCurrency
+                };
+                if (itemExact(item)) row.lineUSD = itemLineUSD(item);   // إجمالي السطر المحسوب بدقة وقت البيع
+                return row;
+            });
             const invoice = {
                 id: `INV-${Date.now().toString().slice(-6)}`,
                 date: formatLatinDate(nowIso, true),
@@ -4185,19 +4379,16 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                         ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(item.price || 0) + ' ل.س'
                         : formatMoney(item.price || 0);
                     const itemTotalText = itemCurrency === 'SYP_NEW'
-                        ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format((item.price || 0) * item.qty) + ' ل.س'
-                        : formatMoney((item.price || 0) * item.qty);
+                        ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(invLineOrig(item)) + ' ل.س'
+                        : formatMoney(invLineOrig(item));
                     const tr = document.createElement('tr');
                     tr.className = 'border-b border-gray-100';
-                    tr.innerHTML = `<td class="py-2 text-right text-gray-900 font-medium">${item.name}</td><td class="py-2 text-center text-gray-600">${item.qty}</td><td class="py-2 text-center text-gray-600">${priceText}</td><td class="py-2 text-left font-bold text-gray-900">${itemTotalText}</td>`;
+                    tr.innerHTML = `<td class="py-2 text-right text-gray-900 font-medium">${item.name}</td><td class="py-2 text-center text-gray-600">${fmtQty(item.qty)}</td><td class="py-2 text-center text-gray-600">${priceText}</td><td class="py-2 text-left font-bold text-gray-900">${itemTotalText}</td>`;
                     receiptItems.appendChild(tr);
                 });
             } else receiptItems.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">لا توجد أصناف</td></tr>';
             let subtotalUSD = 0;
-            if (invoice.items) invoice.items.forEach(item => {
-                const priceUSD = item.priceUSD !== undefined ? item.priceUSD : convertToUSD(item.price, item);
-                subtotalUSD += priceUSD * item.qty;
-            });
+            if (invoice.items) invoice.items.forEach(item => { subtotalUSD += invLineUSD(item); });
             const discountPercent = invoice.discount || 0;
             const discountAmountUSD = subtotalUSD * (discountPercent / 100);
             const finalTotalUSD = invoice.totalUSD || (subtotalUSD - discountAmountUSD);
@@ -4221,9 +4412,9 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
     const container = document.getElementById('inventoryListContainer');
     const categoryFilter = document.getElementById('inventoryCategoryFilter').value;
     document.getElementById('statTotalProducts').innerText = state.products.length;
-    document.getElementById('statTotalPieces').innerText = state.products.reduce((sum, p) => sum + (parseInt(p.qty) || 0), 0);
-    document.getElementById('statInventoryCostValue').innerText = formatMoney(state.products.reduce((sum, p) => sum + (getProductCostUSD(p) * (parseInt(p.qty) || 0)), 0));
-    document.getElementById('statInventoryRetailValue').innerText = formatMoney(state.products.reduce((sum, p) => sum + (getProductRetailUSD(p) * (parseInt(p.qty) || 0)), 0));
+    document.getElementById('statTotalPieces').innerText = state.products.reduce((sum, p) => sum + (q2(p.qty)), 0);
+    document.getElementById('statInventoryCostValue').innerText = formatMoney(state.products.reduce((sum, p) => sum + (getProductCostUSD(p) * (q2(p.qty))), 0));
+    document.getElementById('statInventoryRetailValue').innerText = formatMoney(state.products.reduce((sum, p) => sum + (getProductRetailUSD(p) * (q2(p.qty))), 0));
     document.getElementById('statLowStock').innerText = state.products.filter(p => p.qty <= (p.minLimit || 10) && p.qty > 0).length;
     const catSelect = document.getElementById('inventoryCategoryFilter');
     const currentVal = catSelect.value;
@@ -4246,7 +4437,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 : '<span class="absolute bottom-4 lg:bottom-2 right-4 lg:right-2 px-2 py-1 lg:px-1.5 lg:py-0.5 rounded-md text-[10px] lg:text-[9px] font-bold bg-blue-500/90 text-white border border-blue-400 shadow-lg z-10">$</span>';
             return `
             <div class="product-card bg-navy-800 rounded-2xl p-5 lg:p-3 border border-navy-700 shadow-lg flex flex-col gap-4 lg:gap-2 relative">
-                <div class="product-qty-badge absolute top-4 lg:top-2 left-4 lg:left-2 w-8 h-8 lg:w-6 lg:h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm lg:text-[10px] z-10">${p.qty}</div>
+                <div class="product-qty-badge absolute top-4 lg:top-2 left-4 lg:left-2 w-8 h-8 lg:w-6 lg:h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm lg:text-[10px] z-10">${fmtQty(p.qty)}</div>
                 <div class="text-right mt-1 lg:mt-0">
                     <h3 class="product-name text-xl font-bold text-white mb-1 lg:mb-0.5">${p.name}</h3>
                     <p class="product-barcode-text text-xs lg:text-[10px] text-slate-400 truncate">باركود: ${p.barcode}</p>
@@ -4266,7 +4457,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                         <button onclick="deleteProduct(${p.id})" class="action-btn w-10 h-10 lg:w-7 lg:h-7 rounded-lg lg:rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash lg:text-xs"></i></button>
                         <button onclick="editProduct(${p.id})" class="action-btn w-10 h-10 lg:w-7 lg:h-7 rounded-lg lg:rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen lg:text-xs"></i></button>
                     </div>
-                    <div class="unit-qty text-emerald-400 font-bold text-sm lg:text-[10px]">${p.unit || 'قطعة'} ${p.qty}</div>
+                    <div class="unit-qty text-emerald-400 font-bold text-sm lg:text-[10px]">${p.unit || 'قطعة'} ${fmtQty(p.qty)}</div>
                 </div>
             </div>`;
         }).join('');
@@ -4278,9 +4469,9 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const name = document.getElementById('prodName').value.trim();
             const sku = document.getElementById('prodSKU').value.trim();
             const category = document.getElementById('prodCategory').value.trim();
-            const qty = parseInt(document.getElementById('prodQty').value) || 0;
+            const qty = qtyDecimalEnabled() ? q2(normalizeQtyInput(document.getElementById('prodQty').value)) : (parseInt(document.getElementById('prodQty').value) || 0);
             const unit = document.getElementById('prodUnit').value.trim() || 'قطعة';
-            const minLimit = parseInt(document.getElementById('prodMinLimit').value) || 10;
+            const minLimit = qtyDecimalEnabled() ? (q2(normalizeQtyInput(document.getElementById('prodMinLimit').value)) || 10) : (parseInt(document.getElementById('prodMinLimit').value) || 10);
             const cost = parseFloat(document.getElementById('prodCost').value) || 0;
             const retailPrice = parseFloat(document.getElementById('prodRetailPrice').value) || 0;
             const wholesalePrice = parseFloat(document.getElementById('prodWholesalePrice').value) || 0;
@@ -4379,7 +4570,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (!confirm(`⚠️ حذف الفاتورة ${invoiceId} نهائياً؟\nسيتم إرجاع كميات المنتجات إلى المخزون وحذف الفاتورة من جميع السجلات ولا يمكن استرجاعها.\n\nهل أنت متأكد؟`)) return;
             // تسجيل الحذف بشكل دائم حتى لا تعود الفاتورة من أي نسخة قديمة أو جهاز آخر
             try { state.invoices.filter(inv => inv.id === invoiceId).forEach(inv => registerInvoiceTombstone(inv)); } catch(e) {}
-            if (Array.isArray(invoice.items)) invoice.items.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty = (product.qty || 0) + (item.qty || 0); });
+            if (Array.isArray(invoice.items)) invoice.items.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty = qAdd(product.qty || 0, item.qty || 0); });
             const linkedDebt = (state.debtInvoices || []).some(d => d.invoiceId === invoice.id);
             if (linkedDebt) state.debtInvoices = state.debtInvoices.filter(d => d.invoiceId !== invoice.id);
             state.invoices = state.invoices.filter(inv => inv.id !== invoiceId);
@@ -4448,8 +4639,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     ['إجمالي المبيعات (دولار)', parseFloat(state.invoices.reduce((s, i) => s + (parseFloat(i.totalUSD)||0), 0).toFixed(2))],
                     ['إجمالي الأرباح (دولار)', parseFloat((state.invoices.reduce((s, i) => s + (parseFloat(i.profit)||0), 0) + extSumAll()).toFixed(2))],
                     ['إجمالي المصروفات (دولار)', parseFloat(state.expenses.reduce((s, e) => s + (parseFloat(e.amount)||0), 0).toFixed(2))],
-                    ['قيمة المخزون بالتكلفة (دولار)', parseFloat(state.products.reduce((s, p) => s + (getProductCostUSD(p) * (parseInt(p.qty)||0)), 0).toFixed(2))],
-                    ['قيمة المخزون بالمفرق (دولار)', parseFloat(state.products.reduce((s, p) => s + (getProductRetailUSD(p) * (parseInt(p.qty)||0)), 0).toFixed(2))]
+                    ['قيمة المخزون بالتكلفة (دولار)', parseFloat(state.products.reduce((s, p) => s + (getProductCostUSD(p) * (q2(p.qty))), 0).toFixed(2))],
+                    ['قيمة المخزون بالمفرق (دولار)', parseFloat(state.products.reduce((s, p) => s + (getProductRetailUSD(p) * (q2(p.qty))), 0).toFixed(2))]
                 ];
                 const infoSheet = XLSX.utils.aoa_to_sheet(infoData);
                 setColumnWidths(infoSheet, [40, 40]); setRTLView(infoSheet);
@@ -4686,7 +4877,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 ? '<span class="inline-block px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-bold mb-2 ml-2"><i class="fa-solid fa-money-bill-wave"></i> ليرة سورية جديدة</span>'
                 : '<span class="inline-block px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-bold mb-2 ml-2"><i class="fa-solid fa-dollar-sign"></i> دولار أمريكي</span>';
             const costCardHtml = `<div class="bg-navy-900 rounded-2xl p-4 border-2 border-blue-500/30 shadow-lg relative"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-tag"></i></div><span class="text-blue-400 font-bold text-sm">سعر التكلفة</span><button type="button" onclick="toggleCostVisibility()" class="mr-auto w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-colors" title="${costVisibleInInquiry ? 'إخفاء سعر التكلفة' : 'إظهار سعر التكلفة'}"><i class="fa-solid ${costVisibleInInquiry ? 'fa-eye' : 'fa-eye-slash'}"></i></button></div><div class="text-center">${costVisibleInInquiry ? `<div class="inquiry-price-value text-3xl font-bold ${isSYP ? 'text-emerald-400' : 'text-white'} mb-3">${formatProductPrice(costOrig, product)}</div><div class="space-y-1.5 text-xs"><div class="text-slate-400">ما يعادل دولار: ${formatMoney(costUSD)}</div><div class="text-slate-400">ل.س قديمة: ${formatSYPValue(costUSD * oldExchangeRate)} ل.س</div></div>` : `<div class="inquiry-price-value text-3xl font-bold text-slate-600 mb-3 tracking-widest">•••••</div><p class="text-[10px] text-slate-500 mt-3"><i class="fa-solid fa-lock"></i> اضغط على العين لإظهار السعر</p>`}</div></div>`;
-            detailContainer.innerHTML = `<div class="bg-gradient-to-br from-navy-800 to-navy-900 rounded-3xl border-2 border-gold-500/40 shadow-2xl overflow-hidden"><div class="bg-gradient-to-r from-navy-900 to-navy-800 p-5 border-b border-gold-500/30"><div class="flex items-center justify-between flex-wrap gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center text-navy-900 text-xl shadow-lg"><i class="fa-solid fa-circle-info"></i></div><div><h3 class="text-gold-400 font-bold text-lg">تفاصيل المنتج</h3><p class="text-slate-400 text-xs">معلومات كاملة وأسعار</p></div></div><span class="px-4 py-2 rounded-xl border-2 text-sm font-bold ${stockStatus.cls}">${stockStatus.text}</span></div></div><div class="p-6"><div class="flex flex-col md:flex-row gap-6 items-center md:items-start"><div class="inquiry-image w-40 h-40 md:w-48 md:h-48 rounded-2xl bg-navy-900 border-2 border-navy-700 overflow-hidden flex-shrink-0 shadow-lg">${imageHtml}</div><div class="flex-1 w-full text-center md:text-right"><h2 class="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">${product.name}</h2>${currencyBadge}${product.category ? `<span class="inline-block px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-bold mb-3"><i class="fa-solid fa-tag"></i> ${product.category}</span>` : ''}<div class="grid grid-cols-2 gap-3 mt-4"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-barcode"></i> SKU</div><div class="text-white font-bold text-sm truncate" dir="ltr">${product.sku || '-'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-cube"></i> الوحدة</div><div class="text-white font-bold text-sm">${product.unit || 'قطعة'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-boxes-stacked"></i> الكمية المتوفرة</div><div class="${isLowStock ? 'text-orange-400' : 'text-emerald-400'} font-bold text-sm">${product.qty}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-triangle-exclamation"></i> حد أدنى</div><div class="text-white font-bold text-sm">${product.minLimit || 10}</div></div></div></div></div><div class="mt-6"><h4 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-coins text-gold-400"></i> الأسعار</h4><div class="grid grid-cols-1 md:grid-cols-3 gap-4">${costCardHtml}<div class="bg-navy-900 rounded-2xl p-4 border-2 border-gold-500/40 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center"><i class="fa-solid fa-store"></i></div><span class="text-gold-400 font-bold text-sm">سعر المفرق</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold ${isSYP ? 'text-emerald-400' : 'text-gold-400'} mb-3">${formatProductPrice(retailOrig, product)}</div><div class="space-y-1.5 text-xs"><div class="text-slate-400">ما يعادل دولار: ${formatMoney(retailUSD)}</div><div class="text-slate-400">ل.س قديمة: ${formatSYPValue(retailUSD * oldExchangeRate)} ل.س</div></div></div></div><div class="bg-navy-900 rounded-2xl p-4 border-2 border-purple-500/30 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-truck-fast"></i></div><span class="text-purple-400 font-bold text-sm">سعر الجملة</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-purple-400 mb-3">${formatProductPrice(wholesaleOrig, product)}</div><div class="space-y-1.5 text-xs"><div class="text-slate-400">ما يعادل دولار: ${formatMoney(wholesaleUSD)}</div><div class="text-slate-400">ل.س قديمة: ${formatSYPValue(wholesaleUSD * oldExchangeRate)} ل.س</div></div></div></div></div></div>${product.notes ? `<div class="mt-6 bg-navy-900 rounded-2xl p-4 border border-navy-700"><div class="text-slate-400 text-xs mb-2 flex items-center gap-2"><i class="fa-solid fa-note-sticky text-gold-400"></i> ملاحظات</div><p class="text-white text-sm leading-relaxed">${product.notes}</p></div>` : ''}${product.barcode ? `<div class="mt-6 bg-white rounded-2xl p-4 border-2 border-navy-700"><div class="text-center mb-3 text-gray-500 text-xs font-bold uppercase tracking-wider">الباركود</div><div class="flex items-center justify-center min-h-[100px] overflow-hidden"><svg id="inquiryBarcodeSvg" class="max-w-full"></svg></div><div class="text-center mt-3 text-gray-900 font-bold tracking-wider text-sm" dir="ltr">${product.barcode}</div></div>` : ''}<div class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-3">${product.barcode ? `<button onclick="copyInquiryBarcode('${product.barcode}')" class="bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-copy"></i> نسخ الباركود</button>` : ''}<button onclick="openScanner('inquirySearch')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-camera"></i> مسح آخر</button><button onclick="jumpToPosFromInquiry(${product.id})" class="col-span-2 md:col-span-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"><i class="fa-solid fa-cart-plus"></i> إضافة للسلة</button></div></div></div>`;
+            detailContainer.innerHTML = `<div class="bg-gradient-to-br from-navy-800 to-navy-900 rounded-3xl border-2 border-gold-500/40 shadow-2xl overflow-hidden"><div class="bg-gradient-to-r from-navy-900 to-navy-800 p-5 border-b border-gold-500/30"><div class="flex items-center justify-between flex-wrap gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center text-navy-900 text-xl shadow-lg"><i class="fa-solid fa-circle-info"></i></div><div><h3 class="text-gold-400 font-bold text-lg">تفاصيل المنتج</h3><p class="text-slate-400 text-xs">معلومات كاملة وأسعار</p></div></div><span class="px-4 py-2 rounded-xl border-2 text-sm font-bold ${stockStatus.cls}">${stockStatus.text}</span></div></div><div class="p-6"><div class="flex flex-col md:flex-row gap-6 items-center md:items-start"><div class="inquiry-image w-40 h-40 md:w-48 md:h-48 rounded-2xl bg-navy-900 border-2 border-navy-700 overflow-hidden flex-shrink-0 shadow-lg">${imageHtml}</div><div class="flex-1 w-full text-center md:text-right"><h2 class="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">${product.name}</h2>${currencyBadge}${product.category ? `<span class="inline-block px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-bold mb-3"><i class="fa-solid fa-tag"></i> ${product.category}</span>` : ''}<div class="grid grid-cols-2 gap-3 mt-4"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-barcode"></i> SKU</div><div class="text-white font-bold text-sm truncate" dir="ltr">${product.sku || '-'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-cube"></i> الوحدة</div><div class="text-white font-bold text-sm">${product.unit || 'قطعة'}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-boxes-stacked"></i> الكمية المتوفرة</div><div class="${isLowStock ? 'text-orange-400' : 'text-emerald-400'} font-bold text-sm">${fmtQty(product.qty)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-slate-400 text-xs mb-1"><i class="fa-solid fa-triangle-exclamation"></i> حد أدنى</div><div class="text-white font-bold text-sm">${product.minLimit || 10}</div></div></div></div></div><div class="mt-6"><h4 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-coins text-gold-400"></i> الأسعار</h4><div class="grid grid-cols-1 md:grid-cols-3 gap-4">${costCardHtml}<div class="bg-navy-900 rounded-2xl p-4 border-2 border-gold-500/40 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center"><i class="fa-solid fa-store"></i></div><span class="text-gold-400 font-bold text-sm">سعر المفرق</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold ${isSYP ? 'text-emerald-400' : 'text-gold-400'} mb-3">${formatProductPrice(retailOrig, product)}</div><div class="space-y-1.5 text-xs"><div class="text-slate-400">ما يعادل دولار: ${formatMoney(retailUSD)}</div><div class="text-slate-400">ل.س قديمة: ${formatSYPValue(retailUSD * oldExchangeRate)} ل.س</div></div></div></div><div class="bg-navy-900 rounded-2xl p-4 border-2 border-purple-500/30 shadow-lg"><div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-truck-fast"></i></div><span class="text-purple-400 font-bold text-sm">سعر الجملة</span></div><div class="text-center"><div class="inquiry-price-value text-3xl font-bold text-purple-400 mb-3">${formatProductPrice(wholesaleOrig, product)}</div><div class="space-y-1.5 text-xs"><div class="text-slate-400">ما يعادل دولار: ${formatMoney(wholesaleUSD)}</div><div class="text-slate-400">ل.س قديمة: ${formatSYPValue(wholesaleUSD * oldExchangeRate)} ل.س</div></div></div></div></div></div>${product.notes ? `<div class="mt-6 bg-navy-900 rounded-2xl p-4 border border-navy-700"><div class="text-slate-400 text-xs mb-2 flex items-center gap-2"><i class="fa-solid fa-note-sticky text-gold-400"></i> ملاحظات</div><p class="text-white text-sm leading-relaxed">${product.notes}</p></div>` : ''}${product.barcode ? `<div class="mt-6 bg-white rounded-2xl p-4 border-2 border-navy-700"><div class="text-center mb-3 text-gray-500 text-xs font-bold uppercase tracking-wider">الباركود</div><div class="flex items-center justify-center min-h-[100px] overflow-hidden"><svg id="inquiryBarcodeSvg" class="max-w-full"></svg></div><div class="text-center mt-3 text-gray-900 font-bold tracking-wider text-sm" dir="ltr">${product.barcode}</div></div>` : ''}<div class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-3">${product.barcode ? `<button onclick="copyInquiryBarcode('${product.barcode}')" class="bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-copy"></i> نسخ الباركود</button>` : ''}<button onclick="openScanner('inquirySearch')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"><i class="fa-solid fa-camera"></i> مسح آخر</button><button onclick="jumpToPosFromInquiry(${product.id})" class="col-span-2 md:col-span-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"><i class="fa-solid fa-cart-plus"></i> إضافة للسلة</button></div></div></div>`;
             try { if (typeof JsBarcode !== 'undefined' && product.barcode) { JsBarcode('#inquiryBarcodeSvg', product.barcode, { format: 'CODE128', textMargin: 2, fontOptions: 'bold', width: 2, height: 80, displayValue: false, margin: 8 }); } } catch(e) {}
         }
         function copyInquiryBarcode(barcode) { if (!barcode) { showToast('⚠️ لا يوجد باركود', 'warning'); return; } navigator.clipboard.writeText(barcode).then(() => { showToast('✅ تم نسخ الباركود', 'success'); }).catch(() => { prompt('انسخ الباركود:', barcode); }); }
@@ -5224,7 +5415,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const store = (state.settings && state.settings.storeName) || '';
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            const rows = state.products.map(p => `<tr><td class="ip-name">${debtEsc(p.name || '')}</td><td>${debtEsc(formatProductPrice(p.retailPrice, p))}</td><td>${debtEsc(String(p.qty != null ? p.qty : 0))}</td></tr>`).join('');
+            const rows = state.products.map(p => `<tr><td class="ip-name">${debtEsc(p.name || '')}</td><td>${debtEsc(formatProductPrice(p.retailPrice, p))}</td><td>${debtEsc(fmtQty(p.qty != null ? p.qty : 0))}</td></tr>`).join('');
             area.innerHTML = `<div class="ip-head">${printLogoHtml()}<p class="ip-store">${debtEsc(store)}</p><p class="ip-title">قائمة المنتجات والأسعار</p><p class="ip-date">${dateStr}</p></div><table><thead><tr><th>المنتج</th><th>سعر المفرق</th><th>الكمية</th></tr></thead><tbody>${rows}</tbody></table><div class="ip-foot">عدد المنتجات: ${state.products.length}</div>`;
             // تصغير خط اسم المنتج تلقائياً ليظهر كل منتج في سطر واحد
             area.classList.add('ip-measure');
@@ -5876,6 +6067,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         }
         function rpItemUSD(it) {
             const q = parseFloat(it.qty) || 0;
+            if (it.lineUSD !== undefined && it.lineUSD !== null) return parseFloat(it.lineUSD) || 0;
             const u = it.priceUSD !== undefined ? (parseFloat(it.priceUSD) || 0) : (typeof convertToUSD === 'function' ? convertToUSD(it.price, it) : (parseFloat(it.price) || 0));
             return u * q;
         }
@@ -5910,7 +6102,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 prod[k].qty += parseFloat(it.qty) || 0; prod[k].value += rpItemUSD(it);
             }));
             const pList = Object.values(prod).sort((a, b) => b.value - a.value);
-            rpHtml('repTopProducts', pList.length ? rpRows(pList.slice(0, 5).map(p => ({ name: p.name, value: p.value, sub: p.qty + ' قطعة مباعة' })), 'linear-gradient(90deg,#eab308,#facc15)') : '<div class="rp-empty-txt">لا توجد مبيعات في هذه الفترة</div>');
+            rpHtml('repTopProducts', pList.length ? rpRows(pList.slice(0, 5).map(p => ({ name: p.name, value: p.value, sub: fmtQty(p.qty) + ' قطعة مباعة' })), 'linear-gradient(90deg,#eab308,#facc15)') : '<div class="rp-empty-txt">لا توجد مبيعات في هذه الفترة</div>');
             // المصروفات حسب الفئة
             const cats = {};
             exps.forEach(e => { const k = e.category || 'أخرى'; if (!cats[k]) cats[k] = { name: k, value: 0, n: 0 }; cats[k].value += parseFloat(e.amount) || 0; cats[k].n++; });
@@ -5933,7 +6125,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const topQty = Object.values(prod).sort((a, b) => b.qty - a.qty)[0];
             const hl = [];
             if (bestDay) hl.push(['g', 'fa-calendar-check', 'أفضل يوم مبيعاً', rpDayName(bestDay.d), formatMoney(bestDay.v)]);
-            if (topQty) hl.push(['y', 'fa-fire', 'أكثر منتج بيعاً بالكمية', topQty.name, topQty.qty + ' قطعة']);
+            if (topQty) hl.push(['y', 'fa-fire', 'أكثر منتج بيعاً بالكمية', topQty.name, fmtQty(topQty.qty) + ' قطعة']);
             if (bigInv) hl.push(['b', 'fa-file-invoice', 'أكبر فاتورة', (bigInv.customerName || 'زبون نقدي') + ' • ' + (bigInv.id || ''), formatMoney(bigInv.totalUSD)]);
             if (cList[0]) hl.push(['r', 'fa-arrow-trend-up', 'أعلى فئة مصروفات', cList[0].name, formatMoney(cList[0].value)]);
             rpHtml('repHighlights', hl.length ? hl.map(h => `<div class="rp-hl"><span class="rp-ico ${h[0]}"><i class="fa-solid ${h[1]}"></i></span><div class="rp-hl-b"><div class="rp-hl-l">${h[2]}</div><div class="rp-hl-v">${rpEsc(h[3])}</div></div><div class="rp-hl-n">${h[4]}</div></div>`).join('') : '<div class="rp-empty-txt">ستظهر هنا أبرز النقاط عند وجود حركة</div>');
@@ -5999,15 +6191,15 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 
             // المخزون
             const allProducts = state.products || [];
-            const totalPieces = allProducts.reduce((s, p) => s + (parseInt(p.qty) || 0), 0);
-            const inventoryValue = allProducts.reduce((s, p) => s + (getProductCostUSD(p) * (parseInt(p.qty) || 0)), 0);
-            const lowList = allProducts.filter(p => { const q = parseInt(p.qty) || 0, m = parseInt(p.minLimit) || 10; return q > 0 && q <= m; }).sort((a, b) => (parseInt(a.qty) || 0) - (parseInt(b.qty) || 0));
-            const outCount = allProducts.filter(p => (parseInt(p.qty) || 0) <= 0).length;
+            const totalPieces = allProducts.reduce((s, p) => s + (q2(p.qty)), 0);
+            const inventoryValue = allProducts.reduce((s, p) => s + (getProductCostUSD(p) * (q2(p.qty))), 0);
+            const lowList = allProducts.filter(p => { const q = q2(p.qty), m = parseFloat(p.minLimit) || 10; return q > 0 && q <= m; }).sort((a, b) => (q2(a.qty)) - (q2(b.qty)));
+            const outCount = allProducts.filter(p => (q2(p.qty)) <= 0).length;
             const okCount = allProducts.length - lowList.length - outCount;
             rpTxt('invStatTotalProducts', allProducts.length); rpTxt('invStatTotalPieces', totalPieces);
             rpTxt('invStatValue', formatMoney(inventoryValue)); rpTxt('invStatLow', lowList.length); rpTxt('invStatOut', outCount);
             rpHtml('repStockBar', allProducts.length ? rpSplit('صحة المخزون', [{ name: 'متوفر', value: okCount, count: okCount, color: '#10b981' }, { name: 'منخفض', value: lowList.length, count: lowList.length, color: '#f97316' }, { name: 'نافد', value: outCount, count: outCount, color: '#ef4444' }]) : '');
-            rpHtml('repLowStockList', lowList.length ? `<div class="rp-low"><div class="rp-low-t"><i class="fa-solid fa-triangle-exclamation"></i> تحتاج إعادة تعبئة</div>${lowList.slice(0, 4).map(p => `<div class="rp-low-i"><span class="rp-name">${rpEsc(p.name)}</span><b>${parseInt(p.qty) || 0} متبقي</b></div>`).join('')}</div>` : '');
+            rpHtml('repLowStockList', lowList.length ? `<div class="rp-low"><div class="rp-low-t"><i class="fa-solid fa-triangle-exclamation"></i> تحتاج إعادة تعبئة</div>${lowList.slice(0, 4).map(p => `<div class="rp-low-i"><span class="rp-name">${rpEsc(p.name)}</span><b>${fmtQty(p.qty)} متبقي</b></div>`).join('')}</div>` : '');
 
             // الديون
             const allDebts = Array.isArray(state.debtInvoices) ? state.debtInvoices : [];
@@ -6130,8 +6322,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 ['إجمالي المصروفات (دولار)', parseFloat(filteredExpenses.reduce((s, e) => s + (parseFloat(e.amount)||0), 0).toFixed(2))],
                 [''], ['— إحصائيات المخزون —'],
                 ['إجمالي المنتجات', state.products.length],
-                ['إجمالي القطع', state.products.reduce((s, p) => s + (parseInt(p.qty)||0), 0)],
-                ['قيمة المخزون (دولار)', parseFloat(state.products.reduce((s, p) => s + (getProductCostUSD(p) * (parseInt(p.qty)||0)), 0).toFixed(2))],
+                ['إجمالي القطع', state.products.reduce((s, p) => s + (q2(p.qty)), 0)],
+                ['قيمة المخزون (دولار)', parseFloat(state.products.reduce((s, p) => s + (getProductCostUSD(p) * (q2(p.qty))), 0).toFixed(2))],
                 [''], ['— إحصائيات الدين —'],
                 ['إجمالي الفواتير', (state.debtInvoices || []).length],
                 ['إجمالي قيمة الدَّين (دولار)', parseFloat((state.debtInvoices || []).reduce((s, d) => s + (parseFloat(d.total)||0), 0).toFixed(2))],
@@ -6186,7 +6378,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     const qty = parseFloat(p.qty)||0;
                     const costUSD = getProductCostUSD(p), retailUSD = getProductRetailUSD(p), wholesaleUSD = getProductWholesaleUSD(p);
                     const rowCostUSD = costUSD*qty, rowRetailUSD = retailUSD*qty, rowWholesaleUSD = wholesaleUSD*qty;
-                    totalQty += qty; totalCostUSD += rowCostUSD; totalRetailUSD += rowRetailUSD; totalWholesaleUSD += rowWholesaleUSD;
+                    totalQty = qAdd(totalQty, qty); totalCostUSD += rowCostUSD; totalRetailUSD += rowRetailUSD; totalWholesaleUSD += rowWholesaleUSD;
                     rows.push([i+1, p.name||'', p.sku||'', p.barcode||'', p.category||'', p.pricingCurrency === 'SYP_NEW' ? 'ليرة سورية' : 'دولار', qty, p.unit||'قطعة', parseFloat(p.minLimit||10), parseFloat(p.cost||0), parseFloat(p.retailPrice||0), parseFloat(p.wholesalePrice||0), parseFloat(rowCostUSD.toFixed(2)), parseFloat(rowRetailUSD.toFixed(2)), parseFloat(rowWholesaleUSD.toFixed(2)), p.notes||'']);
                 });
                 rows.push(['','','','','','','','','','','','','','','','']);
@@ -6398,7 +6590,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             var low = p.qty <= (p.minLimit || 10);
             var r = rate();
             var out = '📦 <b>' + esc(p.name) + '</b>\n';
-            out += 'الكمية المتوفرة: <b>' + esc(p.qty) + '</b> ' + esc(p.unit || '') + (low ? ' ⚠️ <span class="text-red-400">قارب على النفاد</span>' : '') + '\n';
+            out += 'الكمية المتوفرة: <b>' + esc(fmtQty(p.qty)) + '</b> ' + esc(p.unit || '') + (low ? ' ⚠️ <span class="text-red-400">قارب على النفاد</span>' : '') + '\n';
             out += 'سعر المفرق: <b>' + formatProductPrice(p.retailPrice, p) + '</b>' + '\n';
             out += 'سعر الجملة: <b>' + formatProductPrice(p.wholesalePrice, p) + '</b>';
             return out;
@@ -6430,12 +6622,12 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 return '💱 <b>سعر الصرف الحالي:</b>\nالليرة الجديدة: <b>' + new Intl.NumberFormat('en-US').format(st.settings.exchangeRate || 0) + '</b> ل.س\nالليرة القديمة: <b>' + new Intl.NumberFormat('en-US').format(st.settings.oldExchangeRate || 0) + '</b> ل.س';
             if (has(q, ['اليوم']) && has(q, ['ربح', 'ارباح'])) { var ti = todayInvoices(), tp = sum(ti, function (i) { return parseFloat(i.profit)||0; }) + extSumToday() - expSumToday(); return '💰 أرباح اليوم: <b>' + money(tp) + '</b>\nمن ' + ti.length + ' عملية بيع.'; }
             if (has(q, ['اليوم']) && has(q, ['مبيعات', 'بيع', 'ايراد', 'دخل', 'بعنا', 'فواتير', 'فاتوره'])) { var ti2 = todayInvoices(), rev = sum(ti2, function (i) { return parseFloat(i.totalUSD)||0; }); return '📈 مبيعات اليوم: <b>' + money(rev) + '</b>\nعدد العمليات: <b>' + ti2.length + '</b>'; }
-            if (has(q, ['ناقص', 'نقص', 'ينفذ', 'نفذ', 'منخفض', 'قارب', 'تنبيهات المخزون', 'نفاد'])) { var low = (st.products || []).filter(function (p) { return p.qty <= (p.minLimit || 10); }); if (!low.length) return '✅ لا توجد منتجات ناقصة.'; return '⚠️ <b>منتجات قاربت على النفاد (' + low.length + '):</b>\n' + low.slice(0, 10).map(function (p) { return '• ' + esc(p.name) + ' — المتبقي: <b>' + esc(p.qty) + '</b>'; }).join('\n'); }
+            if (has(q, ['ناقص', 'نقص', 'ينفذ', 'نفذ', 'منخفض', 'قارب', 'تنبيهات المخزون', 'نفاد'])) { var low = (st.products || []).filter(function (p) { return p.qty <= (p.minLimit || 10); }); if (!low.length) return '✅ لا توجد منتجات ناقصة.'; return '⚠️ <b>منتجات قاربت على النفاد (' + low.length + '):</b>\n' + low.slice(0, 10).map(function (p) { return '• ' + esc(p.name) + ' — المتبقي: <b>' + esc(fmtQty(p.qty)) + '</b>'; }).join('\n'); }
             if (has(q, ['قيمه المخزون', 'قيمه البضاعه', 'راس المال'])) { var cost = sum(st.products || [], function (p) { return getProductCostUSD(p) * p.qty; }), retail = sum(st.products || [], function (p) { return getProductRetailUSD(p) * p.qty; }); return '🏬 <b>قيمة المخزون:</b>\nبالتكلفة: <b>' + money(cost) + '</b>\nبسعر المفرق: <b>' + money(retail) + '</b>'; }
             if (has(q, ['دين', 'ديون', 'مدين', 'بالاجل', 'متاخر'])) { var pend = (st.invoices || []).filter(function (i) { return i.status === 'Pending'; }); if (!pend.length) return '✅ لا توجد فواتير دين.'; var by = {}; pend.forEach(function (i) { var n = i.customerName || 'غير محدد'; by[n] = (by[n] || 0) + (parseFloat(i.totalUSD) || 0); }); var rows = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }).slice(0, 5).map(function (n) { return '• ' + esc(n) + ': <b>' + money(by[n]) + '</b>'; }); return '📒 <b>الديون:</b> ' + money(sum(pend, function (i) { return parseFloat(i.totalUSD)||0; })) + '\n' + rows.join('\n'); }
             if (has(q, ['مصروف'])) { var d30 = new Date(Date.now() - 30 * 864e5); var all = sum(st.expenses || [], function (e) { return parseFloat(e.amount)||0; }); var m = sum((st.expenses || []).filter(function (e) { var d = getExpenseDate(e); return d && d >= d30; }), function (e) { return parseFloat(e.amount)||0; }); return '💸 <b>المصروفات:</b>\nآخر 30 يوم: <b>' + money(m) + '</b>\nالإجمالي: <b>' + money(all) + '</b>'; }
             if (has(q, ['عدد العملاء', 'كم عميل', 'كم زبون', 'العملاء', 'الزبائن'])) return '👥 عدد العملاء: <b>' + (st.customers || []).length + '</b>';
-            if (has(q, ['اكثر', 'الاكثر مبيعا', 'اكثر مبيعا', 'الاعلى مبيعا', 'الاكثر طلبا'])) { var ps = {}; (st.invoices || []).forEach(function (inv) { (inv.items || []).forEach(function (it) { ps[it.id] = (ps[it.id] || 0) + (it.qty || 0); }); }); var top = Object.keys(ps).sort(function (a, b) { return ps[b] - ps[a]; }).slice(0, 5).map(function (id) { var p = (st.products || []).find(function (x) { return String(x.id) === String(id); }); return p ? '• ' + esc(p.name) + ' — ' + ps[id] + ' مباع' : null; }).filter(Boolean); return top.length ? '🏆 <b>الأكثر مبيعاً:</b>\n' + top.join('\n') : 'لا توجد مبيعات كافية.'; }
+            if (has(q, ['اكثر', 'الاكثر مبيعا', 'اكثر مبيعا', 'الاعلى مبيعا', 'الاكثر طلبا'])) { var ps = {}; (st.invoices || []).forEach(function (inv) { (inv.items || []).forEach(function (it) { ps[it.id] = (ps[it.id] || 0) + (it.qty || 0); }); }); var top = Object.keys(ps).sort(function (a, b) { return ps[b] - ps[a]; }).slice(0, 5).map(function (id) { var p = (st.products || []).find(function (x) { return String(x.id) === String(id); }); return p ? '• ' + esc(p.name) + ' — ' + fmtQty(ps[id]) + ' مباع' : null; }).filter(Boolean); return top.length ? '🏆 <b>الأكثر مبيعاً:</b>\n' + top.join('\n') : 'لا توجد مبيعات كافية.'; }
             if (has(q, ['ربح', 'ارباح', 'صافي'])) { var tpAll = sum(st.invoices || [], function (i) { return parseFloat(i.profit)||0; }) + extSumAll() - expSumUpToToday(), rv = sum(st.invoices || [], function (i) { return parseFloat(i.totalUSD)||0; }); return '💰 <b>إجمالي الأرباح:</b> ' + money(tpAll) + '\nإجمالي الإيرادات: ' + money(rv); }
             if (has(q, ['ايرادات', 'مبيعات', 'اجمالي', 'الدخل', 'فواتير'])) { var rvAll = sum(st.invoices || [], function (i) { return parseFloat(i.totalUSD)||0; }); return '📈 <b>إجمالي الإيرادات:</b> ' + money(rvAll) + '\nعدد الفواتير: <b>' + (st.invoices || []).length + '</b>'; }
             if (has(q, ['كم منتج', 'عدد المنتجات', 'عدد الاصناف'])) return '📦 عدد المنتجات: <b>' + (st.products || []).length + '</b>';
