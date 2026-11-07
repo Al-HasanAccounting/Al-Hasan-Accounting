@@ -1631,6 +1631,19 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             <p class="text-center text-slate-400 text-sm mt-4"><i class="fa-solid fa-info-circle text-gold-400"></i> وجه الكاميرا نحو الباركود وسيتم التعرف عليه تلقائياً</p>
         </div>
     </div>
+    <div id="debtDetailModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-40 backdrop-blur-sm p-3">
+        <div class="bg-navy-800 rounded-2xl w-full max-w-2xl border border-navy-700 shadow-2xl max-h-[92vh] flex flex-col">
+            <div class="flex justify-between items-center p-5 pb-3 border-b border-navy-700">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-gold-400"></i> <span id="debtDetailTitle">تفاصيل فاتورة الدَّين</span></h3>
+                <button type="button" onclick="closeDebtDetail()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div id="debtDetailBody" class="p-5 overflow-y-auto space-y-5"></div>
+            <div class="p-4 border-t border-navy-700 flex gap-3">
+                <button type="button" onclick="closeDebtDetail()" class="flex-1 bg-navy-700 hover:bg-navy-600 text-white font-bold py-3 rounded-lg">إغلاق</button>
+                <button type="button" id="debtDetailSaveBtn" onclick="saveDebtDetailEdits()" class="flex-1 bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"><i class="fa-solid fa-save"></i> حفظ التعديلات</button>
+            </div>
+        </div>
+    </div>
     <div id="payDebtModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-navy-800 p-6 rounded-2xl w-full max-w-md border border-gold-500 shadow-2xl">
             <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-gold-400"><i class="fa-solid fa-money-bill-wave"></i> تسديد دفعة</h3><button onclick="closeModal('payDebtModal')" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
@@ -4873,7 +4886,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     const debtColor = isPaid ? 'text-emerald-400' : 'text-red-400';
                     const debtStatus = isPaid ? 'تم التسديد ✅' : 'مفتوحة ⏳';
                     const notesHtml = `<div class="customer-notes-box"><div class="notes-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</div><div class="notes-content ${c.notes && c.notes.trim() ? '' : 'empty'}">${c.notes && c.notes.trim() ? debtEsc(c.notes) : 'لم تُكتب ملاحظة'}</div></div>`;
-                    const editBtn = isPaid ? '' : `<button onclick="editCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button>`;
+                    const editBtn = `<button title="التفاصيل والتسديدات" onclick="editCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button>`;
                     const actionBtn = isPaid ? `<button disabled class="w-full bg-emerald-500/10 text-emerald-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-emerald-500/30 cursor-not-allowed"><i class="fa-solid fa-circle-check"></i> تم التسديد</button>` : `<button onclick="openPayDebtModal(${c.id})" class="w-full bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-gold-500/30"><i class="fa-solid fa-money-bill-wave"></i> تسديد دفعة</button>`;
                     return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button><button onclick="printDebtsReceipt(${c.id})" title="طباعة هذه الفاتورة" class="w-8 h-8 rounded-lg bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 flex items-center justify-center"><i class="fa-solid fa-print text-sm"></i></button>${editBtn}</div><div class="flex items-center gap-3 mb-4 pl-28"><div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style="background: ${avatarColor}">${debtEsc(firstLetter)}</div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-lg truncate">${debtEsc(c.name)}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${typeClass}">${typeLabel}</span></div></div><div class="space-y-2 text-sm mb-4">${c.phone ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-phone text-slate-500 w-4 text-center"></i><span dir="ltr">${debtEsc(c.phone)}</span></div>` : ''}${c.address ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-location-dot text-slate-500 w-4 text-center"></i><span class="truncate">${debtEsc(c.address)}</span></div>` : ''}</div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">قيمة الفاتورة</div><div class="text-emerald-400 font-bold text-sm">${formatMoney(c.total || 0)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المتبقي</div><div class="${debtColor} font-bold text-sm">${formatMoney(remaining)}</div></div></div><div class="flex justify-between items-center text-xs py-2 border-t border-navy-700 mb-3"><span class="text-slate-400">حالة الدَّين</span><span class="${debtColor} font-bold">${debtStatus}</span></div>${notesHtml}${actionBtn}</div>`;
                 }).join('');
@@ -4895,20 +4908,165 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             closeModal('addCustomerModal'); saveState();
             resetCustomerModal();
         }
+        // ===== تفاصيل فاتورة الدَّين: مصدر الفواتير، الإجمالي، والتسديدات الجزئية (مع إمكانية حذف أي تسديد) =====
+        let debtDetailId = null;
+        function debtNewPayId(i) { return 'P' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36) + (i || 0); }
+        function debtParseAmountText(raw) {
+            const t = toEnglishDigits(String(raw || '')).trim();
+            const num = x => parseFloat(String(x).replace(/,/g, ''));
+            const approx = t.match(/≈\s*\$?\s*([\d,]+(?:\.\d+)?)/);
+            if (approx) {
+                const first = t.match(/^[\s$]*([\d,]+(?:\.\d+)?)/);
+                const usd = num(approx[1]);
+                return { usd, entered: first ? num(first[1]) : usd, currency: 'SYP_NEW' };
+            }
+            const m = t.match(/\$\s*([\d,]+(?:\.\d+)?)/) || t.match(/([\d,]+(?:\.\d+)?)/);
+            if (!m) return null;
+            const v = num(m[1]);
+            return { usd: v, entered: v, currency: 'USD' };
+        }
+        // يبني قائمة التسديدات من سجل الملاحظات للفواتير القديمة (قبل وجود السجل المنظَّم) ويطابقها مع المسدَّد الفعلي
+        function debtComputePayments(d) {
+            const out = [];
+            const txt = String((d && d.notes) || '');
+            const re = /💰\s*\[([^\]]+)\]\s*تم تسديد دفعة\s*([^\n\r]*)(?:\r?\n\s*📝\s*([^\n\r]*))?/g;
+            let m, i = 0;
+            while ((m = re.exec(txt))) {
+                const shown = m[2].replace(/\s*—\s*المتبقي:.*$/, '').trim();
+                const p = debtParseAmountText(shown);
+                if (!p || !isFinite(p.usd)) continue;
+                out.push({ id: 'L' + (i++), amount: debtRound(p.usd), entered: p.entered, currency: p.currency, text: shown, note: (m[3] || '').trim(), when: m[1].replace(/\s*-\s*/, ' ').trim(), ts: 0 });
+            }
+            const paid = debtRound((d && d.paid) || 0);
+            const sum = debtRound(out.reduce((acc, p) => acc + p.amount, 0));
+            const diff = debtRound(paid - sum);
+            if (Math.abs(diff) >= 0.01) {
+                if (diff > 0) out.push({ id: 'L' + (i++), amount: diff, entered: diff, currency: 'USD', text: formatMoney(diff), note: 'دفعات سابقة غير مفصَّلة', when: '', ts: 0 });
+                else { out.length = 0; if (paid > 0) out.push({ id: 'L0', amount: paid, entered: paid, currency: 'USD', text: formatMoney(paid), note: 'إجمالي الدفعات السابقة', when: '', ts: 0 }); }
+            }
+            return out;
+        }
+        function debtEnsurePayments(d) {
+            if (!Array.isArray(d.payments)) d.payments = debtComputePayments(d);
+            return d.payments;
+        }
         function editCustomer(id) {
             const d = (state.debtInvoices || []).find(x => x.id === id);
             if (!d) return;
+            debtDetailId = id;
+            renderDebtDetail(false);
+            openModal('debtDetailModal');
+        }
+        function closeDebtDetail() { debtDetailId = null; closeModal('debtDetailModal'); }
+        function renderDebtDetail(keepEdits) {
+            const d = (state.debtInvoices || []).find(x => x.id === debtDetailId);
+            const body = document.getElementById('debtDetailBody');
+            if (!d || !body) return;
+            const kept = keepEdits ? { name: (document.getElementById('ddName') || {}).value, phone: (document.getElementById('ddPhone') || {}).value, address: (document.getElementById('ddAddress') || {}).value } : null;
+            const attr = v => debtEsc(v).replace(/"/g, '&quot;');
+            const isPaid = d.status === 'paid';
+            const rate = parseFloat(state.settings.exchangeRate) || 1;
+            const isSYP = d.invoiceCurrency === 'SYP_NEW';
+            const money = (usd) => isSYP ? `${formatMoney(usd)} <span class="text-slate-400 text-xs">(≈ ${formatSYP(usd * rate)})</span>` : formatMoney(usd);
+            const pays = Array.isArray(d.payments) ? d.payments : debtComputePayments(d);
+            document.getElementById('debtDetailTitle').innerText = isPaid ? 'تفاصيل فاتورة الدَّين (مسدَّدة)' : 'تفاصيل فاتورة الدَّين';
+            const saveBtn = document.getElementById('debtDetailSaveBtn');
+            if (saveBtn) saveBtn.style.display = isPaid ? 'none' : '';
+            // الفواتير الأصلية
+            const extras = d.extraInvoices || [];
+            const extrasSum = debtRound(extras.reduce((acc, x) => acc + (Number(x.amount) || 0), 0));
+            const srcRows = [{ id: d.invoiceId, amount: debtRound((d.total || 0) - extrasSum), date: d.date, first: true }].concat(extras.map(x => ({ id: x.id, amount: debtRound(x.amount), date: x.date, first: false })));
+            const invHtml = srcRows.map(r => {
+                const inv = (state.invoices || []).find(i => i.id === r.id);
+                const itemsTxt = inv && Array.isArray(inv.items) && inv.items.length
+                    ? inv.items.map(it => `${debtEsc(it.name || '')} × ${debtEsc(typeof fmtQty === 'function' ? fmtQty(it.qty) : it.qty)}${it.unit ? ' ' + debtEsc(it.unit) : ''}`).join(' ، ')
+                    : '';
+                const dateTxt = (inv && inv.date) || r.date || '';
+                const tag = r.first ? 'الفاتورة الأولى' : 'فاتورة أُضيفت لاحقاً';
+                return `<div class="bg-navy-900 border border-navy-700 rounded-xl p-3"><div class="flex justify-between items-start gap-2"><div class="min-w-0"><span class="text-gold-400 font-bold text-sm">${debtEsc(r.id || '-')}</span> <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 align-middle">${tag}</span></div><div class="text-white font-bold text-sm text-left">${money(r.amount)}</div></div><div class="text-xs text-slate-400 mt-1">${debtEsc(dateTxt)}${inv ? '' : ' • <span class="text-orange-400">الفاتورة الأصلية غير موجودة (حُذفت)</span>'}</div>${itemsTxt ? `<div class="text-xs text-slate-300 mt-2 leading-relaxed">${itemsTxt}</div>` : ''}</div>`;
+            }).join('');
+            // التسديدات
+            const paysHtml = pays.length ? pays.map((p, i) => `<div class="flex items-start gap-3 bg-navy-900 border border-navy-700 rounded-xl p-3"><div class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs font-bold flex-shrink-0">${i + 1}</div><div class="flex-1 min-w-0"><div class="text-white font-bold text-sm break-words">${debtEsc(p.text || formatMoney(p.amount))}</div><div class="text-xs text-slate-400 mt-0.5">${debtEsc(p.when || 'تاريخ غير مسجَّل')}</div>${p.note ? `<div class="text-xs text-slate-300 mt-1">📝 ${debtEsc(p.note)}</div>` : ''}</div><button type="button" onclick="deleteDebtPayment(${d.id}, '${debtEsc(p.id)}')" title="حذف هذه التسديدة" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-trash text-sm"></i></button></div>`).join('') : '<div class="text-center text-slate-500 text-sm py-4">لا توجد تسديدات على هذه الفاتورة</div>';
+            const ro = isPaid ? ' disabled' : '';
+            const inputCls = 'w-full bg-navy-900 border border-navy-700 rounded-lg p-3 text-white focus:border-gold-400 outline-none disabled:opacity-60';
+            body.innerHTML = `
+                <div>
+                    <h4 class="text-gold-400 font-bold text-sm mb-3"><i class="fa-solid fa-user"></i> بيانات العميل</h4>
+                    <div class="space-y-3">
+                        <div><label class="block text-xs text-slate-400 mb-1">اسم العميل *</label><input type="text" id="ddName" value="${attr(kept && kept.name != null ? kept.name : d.name)}" class="${inputCls}"${ro}></div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block text-xs text-slate-400 mb-1">الهاتف</label><input type="text" id="ddPhone" value="${attr(kept && kept.phone != null ? kept.phone : d.phone)}" class="${inputCls}"${ro}></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">العنوان</label><input type="text" id="ddAddress" value="${attr(kept && kept.address != null ? kept.address : d.address)}" class="${inputCls}"${ro}></div>
+                        </div>
+                        <div><label class="block text-xs text-slate-400 mb-1">ملاحظات</label><textarea id="ddNotes" rows="3" class="${inputCls}"${ro}>${debtEsc(d.notes || '')}</textarea></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-gold-400 font-bold text-sm mb-3"><i class="fa-solid fa-receipt"></i> الفواتير التي تكوّن هذا الدَّين (${srcRows.length})</h4>
+                    <div class="space-y-2">${invHtml}</div>
+                </div>
+                <div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-navy-900 rounded-xl p-3 border border-navy-700"><div class="text-[11px] text-slate-400 mb-1">إجمالي الدَّين</div><div class="text-white font-bold text-sm break-words">${formatMoney(d.total || 0)}</div></div>
+                        <div class="bg-navy-900 rounded-xl p-3 border border-emerald-500/30"><div class="text-[11px] text-slate-400 mb-1">المسدَّد</div><div class="text-emerald-400 font-bold text-sm break-words">${formatMoney(d.paid || 0)}</div></div>
+                        <div class="bg-navy-900 rounded-xl p-3 border ${isPaid ? 'border-emerald-500/30' : 'border-red-500/30'}"><div class="text-[11px] text-slate-400 mb-1">المتبقي للتحصيل</div><div class="${isPaid ? 'text-emerald-400' : 'text-red-400'} font-bold text-sm break-words">${formatMoney(d.remaining || 0)}</div></div>
+                    </div>
+                    ${isSYP ? `<div class="text-center text-xs text-slate-400 mt-2">المتبقي ≈ ${formatSYP((d.remaining || 0) * rate)}</div>` : ''}
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-gold-400 font-bold text-sm"><i class="fa-solid fa-money-bill-wave"></i> التسديدات الجزئية (${pays.length})</h4>
+                        ${isPaid ? '' : `<button type="button" onclick="openPayDebtModal(${d.id})" class="bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-xs py-2 px-3 rounded-lg border border-gold-500/30 flex items-center gap-1"><i class="fa-solid fa-plus"></i> تسديد دفعة</button>`}
+                    </div>
+                    <div class="space-y-2">${paysHtml}</div>
+                    <p class="text-[11px] text-slate-500 mt-2"><i class="fa-solid fa-circle-info"></i> عند حذف أي تسديدة يعود مبلغها إلى «المتبقي للتحصيل» ويمكنك تسجيلها من جديد بالمبلغ الصحيح.</p>
+                </div>`;
+        }
+        function saveDebtDetailEdits() {
+            if (!checkSubscription()) return;
+            const d = (state.debtInvoices || []).find(x => x.id === debtDetailId);
+            if (!d) { closeDebtDetail(); return; }
             if (d.status === 'paid') { showToast('الفاتورة مسدَّدة ومغلقة', 'warning'); return; }
-            editingCustomerId = id;
-            document.getElementById('custName').value = d.name || '';
-            document.getElementById('custPhone').value = d.phone || '';
-            document.getElementById('custAddress').value = d.address || '';
-            document.getElementById('custNotes').value = d.notes || '';
-            document.getElementById('custType').parentElement.style.display = 'none';
-            document.getElementById('custCreditLimit').parentElement.style.display = 'none';
-            document.getElementById('customerModalTitle').innerText = 'تعديل فاتورة الدَّين';
-            document.getElementById('customerSubmitBtn').innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
-            openModal('addCustomerModal');
+            const name = document.getElementById('ddName').value.trim();
+            if (!name) { showToast('أدخل اسم العميل', 'warning'); return; }
+            d.name = name;
+            d.phone = document.getElementById('ddPhone').value.trim();
+            d.address = document.getElementById('ddAddress').value.trim();
+            d.notes = document.getElementById('ddNotes').value.trim();
+            debtInvoiceIds(d).forEach(iid => { const inv = state.invoices.find(i => i.id === iid); if (inv) inv.customerName = name; });
+            showToast(`تم تعديل "${name}"`, 'edit');
+            closeDebtDetail(); saveState();
+            try { renderCustomers(); } catch (e) {}
+        }
+        function deleteDebtPayment(debtId, payId) {
+            if (!checkSubscription()) return;
+            const d = (state.debtInvoices || []).find(x => x.id === debtId);
+            if (!d) return;
+            const pays = debtEnsurePayments(d);
+            const idx = pays.findIndex(p => String(p.id) === String(payId));
+            if (idx === -1) return;
+            const p = pays[idx];
+            const amt = debtRound(p.amount);
+            const label = p.text || formatMoney(amt);
+            if (!confirm(`حذف هذه التسديدة؟\n\n${label}${p.when ? '\n' + p.when : ''}\n\nسيعود مبلغ ${formatMoney(amt)} إلى «المتبقي للتحصيل».`)) return;
+            pays.splice(idx, 1);
+            const wasPaid = d.status === 'paid';
+            d.paid = debtRound(Math.max(0, (d.paid || 0) - amt));
+            d.remaining = debtRound(Math.min(d.total || 0, (d.remaining || 0) + amt));
+            if (d.remaining < 0.005) d.remaining = 0;
+            if (wasPaid && d.remaining > 0) {
+                d.status = 'open';
+                delete d.paidDate;
+                debtInvoiceIds(d).forEach(iid => { const inv = state.invoices.find(i => i.id === iid); if (inv) inv.status = 'Pending'; });
+            }
+            const now = new Date();
+            const stamp = now.toLocaleDateString('en-GB') + ' - ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const note = `🗑️ [${stamp}] حُذفت تسديدة بقيمة ${label} — المتبقي: ${formatMoney(d.remaining)}${wasPaid && d.status === 'open' ? '\n↩️ أُعيدت الفاتورة إلى الفواتير المفتوحة' : ''}`;
+            d.notes = d.notes ? d.notes + '\n\n' + note : note;
+            saveState();
+            showToast(wasPaid && d.status === 'open' ? `↩️ حُذفت التسديدة وأُعيدت الفاتورة إلى المفتوحة — المتبقي ${formatMoney(d.remaining)}` : `🗑️ حُذفت التسديدة — المتبقي ${formatMoney(d.remaining)}`, 'delete');
+            try { renderDebtDetail(true); } catch (e) {}
+            try { renderCustomers(); } catch (e) {}
         }
         function resetCustomerModal() {
             editingCustomerId = null;
@@ -4960,12 +5118,14 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (payCur === 'SYP_NEW' && Math.abs(amount - oldRemaining) < 0.01) amount = oldRemaining;
             if (amount > oldRemaining + 0.001) { showToast(`⚠️ المبلغ أكبر من المتبقي (${payCur === 'SYP_NEW' ? formatSYP(oldRemaining * payRate) : formatMoney(oldRemaining)})`, 'warning'); return; }
             const payText = payCur === 'SYP_NEW' ? `${formatSYP(enteredPay)} (≈ ${formatMoney(amount)})` : formatMoney(amount);
+            const payList = debtEnsurePayments(d);
             const newRemaining = debtRound(oldRemaining - amount);
             d.paid = debtRound((d.paid || 0) + amount);
             d.remaining = newRemaining < 0.005 ? 0 : newRemaining;
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-GB');
             const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            payList.push({ id: debtNewPayId(payList.length), amount, entered: payCur === 'SYP_NEW' ? enteredPay : amount, currency: payCur, text: payText, note: note || '', when: dateStr + ' ' + timeStr, ts: Date.now() });
             let newNote = `💰 [${dateStr} - ${timeStr}] تم تسديد دفعة ${payText}`;
             if (d.remaining > 0) newNote += ` — المتبقي: ${formatMoney(d.remaining)}`;
             if (note) newNote += `\n    📝 ${note}`;
@@ -4979,6 +5139,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             closeModal('payDebtModal'); saveState();
             showToast(d.status === 'paid' ? `✅ تم التسديد بالكامل` : `✅ تم استلام ${payText}`, 'success');
             currentPayDebtCustomerId = null;
+            try { if (debtDetailId) renderDebtDetail(true); } catch (e) {}
         }
 
         function renderInquiryRate() {
@@ -5230,6 +5391,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         }
         // يستخرج الدفعات الجزئية (المبلغ + تاريخ التسديد) من سجل ملاحظات فاتورة الدَّين
         function debtParsePayments(d) {
+            if (d && Array.isArray(d.payments)) return d.payments.map(p => ({ when: p.when || '', amount: p.text || formatMoney(p.amount) }));
             const out = [];
             const txt = String(d && d.notes || '');
             const re = /💰\s*\[([^\]]+)\]\s*تم تسديد دفعة\s*([^\n\r]*)/g;
