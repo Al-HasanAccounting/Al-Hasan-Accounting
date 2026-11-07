@@ -608,6 +608,9 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
 #debtPrintArea .dpa-rem { margin-top: 0.6mm; font-size: 8pt; }
 #debtPrintArea .dpa-rem span:last-child { direction: ltr; font-weight: 800; font-size: 9pt; white-space: nowrap; }
 #debtPrintArea .dpa-meta { margin-top: 0.4mm; font-size: 6.5pt; line-height: 1.3; }
+        #debtPrintArea .dpa-pays { margin-top: 0.8mm; padding-top: 0.6mm; border-top: 0.5px dotted #000; }
+        #debtPrintArea .dpa-pay { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.5mm 2mm; font-size: 7pt; line-height: 1.45; }
+        #debtPrintArea .dpa-pay span:last-child { direction: ltr; font-weight: 700; white-space: nowrap; }
 #debtPrintArea .dpa-sec { padding: 1.2mm 0; border-top: 1px dashed #000; margin-top: 1mm; break-inside: avoid; page-break-inside: avoid; }
 #debtPrintArea .dpa-line { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; font-size: 8pt; line-height: 1.4; }
 #debtPrintArea .dpa-line span:last-child { direction: ltr; font-weight: 700; white-space: nowrap; }
@@ -4829,7 +4832,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     const notesHtml = `<div class="customer-notes-box"><div class="notes-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</div><div class="notes-content ${c.notes && c.notes.trim() ? '' : 'empty'}">${c.notes && c.notes.trim() ? debtEsc(c.notes) : 'لم تُكتب ملاحظة'}</div></div>`;
                     const editBtn = isPaid ? '' : `<button onclick="editCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-pen text-sm"></i></button>`;
                     const actionBtn = isPaid ? `<button disabled class="w-full bg-emerald-500/10 text-emerald-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-emerald-500/30 cursor-not-allowed"><i class="fa-solid fa-circle-check"></i> تم التسديد</button>` : `<button onclick="openPayDebtModal(${c.id})" class="w-full bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 border border-gold-500/30"><i class="fa-solid fa-money-bill-wave"></i> تسديد دفعة</button>`;
-                    return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button>${editBtn}</div><div class="flex items-center gap-3 mb-4 pl-20"><div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style="background: ${avatarColor}">${debtEsc(firstLetter)}</div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-lg truncate">${debtEsc(c.name)}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${typeClass}">${typeLabel}</span></div></div><div class="space-y-2 text-sm mb-4">${c.phone ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-phone text-slate-500 w-4 text-center"></i><span dir="ltr">${debtEsc(c.phone)}</span></div>` : ''}${c.address ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-location-dot text-slate-500 w-4 text-center"></i><span class="truncate">${debtEsc(c.address)}</span></div>` : ''}</div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">قيمة الفاتورة</div><div class="text-emerald-400 font-bold text-sm">${formatMoney(c.total || 0)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المتبقي</div><div class="${debtColor} font-bold text-sm">${formatMoney(remaining)}</div></div></div><div class="flex justify-between items-center text-xs py-2 border-t border-navy-700 mb-3"><span class="text-slate-400">حالة الدَّين</span><span class="${debtColor} font-bold">${debtStatus}</span></div>${notesHtml}${actionBtn}</div>`;
+                    return `<div class="bg-navy-800 rounded-2xl p-5 border border-navy-700 shadow-lg relative flex flex-col"><div class="absolute top-4 left-4 flex gap-2"><button onclick="deleteCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center"><i class="fa-solid fa-trash text-sm"></i></button><button onclick="printDebtsReceipt(${c.id})" title="طباعة هذه الفاتورة" class="w-8 h-8 rounded-lg bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 flex items-center justify-center"><i class="fa-solid fa-print text-sm"></i></button>${editBtn}</div><div class="flex items-center gap-3 mb-4 pl-28"><div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style="background: ${avatarColor}">${debtEsc(firstLetter)}</div><div class="flex-1 min-w-0"><h3 class="text-white font-bold text-lg truncate">${debtEsc(c.name)}</h3><span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${typeClass}">${typeLabel}</span></div></div><div class="space-y-2 text-sm mb-4">${c.phone ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-phone text-slate-500 w-4 text-center"></i><span dir="ltr">${debtEsc(c.phone)}</span></div>` : ''}${c.address ? `<div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-location-dot text-slate-500 w-4 text-center"></i><span class="truncate">${debtEsc(c.address)}</span></div>` : ''}</div><div class="grid grid-cols-2 gap-2 mb-3"><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">قيمة الفاتورة</div><div class="text-emerald-400 font-bold text-sm">${formatMoney(c.total || 0)}</div></div><div class="bg-navy-900 rounded-xl p-3 border border-navy-700 text-center"><div class="text-slate-400 text-xs mb-1">المتبقي</div><div class="${debtColor} font-bold text-sm">${formatMoney(remaining)}</div></div></div><div class="flex justify-between items-center text-xs py-2 border-t border-navy-700 mb-3"><span class="text-slate-400">حالة الدَّين</span><span class="${debtColor} font-bold">${debtStatus}</span></div>${notesHtml}${actionBtn}</div>`;
                 }).join('');
             }
         }
@@ -5183,7 +5186,20 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (!start) return list;
             return list.filter(d => { const dt = getInvoiceDate(d); return dt && dt >= start && dt <= end; });
         }
-        function printDebtsReceipt() {
+        // يستخرج الدفعات الجزئية (المبلغ + تاريخ التسديد) من سجل ملاحظات فاتورة الدَّين
+        function debtParsePayments(d) {
+            const out = [];
+            const txt = String(d && d.notes || '');
+            const re = /💰\s*\[([^\]]+)\]\s*تم تسديد دفعة\s*([^\n\r]*)/g;
+            let m;
+            while ((m = re.exec(txt))) {
+                const amt = m[2].replace(/\s*—\s*المتبقي:.*$/, '').trim();
+                out.push({ when: m[1].replace(/\s*-\s*/, ' ').trim(), amount: amt });
+            }
+            return out;
+        }
+        function printDebtsReceipt(onlyId) {
+            const single = onlyId !== undefined && onlyId !== null && typeof onlyId !== 'object';
             const area = document.getElementById('debtPrintArea');
             if (!area) return;
             if (!Array.isArray(state.debtInvoices)) state.debtInvoices = [];
@@ -5192,7 +5208,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const sf = document.getElementById('customerTypeFilter') ? document.getElementById('customerTypeFilter').value : 'all';
             if (sf === 'open') list = list.filter(d => d.status !== 'paid');
             else if (sf === 'paid') list = list.filter(d => d.status === 'paid');
-            if (list.length === 0) { showToast('⚠️ لا توجد فواتير دَّين في الفترة المحددة', 'warning'); return; }
+            if (single) list = state.debtInvoices.filter(d => String(d.id) === String(onlyId));
+            if (list.length === 0) { showToast(single ? '⚠️ الفاتورة غير موجودة' : '⚠️ لا توجد فواتير دَّين في الفترة المحددة', 'warning'); return; }
             list = list.slice().sort((a, b) => ((a.status === 'paid') - (b.status === 'paid')) || (b.id - a.id));
             const rate = parseFloat(state.settings.exchangeRate) || 1;
             const openList = list.filter(d => d.status !== 'paid');
@@ -5205,13 +5222,15 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 const dateTxt = dt ? dt.toLocaleDateString('en-GB') : (d.date || '');
                 const remTxt = isPaid ? formatMoney(0) : formatMoney(d.remaining || 0);
                 const sypApprox = (!isPaid && d.invoiceCurrency === 'SYP_NEW') ? ` (≈ ${formatSYP((d.remaining || 0) * rate)})` : '';
-                return `<div class="dpa-item"><div class="dpa-row"><span class="dpa-name">${debtEsc(d.name || 'بدون اسم')}</span><span class="dpa-badge ${isPaid ? 'paid' : ''}">${isPaid ? 'مسدَّدة ✓' : 'مفتوحة'}</span></div><div class="dpa-row dpa-rem"><span>المتبقي${debtEsc(sypApprox)}</span><span>${debtEsc(remTxt)}</span></div><div class="dpa-meta">الإجمالي: ${debtEsc(formatMoney(d.total || 0))} • المسدَّد: ${debtEsc(formatMoney(d.paid || 0))}${dateTxt ? ' • ' + debtEsc(dateTxt) : ''}</div></div>`;
+                const pays = debtParsePayments(d);
+                const paysHtml = pays.length ? `<div class="dpa-pays">${pays.map((pay, i) => `<div class="dpa-pay"><span>دفعة ${i + 1} • ${debtEsc(pay.when)}</span><span>${debtEsc(pay.amount)}</span></div>`).join('')}</div>` : '';
+                return `<div class="dpa-item"><div class="dpa-row"><span class="dpa-name">${debtEsc(d.name || 'بدون اسم')}</span><span class="dpa-badge ${isPaid ? 'paid' : ''}">${isPaid ? 'مسدَّدة ✓' : 'مفتوحة'}</span></div><div class="dpa-row dpa-rem"><span>المتبقي${debtEsc(sypApprox)}</span><span>${debtEsc(remTxt)}</span></div><div class="dpa-meta">الإجمالي: ${debtEsc(formatMoney(d.total || 0))} • المسدَّد: ${debtEsc(formatMoney(d.paid || 0))}${dateTxt ? ' • ' + debtEsc(dateTxt) : ''}</div>${paysHtml}</div>`;
             }).join('');
             const store = (state.settings && state.settings.storeName) || '';
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            const statusTxt = sf === 'open' ? 'الحالة: مفتوحة فقط' : (sf === 'paid' ? 'الحالة: مسدَّدة فقط' : '');
-            area.innerHTML = `<div class="dpa-head">${printLogoHtml()}<p class="dpa-store">${debtEsc(store)}</p><p class="dpa-title">تقرير فواتير الدَّين</p><p class="dpa-sub">الفترة: ${debtEsc(label)}</p>${statusTxt ? `<p class="dpa-sub">${statusTxt}</p>` : ''}<p class="dpa-sub">${dateStr}</p></div>`
+            const statusTxt = single ? '' : sf === 'open' ? 'الحالة: مفتوحة فقط' : (sf === 'paid' ? 'الحالة: مسدَّدة فقط' : '');
+            area.innerHTML = `<div class="dpa-head">${printLogoHtml()}<p class="dpa-store">${debtEsc(store)}</p><p class="dpa-title">${single ? 'فاتورة دَّين' : 'تقرير فواتير الدَّين'}</p>${single ? '' : `<p class="dpa-sub">الفترة: ${debtEsc(label)}</p>`}${statusTxt ? `<p class="dpa-sub">${statusTxt}</p>` : ''}<p class="dpa-sub">${dateStr}</p></div>`
                 + items
                 + `<div class="dpa-sec"><div class="dpa-line"><span>عدد الفواتير</span><span>${list.length}</span></div><div class="dpa-line"><span>مفتوحة</span><span>${openList.length}</span></div><div class="dpa-line"><span>مسدَّدة</span><span>${list.length - openList.length}</span></div><div class="dpa-line"><span>إجمالي قيمة الدَّين</span><span>${debtEsc(formatMoney(totalSum))}</span></div><div class="dpa-line"><span>إجمالي المسدَّد</span><span>${debtEsc(formatMoney(paidSum))}</span></div></div>`
                 + `<div class="dpa-sec"><p class="dpa-label">إجمالي المتبقي للتحصيل</p><div class="dpa-line"><span>بالدولار</span><span class="dpa-big">${debtEsc(formatMoney(remainingSum))}</span></div><div class="dpa-line"><span>بالليرة السورية</span><span>${debtEsc(formatSYP(remainingSum * rate))}</span></div></div>`
