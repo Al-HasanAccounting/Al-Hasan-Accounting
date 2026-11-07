@@ -1513,7 +1513,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             <input type="text" id="qtyModalInput" inputmode="decimal" autocomplete="off" dir="ltr" placeholder="0.00" oninput="onQtyModalInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmQtyModal();}" class="w-full bg-navy-900 border border-navy-600 rounded-xl p-4 text-white text-2xl text-center font-bold focus:border-gold-400 outline-none">
             <p class="text-[11px] text-slate-500 mt-1 text-center">حتى خانتين بعد الفاصلة، مثال: 1.55</p>
             <div id="qtyModalPriceRow" style="display:none" class="mt-3">
-                <label class="block text-sm text-slate-300 mb-1">السعر</label>
+                <label class="block text-sm text-slate-300 mb-1">السعر الإجمالي لهذه الكمية</label>
                 <div class="flex gap-2">
                     <input type="text" id="qtyModalPriceInput" inputmode="decimal" autocomplete="off" dir="ltr" placeholder="0.00" oninput="onQtyModalPriceInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmQtyModal();}" class="flex-1 min-w-0 bg-navy-900 border border-navy-600 rounded-xl p-3 text-white text-xl text-center font-bold focus:border-gold-400 outline-none">
                     <button type="button" id="qtyModalCurUSD" onclick="setQtyModalCurrency('USD')" class="px-4 rounded-xl font-bold text-sm border-2 bg-blue-500 text-white border-blue-500">$</button>
@@ -4036,6 +4036,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         function itemCurrency(item) { return item.displayCurrency || item.pricingCurrency || 'USD'; }
         // إجمالي السطر بالدولار (يُقرَّب لأقرب سنت عند التسعير بالدولار في وضع الفواصل)
         function itemLineUSD(item) {
+            if (item && item.fixedTotal != null) return convertToUSD(item.fixedTotal, itemCurrency(item));
             const priceUSD = itemPriceUSD(item);
             if (!itemExact(item)) return priceUSD * item.qty;
             const h = qH(item.qty);
@@ -4044,6 +4045,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
         }
         // إجمالي السطر بعملة التسعير الأصلية (للعرض)
         function itemLineOrig(item) {
+            if (item && item.fixedTotal != null) return Number(item.fixedTotal) || 0;
             const price = item.price || 0;
             if (!itemExact(item)) return price * item.qty;
             const h = qH(item.qty);
@@ -4056,6 +4058,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             return itemPriceUSD(it) * (Number(it.qty) || 0);
         }
         function invLineOrig(it) {
+            if (it && it.fixedTotal != null) return Number(it.fixedTotal) || 0;
             if (it.lineUSD !== undefined && it.lineUSD !== null) {
                 return itemCurrency(it) === 'USD' ? Number(it.lineUSD) || 0 : (it.price || 0) * qH(it.qty) / 100;
             }
@@ -4110,7 +4113,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 const cur = (qtyModalCtx && qtyModalCtx.currency) || 'USD';
                 const pt = parsePriceInput(document.getElementById('qtyModalPriceInput').value);
                 const pr = (pt === '' || pt === '.') ? 0 : parseFloat(pt) || 0;
-                return { price: pr, priceUSD: convertToUSD(pr, cur), qty: h / 100, displayCurrency: cur };
+                return { price: h > 0 ? pr * 100 / h : 0, fixedTotal: pr, priceUSD: convertToUSD(pr, cur), qty: h / 100, displayCurrency: cur };
             }
             const originalPrice = getProductPriceOriginal(product, state.settings.isWholesale);
             return { price: originalPrice, priceUSD: convertToUSD(originalPrice, product), qty: h / 100, displayCurrency: product.pricingCurrency || 'USD' };
@@ -4121,6 +4124,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (qH(product.qty) <= 0) { showToast('المنتج غير متوفر!', 'warning'); return; }
             mode = (mode === 'set') ? 'set' : 'add';
             const cartItem = state.cart.find(i => i.id === productId);
+            if (isPriceAtCart(product) && cartItem) mode = 'set';
             qtyModalCtx = { id: productId, mode };
             const unit = product.unit || 'قطعة';
             document.getElementById('qtyModalName').innerText = (cartItem && cartItem.name) || product.name || 'منتج بدون اسم';
@@ -4137,7 +4141,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const pacRow = document.getElementById('qtyModalPriceRow');
             if (isPriceAtCart(product)) {
                 qtyModalCtx.currency = (cartItem && cartItem.displayCurrency) || 'USD';
-                document.getElementById('qtyModalPriceInput').value = cartItem ? String(cartItem.price) : '';
+                document.getElementById('qtyModalPriceInput').value = (cartItem && cartItem.fixedTotal != null) ? String(cartItem.fixedTotal) : '';
                 document.getElementById('qtyModalNameInput').value = (cartItem && cartItem.name) || product.name || '';
                 document.getElementById('qtyModalNameRow').style.display = 'block';
                 pacRow.style.display = 'block';
@@ -4193,11 +4197,12 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             const r = qtyModalResolve(true);
             if (r.error) { const errEl = document.getElementById('qtyModalError'); errEl.innerText = r.error; errEl.style.display = 'block'; return; }
             const pac = isPriceAtCart(product);
-            let originalPrice, priceUSD, cur, itemName = null;
+            let originalPrice, priceUSD, cur, fixedTotal = null, itemName = null;
             if (pac) {
                 cur = ctx.currency || 'USD';
-                originalPrice = parseFloat(parsePriceInput(document.getElementById('qtyModalPriceInput').value)) || 0;
+                fixedTotal = parseFloat(parsePriceInput(document.getElementById('qtyModalPriceInput').value)) || 0;
                 itemName = document.getElementById('qtyModalNameInput').value.trim();
+                originalPrice = fixedTotal * 100 / r.h;
                 priceUSD = convertToUSD(originalPrice, cur);
             } else {
                 cur = product.pricingCurrency || 'USD';
@@ -4205,8 +4210,8 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 priceUSD = convertToUSD(originalPrice, product);
             }
             const cartItem = state.cart.find(i => i.id === product.id);
-            if (cartItem) { cartItem.qty = r.h / 100; cartItem.price = originalPrice; cartItem.priceUSD = priceUSD; if (pac) { cartItem.pricingCurrency = cur; cartItem.displayCurrency = cur; cartItem.name = itemName; } }
-            else state.cart.push({ ...product, qty: r.h / 100, price: originalPrice, priceUSD: priceUSD, displayCurrency: cur, ...(pac ? { pricingCurrency: cur, name: itemName } : {}) });
+            if (cartItem) { cartItem.qty = r.h / 100; cartItem.price = originalPrice; cartItem.priceUSD = priceUSD; if (pac) { cartItem.pricingCurrency = cur; cartItem.displayCurrency = cur; cartItem.fixedTotal = fixedTotal; cartItem.name = itemName; } }
+            else state.cart.push({ ...product, qty: r.h / 100, price: originalPrice, priceUSD: priceUSD, displayCurrency: cur, ...(pac ? { pricingCurrency: cur, fixedTotal: fixedTotal, name: itemName } : {}) });
             closeQtyModal();
             updateCartUI();
             showToast(`تم إضافة "${itemName || product.name}" (${fmtQty(r.h / 100)} ${product.unit || ''})`, 'success');
@@ -4266,11 +4271,13 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             updateCartUI(); showToast(`تم إضافة "${product.name}"`, 'success');
         }
         function increaseQty(productId) {
+            { const ci = state.cart.find(i => i.id === productId); if (ci && ci.fixedTotal != null) { openQtyModal(productId, 'set'); return; } }
             const product = state.products.find(p => p.id === productId);
             const cartItem = state.cart.find(item => item.id === productId);
             if (product && cartItem) { if (qH(cartItem.qty) + 100 > qH(product.qty)) { showToast('الكمية تتجاوز المخزون!', 'warning'); return; } cartItem.qty = qAdd(cartItem.qty, 1); updateCartUI(); }
         }
         function decreaseQty(productId) {
+            { const ci = state.cart.find(i => i.id === productId); if (ci && ci.fixedTotal != null) { openQtyModal(productId, 'set'); return; } }
             const cartItem = state.cart.find(item => item.id === productId);
             if (cartItem) { if (qH(cartItem.qty) > 100) cartItem.qty = qSub(cartItem.qty, 1); else { removeFromCart(productId); return; } updateCartUI(); }
         }
@@ -4309,7 +4316,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                             ${thumb}
                             <div class="flex-1 min-w-0">
                                 <h4 class="font-bold text-white text-sm truncate">${item.name}</h4>
-                                <p class="text-xs text-slate-400 mt-1">${priceText} × ${fmtQty(item.qty)} = <span class="${currency === 'SYP_NEW' ? 'text-emerald-400' : 'text-gold-400'} font-bold">${totalText}</span></p>
+                                <p class="text-xs text-slate-400 mt-1">${item.fixedTotal != null ? 'الكمية ' + fmtQty(item.qty) : priceText + ' × ' + fmtQty(item.qty)} = <span class="${currency === 'SYP_NEW' ? 'text-emerald-400' : 'text-gold-400'} font-bold">${totalText}</span></p>
                             </div>
                         </div>
                         <div class="flex items-center justify-between bg-navy-800 rounded-lg p-1 w-1/2 mr-auto border border-navy-700 mt-2">
@@ -4377,6 +4384,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                     priceUSD: item.priceUSD,         // محوّل للدولار
                     displayCurrency: item.displayCurrency
                 };
+                if (item.fixedTotal != null) row.fixedTotal = item.fixedTotal;
                 if (itemExact(item)) row.lineUSD = itemLineUSD(item);   // إجمالي السطر المحسوب بدقة وقت البيع
                 return row;
             });
@@ -4705,7 +4713,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                         const itemCurr = item.pricingCurrency || 'USD';
                         const price = parseFloat((item.price || 0).toFixed(2));
                         const priceUSD = item.priceUSD !== undefined ? parseFloat(item.priceUSD.toFixed(2)) : parseFloat(convertToUSD(item.price, item).toFixed(2));
-                        rows.push([invoiceId, invoiceDate, customerName, paymentMethod, saleType, status, itemCurr === 'SYP_NEW' ? 'ليرة سورية' : 'دولار', item.name || '', item.sku || '', item.barcode || '', qty, item.unit || 'قطعة', price, parseFloat((price * qty).toFixed(2)), priceUSD, parseFloat((priceUSD * qty).toFixed(2)), invoiceTotal, discountPercent, invoiceProfit]);
+                        rows.push([invoiceId, invoiceDate, customerName, paymentMethod, saleType, status, itemCurr === 'SYP_NEW' ? 'ليرة سورية' : 'دولار', item.name || '', item.sku || '', item.barcode || '', qty, item.unit || 'قطعة', price, (item.fixedTotal != null ? parseFloat(Number(item.fixedTotal).toFixed(2)) : parseFloat((price * qty).toFixed(2))), priceUSD, ((item.fixedTotal != null && item.lineUSD != null) ? parseFloat(Number(item.lineUSD).toFixed(2)) : parseFloat((priceUSD * qty).toFixed(2))), invoiceTotal, discountPercent, invoiceProfit]);
                     });
                 } else {
                     rows.push([invoiceId, invoiceDate, customerName, paymentMethod, saleType, status, '-', '(لا توجد أصناف)', '', '', 0, '', 0, 0, 0, 0, invoiceTotal, discountPercent, invoiceProfit]);
