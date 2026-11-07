@@ -4677,8 +4677,22 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             // تسجيل الحذف بشكل دائم حتى لا تعود الفاتورة من أي نسخة قديمة أو جهاز آخر
             try { state.invoices.filter(inv => inv.id === invoiceId).forEach(inv => registerInvoiceTombstone(inv)); } catch(e) {}
             if (Array.isArray(invoice.items)) invoice.items.forEach(item => { const product = state.products.find(p => p.id === item.id); if (product) product.qty = qAdd(product.qty || 0, item.qty || 0); });
-            const linkedDebt = (state.debtInvoices || []).some(d => d.invoiceId === invoice.id);
-            if (linkedDebt) state.debtInvoices = state.debtInvoices.filter(d => d.invoiceId !== invoice.id);
+            (state.debtInvoices || []).forEach(d => {
+                const extras = d.extraInvoices || [];
+                if (d.invoiceId === invoice.id && extras.length === 0) return;
+                const isExtra = extras.some(x => x.id === invoice.id);
+                if (extras.length && (d.invoiceId === invoice.id || isExtra)) {
+                    const amt = isExtra ? debtRound((extras.find(x => x.id === invoice.id) || {}).amount) : debtRound(d.total - extras.reduce((a, x) => a + (x.amount || 0), 0));
+                    if (isExtra) d.extraInvoices = extras.filter(x => x.id !== invoice.id);
+                    else { d.invoiceId = extras[0].id; d.extraInvoices = extras.slice(1); }
+                    d.total = debtRound(Math.max(0, (d.total || 0) - amt));
+                    d.remaining = debtRound(Math.max(0, (d.remaining || 0) - amt));
+                    d.notes = (d.notes ? d.notes + '\n\n' : '') + `🗑️ تم حذف الفاتورة ${invoice.id} بقيمة ${formatMoney(amt)} — إجمالي المتبقي: ${formatMoney(d.remaining)}`;
+                    if (d.remaining === 0 && d.status !== 'paid') d.status = 'paid';
+                }
+            });
+            const linkedDebt = (state.debtInvoices || []).some(d => d.invoiceId === invoice.id && !(d.extraInvoices || []).length);
+            if (linkedDebt) state.debtInvoices = state.debtInvoices.filter(d => !(d.invoiceId === invoice.id && !(d.extraInvoices || []).length));
             state.invoices = state.invoices.filter(inv => inv.id !== invoiceId);
             saveState();
             showToast(`🗑️ تم حذف الفاتورة ${invoiceId} وإرجاع الكميات`, 'delete');
@@ -4784,8 +4798,37 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
             if (nameEl) nameEl.placeholder = method === 'دين' ? 'اسم الزبون (مطلوب للدَّين)' : 'اسم الزبون (اختياري)';
         }
         function resetDebtPanel() { ['debtPhone', 'debtAddress', 'debtNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); }
+        function debtNorm(v) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().toLowerCase(); }
+        function debtNormPhone(v) { return toEnglishDigits(String(v == null ? '' : v)).replace(/\D/g, ''); }
+        // فاتورة دَّين مفتوحة لنفس الشخص: يكفي تطابق الاسم أو الرقم أو العنوان
+        function findMatchingOpenDebt(name, phone, address) {
+            const n = debtNorm(name), ph = debtNormPhone(phone), ad = debtNorm(address);
+            return (state.debtInvoices || []).find(d => d.status !== 'paid' && (
+                (n && debtNorm(d.name) === n) || (ph && debtNormPhone(d.phone) === ph) || (ad && debtNorm(d.address) === ad)
+            ));
+        }
+        function debtInvoiceIds(d) { return [d.invoiceId].concat((d.extraInvoices || []).map(x => x.id)); }
         function createDebtInvoice(invoice, data) {
             if (!Array.isArray(state.debtInvoices)) state.debtInvoices = [];
+            const existing = findMatchingOpenDebt(invoice.customerName, data && data.phone, data && data.address);
+            if (existing) {
+                const amount = debtRound(invoice.totalUSD);
+                existing.total = debtRound((existing.total || 0) + amount);
+                existing.remaining = debtRound((existing.remaining || 0) + amount);
+                if (!Array.isArray(existing.extraInvoices)) existing.extraInvoices = [];
+                existing.extraInvoices.push({ id: invoice.id, amount, date: invoice.date });
+                if (!existing.phone && data && data.phone) existing.phone = data.phone;
+                if (!existing.address && data && data.address) existing.address = data.address;
+                const now = new Date();
+                const stamp = now.toLocaleDateString('en-GB') + ' - ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const rate = parseFloat(state.settings.exchangeRate) || 1;
+                const valTxt = invoice.invoiceCurrency === 'SYP_NEW' ? `${formatSYP(amount * rate)} (≈ ${formatMoney(amount)})` : formatMoney(amount);
+                let note = `🧾 [${stamp}] فاتورة جديدة رقم ${invoice.id} بقيمة ${valTxt} — إجمالي المتبقي: ${formatMoney(existing.remaining)}`;
+                if (data && data.notes) note += `\n    📝 ${data.notes}`;
+                existing.notes = existing.notes ? existing.notes + '\n\n' + note : note;
+                try { showToast(`🧾 أُضيفت الفاتورة ${invoice.id} إلى فاتورة الدَّين الحالية لـ "${existing.name}"`, 'info'); } catch (e) {}
+                return existing;
+            }
             let notes = `🧾 فاتورة رقم ${invoice.id}`;
             if (data && data.notes) notes += `\n${data.notes}`;
             state.debtInvoices.push({
@@ -4930,8 +4973,7 @@ body.ro-dragging-body { -webkit-user-select: none; user-select: none; }
                 d.status = 'paid';
                 d.paidDate = `${dateStr} - ${timeStr}`;
                 newNote += `\n✅ تم التسديد بالكامل`;
-                const inv = state.invoices.find(i => i.id === d.invoiceId);
-                if (inv) inv.status = 'Paid';
+                debtInvoiceIds(d).forEach(iid => { const inv = state.invoices.find(i => i.id === iid); if (inv) inv.status = 'Paid'; });
             }
             d.notes = d.notes ? d.notes + '\n\n' + newNote : newNote;
             closeModal('payDebtModal'); saveState();
